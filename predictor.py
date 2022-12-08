@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 '''
 TO DO: 
 -> modify the stopping condition
-1. add the stopping condition of the collision ball instead of only one direction
-2. what if the vehicle have actually passed the collision scenario
+1. add the stopping condition of the collision ball instead of only one direction   # DONE
+2. what if the vehicle have actually passed the collision scenario                  # DONE
 -> dynamics update
 1. include acceleration in the dynamics
 2. check the velocity profile update system
@@ -31,6 +31,7 @@ horizon = 10                                    # length of velocity profile
 future_horizon = 20                             # number of time steps
 max_time = 5                                    # future time horizon
 t = np.linspace(0, max_time,future_horizon)     # time steps
+tol = 0.3                                       # tolerance value for proximity check
 
 # for car
 start_pos_car = 0
@@ -53,15 +54,21 @@ plt.ylabel("y")
 plt.xlim(-5,30)
 plt.ylim(-25,10)
 
+# proximity check function
+def close(a, b):
+    if np.isclose(a, b, atol = tol).any():
+        return True
+    return False
+
 # stopping function
-def stop(car,ped):
-    if np.sqrt(car**2+ped**2) < 0.5:
+def stop(x_car, y_car, x_ped, y_ped):
+    if close(x_car, x_ped) and close(y_car, y_ped):                  # check condition along the axis of moving car
         print("!!STOP!!")
         return False
     return True
 
 ### MERGE
-while stop(y_car[-1], y_ped[-1]):
+while stop(x_car,y_car,x_ped,y_ped):
     vel_profile_car = []
     vel_profile_ped = []
     for _ in range(horizon):
