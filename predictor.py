@@ -76,6 +76,7 @@ plt.ylabel("y")
 curvy_car_x = np.linspace(start_pos_car_2_x,10,10)
 curvy_car_y = np.multiply(b, np.power(x_car_2,2)) + np.multiply(c,x_car_2)
 plt.plot(curvy_car_x, curvy_car_y)
+plt.plot(x_car_2[0], y_car_2[0], marker = '*', markersize = 5)
 # plt.xlim(-5,35)
 # plt.ylim(-10,15)
 
@@ -167,11 +168,11 @@ while stop(x_car,y_car,x_ped,y_ped,x_car_1,y_car_1):
     # test
     # theta = [np.mean(slope)]*horizon
     while len(theta) < horizon:
-        theta.append(np.mean(slopes))
+        theta.append(np.mean(slopes)+b)    # WTF
     print(theta)
 
-    x_new = x_car_2[1] + np.multiply(np.multiply(avg_vel_car_2, np.cos(theta)), t) #+ np.multiply(np.multiply(np.multiply(avg_acc_car_2, 0.5), np.cos(theta)), np.square(t))
-    y_new = y_car_2[1] + np.multiply(np.multiply(avg_vel_car_2, np.sin(theta)), t) #+ np.multiply(np.multiply(np.multiply(avg_acc_car_2, 0.5), np.sin(theta)), np.square(t))
+    x_new = x_car_2[1] + np.multiply(np.multiply(avg_vel_car_2, np.cos(theta)), t) + np.multiply(np.multiply(np.multiply(avg_acc_car_2, 0.5), np.cos(theta)), np.square(t))
+    y_new = y_car_2[1] + np.multiply(np.multiply(avg_vel_car_2, np.sin(theta)), t) + np.multiply(np.multiply(np.multiply(avg_acc_car_2, 0.5), np.sin(theta)), np.square(t))
     x_car_2 = x_new
     y_car_2 = y_new
 
@@ -186,7 +187,7 @@ while stop(x_car,y_car,x_ped,y_ped,x_car_1,y_car_1):
     plt.plot(x_car_2[1], y_car_2[1], marker = '*', markersize = 5)
     # plotting the velocity profile
     # time = [i for i in range(horizon)]
-    # plt.plot(time, vel_profile_car)
+    # plt.plot(time, vel_profile_acr)
     # plt.plot(time, vel_profile_ped)
 
     plt.pause(2)
