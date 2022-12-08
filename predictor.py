@@ -8,7 +8,7 @@ TO DO:
 2. what if the vehicle have actually passed the collision scenario                  # DONE
 -> dynamics update
 1. include acceleration in the dynamics                                             # DONE
-2. check the velocity profile update system
+2. check the velocity profile update system                                         # DONE
 3. angular velocity and steering angle dynamics
 4. inclusion of curvy roads and intersection scenario
 5. different time horizons for ego vehicle and traffic participants 
@@ -23,12 +23,12 @@ TO DO:
 7. simulate everything on the gazebo
 8. fusion from camera and radar data
 -> plotting
-1. plotting the velocity profiles
+1. plotting the velocity profiles                                                   # DONE
 2. add road boundaries 
 '''
 
 horizon = 10                                    # length of velocity profile 
-future_horizon = 20                             # number of time steps
+future_horizon = 10                             # number of time steps
 max_time = 5                                    # future time horizon
 t = np.linspace(0, max_time,future_horizon)     # time steps
 tol = 0.3                                       # tolerance value for proximity check
@@ -39,9 +39,20 @@ x_car = [start_pos_car]*future_horizon
 u_car = 2.5                                     # initial velocity of the car    
 a_car = 0.5                                     # acceleration of the car
 
+# for car moving in diagonal direction
+start_pos_car_1_x = 5
+start_pos_car_1_y = -10
+future_horizon_car_1 = 10
+x_car_1 = [start_pos_car_1_x]*future_horizon_car_1
+y_car_1 = [start_pos_car_1_y]*future_horizon_car_1
+theta = np.pi/5
+u_car_1 = 1.5
+a_car_1 = 0.2
+
 # for pedestrian
 start_pos_ped = -5
-y_ped = [start_pos_ped]*future_horizon
+future_horizon_ped = 10
+y_ped = [start_pos_ped]*future_horizon_ped
 u_ped = 0.4                                     # initial velocity of the pedestrian
 a_ped = 0.1                                     # acceleration of the pedestrian
 
@@ -51,8 +62,8 @@ x_ped = [20]*future_horizon
 plt.title("Collision Predictor")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.xlim(-5,30)
-plt.ylim(-25,10)
+# plt.xlim(-5,35)
+# plt.ylim(-10,15)
 
 # proximity check function
 def close(a, b):
@@ -61,18 +72,20 @@ def close(a, b):
     return False
 
 # stopping function
-def stop(x_car, y_car, x_ped, y_ped):
-    if close(x_car, x_ped) and close(y_car, y_ped):                  # check condition along the axis of moving car
+def stop(x_car, y_car, x_ped, y_ped, x_car_1, y_car_1):
+    if (close(x_car, x_ped) and close(y_car, y_ped)) or (close(x_car, x_car_1) and close(y_car, y_car_1)) :
         print("!!STOP!!")
         return False
     return True
 
 ### MERGE
-while stop(x_car,y_car,x_ped,y_ped):
+while stop(x_car,y_car,x_ped,y_ped,x_car_1,y_car_1):
     vel_profile_car = []
     acc_profile_car = []
     vel_profile_ped = []
     acc_profile_ped = []
+    vel_profile_car_1 = []
+    acc_profile_car_1 = []
     for _ in range(horizon):
         noise_car = np.random.random()          # noise in the velocity profile of car
         vel_profile_car.append(u_car+noise_car)
@@ -80,7 +93,10 @@ while stop(x_car,y_car,x_ped,y_ped):
         noise_ped = np.random.random()          # noise in the velocity profile of pedestrian
         vel_profile_ped.append(u_ped+noise_ped/10)
         acc_profile_ped.append(a_ped+np.random.choice([-1,1])*np.random.random()/10)
-
+        noise_ego = np.random.random()
+        vel_profile_car_1.append(u_car_1+noise_ego)
+        acc_profile_car_1.append(a_car_1+np.random.choice([-1,1])*np.random.random()/2)
+    
     # car dynamics
     avg_vel_car = np.mean(vel_profile_car)
     avg_acc_car = np.mean(acc_profile_car)
@@ -95,11 +111,27 @@ while stop(x_car,y_car,x_ped,y_ped):
     y_new = y_ped[1] + np.multiply(avg_vel_ped, t) + np.multiply(0.5*avg_acc_ped, np.square(t))
     y_ped = y_new
     
+    # ego car dynamics
+    avg_vel_ego = np.mean(vel_profile_car_1)
+    avg_acc_ego = np.mean(acc_profile_car_1)
+    # update according to actual position
+    x_new = x_car_1[1] + np.multiply(avg_vel_ego*np.cos(theta), t) + np.multiply(0.5*avg_acc_ego*np.cos(theta), np.square(t))
+    y_new = y_car_1[1] + np.multiply(avg_vel_ego*np.sin(theta), t) + np.multiply(0.5*avg_acc_ego*np.sin(theta), np.square(t))
+    x_car_1 = x_new
+    y_car_1 = y_new
+
     # plotting
     plt.plot(x_car, y_car)
     plt.plot(x_car[1], y_car[1], marker='>', markersize=5)
     plt.plot(x_ped, y_ped)
     plt.plot(x_ped[1], y_ped[1], marker='^', markersize=5)
+    plt.plot(x_car_1, y_car_1)
+    plt.plot(x_car_1[1], y_car_1[1], marker = 'o', markersize = 5)
+    # plotting the velocity profile
+    # time = [i for i in range(horizon)]
+    # plt.plot(time, vel_profile_car)
+    # plt.plot(time, vel_profile_ped)
+
     plt.pause(0.2)
 
 plt.show()
