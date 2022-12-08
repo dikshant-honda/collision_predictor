@@ -31,10 +31,10 @@ horizon = 10                                    # length of velocity profile
 future_horizon = 10                             # number of time steps
 max_time = 5                                    # future time horizon
 t = np.linspace(0, max_time,future_horizon)     # time steps
-tol = 0.3                                       # tolerance value for proximity check
+tol = 0.5                                       # tolerance value for proximity check
 
 # for car
-start_pos_car = 0
+start_pos_car = -10
 x_car = [start_pos_car]*future_horizon
 u_car = 2.5                                     # initial velocity of the car    
 a_car = 0.5                                     # acceleration of the car
@@ -42,17 +42,18 @@ a_car = 0.5                                     # acceleration of the car
 # for car moving in diagonal direction
 start_pos_car_1_x = 5
 start_pos_car_1_y = -10
-future_horizon_car_1 = 10
-x_car_1 = [start_pos_car_1_x]*future_horizon_car_1
-y_car_1 = [start_pos_car_1_y]*future_horizon_car_1
+x_car_1 = [start_pos_car_1_x]*future_horizon
+y_car_1 = [start_pos_car_1_y]*future_horizon
 theta = np.pi/5
 u_car_1 = 1.5
 a_car_1 = 0.2
 
+# for car moving on curves
+
+
 # for pedestrian
 start_pos_ped = -5
-future_horizon_ped = 10
-y_ped = [start_pos_ped]*future_horizon_ped
+y_ped = [start_pos_ped]*future_horizon
 u_ped = 0.4                                     # initial velocity of the pedestrian
 a_ped = 0.1                                     # acceleration of the pedestrian
 
@@ -73,7 +74,12 @@ def close(a, b):
 
 # stopping function
 def stop(x_car, y_car, x_ped, y_ped, x_car_1, y_car_1):
-    if (close(x_car, x_ped) and close(y_car, y_ped)) or (close(x_car, x_car_1) and close(y_car, y_car_1)) :
+    if close(x_car, x_ped) and close(y_car, y_ped):
+        print("collision with pedestrian")
+        print("!!STOP!!")
+        return False
+    if close(x_car, x_car_1) and close(y_car, y_car_1) :
+        print("collision with other car")
         print("!!STOP!!")
         return False
     return True
