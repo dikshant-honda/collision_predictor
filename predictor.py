@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import math
 import warnings
 
 '''
@@ -33,7 +32,7 @@ horizon = 10                                    # length of velocity profile
 future_horizon = 10                             # number of time steps
 max_time = 5                                    # future time horizon
 t = 0.5                                         # time step
-tol = 0.1                                      # tolerance value for proximity check
+tol = 0.5                                       # tolerance value for proximity check
 order = 4                                       # degree of the polynomial fit curve
 
 # for car
@@ -83,11 +82,10 @@ plt.plot(x_car_2[-1], y_car_2[-1], marker = 's', markersize = 5)
 
 # proximity check function
 ### IMPROVE THE NUMBER OF CHECKS
-def close(a, b):
-    for i in a:
-        for j in b:
-            if abs(i-j) < tol:
-                print(i, j)
+def close(pos1, pos2):
+    for i in range(len(pos1[0])):
+        for j in range(len(pos2[0])):
+            if np.sqrt((pos1[0][i]-pos2[0][j])**2 + (pos1[1][i]-pos2[1][j])**2) < tol:
                 return True
     return False
 
@@ -104,12 +102,14 @@ def collision(x_car, y_car, x_ped, y_ped, x_car_1, y_car_1, x_car_2, y_car_2):
     # if close(x_car, x_ped) and close(y_car, y_ped):
     #     print("collision with pedestrian")
     #     print("!!STOP!!")
-    #     return False        
-    if close(x_car, x_car_1) and close(y_car, y_car_1) :
-        print("collision with diagonally moving car")
-        print("!!STOP!!")
-        return False
-    if close(x_car, x_car_2) and close(y_car, y_car_2) :
+    #     return False       
+    car_pos = [x_car, y_car]
+    car_2_pos = [x_car_2, y_car_2]
+    # if close(x_car, x_car_1) and close(y_car, y_car_1) :
+    #     print("collision with diagonally moving car")
+    #     print("!!STOP!!")
+    #     return False
+    if close(car_pos, car_2_pos) :
         print("collision with car moving on curvy path")
         print("!!STOP!!")
         return False
