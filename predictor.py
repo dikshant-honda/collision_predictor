@@ -36,23 +36,32 @@ order = 4                                       # degree of the polynomial fit c
 
 # for car
 start_pos_car = -10
-x_car = [start_pos_car]*future_horizon
+x_car = np.linspace(start_pos_car, -5, horizon)
+y_car = np.linspace(0, 0, horizon)
 u_car = 2.5                                     # initial velocity of the car    
 a_car = 0.5                                     # acceleration of the car
 
+# for pedestrian
+start_pos_ped = -5
+x_ped = np.linspace(5,5,horizon)
+y_ped = np.linspace(start_pos_ped, -3, horizon)
+u_ped = 0.3                                     # initial velocity of the pedestrian
+a_ped = 0.05                                    # acceleration of the pedestrian
+
 # for car moving in diagonal direction
-start_pos_car_1_x = 5
+start_pos_car_1_x = -5
 start_pos_car_1_y = 10
-x_car_1 = [start_pos_car_1_x]*future_horizon
-y_car_1 = [start_pos_car_1_y]*future_horizon
+x_pt = np.linspace(start_pos_car_1_x, 10, horizon)
 theta = -np.pi/5
+x_car_1 = x_pt*np.cos(theta)
+y_car_1 = x_pt*np.sin(theta)
 u_car_1 = 1.5
 a_car_1 = 0.2
 
 # for car moving on curves
 start_pos_car_2_x = -5
 start_pos_car_2_y = -10
-x_car_2 = np.linspace(start_pos_car_2_x,5,10)    ## update this 
+x_car_2 = np.linspace(start_pos_car_2_x,1,horizon)    ## update this 
 a = 0.05
 b = 0.02
 c = 0.5
@@ -62,15 +71,7 @@ y_car_2 = np.multiply(a, np.power(x_car_2,3))+np.multiply(b, np.power(x_car_2,2)
 u_car_2 = 1
 a_car_2 = 0.3
 
-# for pedestrian
-start_pos_ped = -5
-y_ped = [start_pos_ped]*future_horizon
-u_ped = 0.3                                     # initial velocity of the pedestrian
-a_ped = 0.05                                    # acceleration of the pedestrian
-
 # plotting 
-y_car = [0]*future_horizon 
-x_ped = [20]*future_horizon
 plt.title("Collision Predictor")
 plt.xlabel("x")
 plt.ylabel("y")
@@ -104,8 +105,8 @@ def stop(x_car, y_car, x_ped, y_ped, x_car_1, y_car_1):
 def dynamics(x, y):
     # future trajectory estimation
     f = fit(x, y, order)
-    buffer_length = abs(x[0]-x[-1])
-    future_x = np.linspace(x[0], x[-1]+buffer_length/2)
+    future_x = np.linspace(x[0], x[-1]+horizon/2)
+    future_y = f(future_x)
 
     # average velocity estimation
     vel_profile = []
@@ -117,89 +118,50 @@ def dynamics(x, y):
     avg_acc= np.mean(acc_profile)
 
     # update 
-    theta = np.arctan((y[-1]-y[0])/(x[-1]-x[0]))
+    if x[-1]-x[0] == 0 and y[-1]-y[0] != 0:
+        print("is it ped")
+        theta = np.pi/2
+    elif x[-1]-x[0] != 0 and y[-1]-y[0] == 0:
+        theta = 0
+    else:
+        theta = np.arctan((y[-1]-y[0])/(x[-1]-x[0]))
     x_new = x + avg_vel*np.cos(theta)*t + 0.5*avg_acc*np.cos(theta)*(t**2)
     y_new = y + avg_vel*np.sin(theta)*t + 0.5*avg_acc*np.sin(theta)*(t**2)
-    return x_new, y_new
+    return x_new, y_new, future_x, future_y
 
 ### MERGE
 while True:# stop(x_car,y_car,x_ped,y_ped,x_car_1,y_car_1):
-    # vel_profile_car = []
-    # acc_profile_car = []
-    # vel_profile_ped = []
-    # acc_profile_ped = []
-    # vel_profile_car_1 = []
-    # acc_profile_car_1 = []
-    # vel_profile_car_2 = []
-    # acc_profile_car_2 = []
-    # for _ in range(horizon):
-    #     noise_car = np.random.random()          # noise in the velocity profile of car
-    #     vel_profile_car.append(u_car+noise_car)
-    #     acc_profile_car.append(a_car+np.random.choice([-1,1])*np.random.random()/2)
-    #     noise_ped = np.random.random()          # noise in the velocity profile of pedestrian
-    #     vel_profile_ped.append(u_ped+noise_ped/10)
-    #     acc_profile_ped.append(a_ped+np.random.choice([-1,1])*np.random.random()/10)
-    #     noise_car_1 = np.random.random()
-    #     vel_profile_car_1.append(u_car_1+noise_car_1)
-    #     acc_profile_car_1.append(a_car_1+np.random.choice([-1,1])*np.random.random()/2)
-    #     noise_car_2 = np.random.random()
-    #     vel_profile_car_2.append(u_car_2+noise_car_2)
-    #     acc_profile_car_2.append(a_car_2+np.random.choice([-1,1])*np.random.random()/2)
-    
-    # car dynamics
-    # avg_vel_car = np.mean(vel_profile_car)
-    # avg_acc_car = np.mean(acc_profile_car)
-    # # update the x_car[1] by the actual position of the car
-    # x_new = x_car[1] + np.multiply(avg_vel_car, t) + np.multiply(0.5*avg_acc_car,np.square(t))
-    # x_car = x_new
+    # straight moving car
+    x_car, y_car, x_car_future, y_car_future = dynamics(x_car, y_car)
 
-    # # pedestrian dynamics
-    # avg_vel_ped = np.mean(vel_profile_ped)
-    # avg_acc_ped = np.mean(acc_profile_ped)
-    # # update the y_ped[1] by the actual position of the pedestrian
-    # y_new = y_ped[1] + np.multiply(avg_vel_ped, t) + np.multiply(0.5*avg_acc_ped, np.square(t))
-    # y_ped = y_new
+    # pedestrian dynamics
+    x_ped, y_ped, x_ped_future, y_ped_future = dynamics(x_ped, y_ped)
     
-    # # diagonally moving car dynamics
-    # avg_vel_car_1 = np.mean(vel_profile_car_1)
-    # avg_acc_car_1 = np.mean(acc_profile_car_1)
-    # # update according to actual position
-    # x_new = x_car_1[1] + np.multiply(avg_vel_car_1*np.cos(theta), t) + np.multiply(0.5*avg_acc_car_1*np.cos(theta), np.square(t))
-    # y_new = y_car_1[1] + np.multiply(avg_vel_car_1*np.sin(theta), t) + np.multiply(0.5*avg_acc_car_1*np.sin(theta), np.square(t))
-    # x_car_1 = x_new
-    # y_car_1 = y_new
+    # diagonally moving car dynamics
+    x_car_1, y_car_1, x_car_future_1, y_car_future_1 = dynamics(x_car_1, y_car_1)
 
     # curvy car dynamics
-    # future trajectory estimation
-    x_car_2, y_car_2 = dynamics(x_car_2, y_car_2)
-    # f = fit(x_car_2, y_car_2, order)
-    # buffer_length = abs(x_car_2[0]-x_car_2[-1])
-    # future_x = np.linspace(x_car_2[0], x_car_2[-1]+buffer_length/2)
-    # future_y = f(future_x)
-
-    # avg_vel_car_2 = np.mean(vel_profile_car_2)
-    # avg_acc_car_2 = np.mean(acc_profile_car_2)
-    # theta = np.arctan((y_car_2[-1]-y_car_2[0])/(x_car_2[-1]-x_car_2[0]))
-    # x_new = x_car_2 + avg_vel_car_2*np.cos(theta)*t + 0.5*avg_acc_car_2*np.cos(theta)*(t**2)
-    # y_new = y_car_2 + avg_vel_car_2*np.sin(theta)*t + 0.5*avg_acc_car_2*np.sin(theta)*(t**2)
-    # x_car_2 = x_new
-    # y_car_2 = y_new
+    x_car_2, y_car_2, x_car_future_2, y_car_future_2 = dynamics(x_car_2, y_car_2)
 
     # plotting
-    # plt.plot(x_car, y_car)
-    # plt.plot(x_car[1], y_car[1], marker='>', markersize=5)
-    # plt.plot(x_ped, y_ped)
-    # plt.plot(x_ped[1], y_ped[1], marker='^', markersize=5)
-    # plt.plot(x_car_1, y_car_1)
-    # plt.plot(x_car_1[1], y_car_1[1], marker = 'o', markersize = 5)
+    plt.plot(x_car, y_car)
+    plt.plot(x_car[0], y_car[0], marker='>', markersize=5)
+    plt.plot(x_ped, y_ped)
+    plt.plot(x_ped[0], y_ped[0], marker='^', markersize=5)
+    plt.plot(x_car_1, y_car_1)
+    plt.plot(x_car_1[0], y_car_1[0], marker = 'o', markersize = 5)
     plt.plot(x_car_2, y_car_2)
     plt.plot(x_car_2[0], y_car_2[0], marker = '*', markersize = 5)
+    plt.plot(x_car_future[-1], y_car_future[-1], marker='s', markersize=5)
+    plt.plot(x_ped_future[-1], y_ped_future[-1], marker='s', markersize=5)
+    plt.plot(x_car_future_1[-1], y_car_future_1[-1], marker = 's', markersize = 5)
+    plt.plot(x_car_future_2[-1], y_car_future_2[-1], marker = 's', markersize = 5)
     # plotting the velocity profile
     # time = [i for i in range(horizon)]
     # plt.plot(time, vel_profile_acr)
     # plt.plot(time, vel_profile_ped)
 
-    plt.pause(0.2)
+    plt.pause(1)
 
 plt.show()
 
