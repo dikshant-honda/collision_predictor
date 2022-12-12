@@ -28,12 +28,12 @@ TO DO:
 1. plotting the velocity profiles                                                   # DONE
 2. add road boundaries 
 -> coding practices
-1. add agent type to the step function
+1. add agent type to the step function                                              # DONE
 2. improve the number of check in close function
 3. improve the collision function
-4. add noise function
-5. change position to list instead of individual int
-6. improve the way of adding the vehicle
+4. add noise function                                                               # DONE
+5. change position to list instead of individual int                                # DONE
+6. improve the way of adding the vehicle    
 7. add a vehicle registry class or function
 '''
 
@@ -41,42 +41,38 @@ horizon = 10                                        # length of velocity profile
 future_horizon = 10                                 # number of time steps
 max_time = 5                                        # future time horizon
 t = 0.5                                             # time step
-tol = 0.5                                           # tolerance value for proximity check
+tol = 0.1                                           # tolerance value for proximity check
 order = 4                                           # degree of the polynomial fit curve
 max_dec = 0.3                                       # max deceleration value
 agent = ["ego", "pedestrian", "cyclist", "traffic"] # type of agents
 
 # for ego
-agent_type = agent[0]
 start_pos_car = -5
 x_ego = np.linspace(start_pos_car, -1, horizon)
 y_ego = np.linspace(3, 3, horizon)
 ego_pos = [x_ego, y_ego]
-u_car = 5                                           # initial velocity of the ego car    
-a_car = 0.5                                         # acceleration of the ego car
+u_ego = 0.6                                         # initial velocity of the ego car    
+a_ego = 0.2                                         # acceleration of the ego car
 
 # for pedestrian
-agent_type = agent[1]
 start_pos_ped = -2
 x_ped = np.linspace(7,7,horizon)
-y_ped = np.linspace(start_pos_ped, -1, horizon)
+y_ped = np.linspace(start_pos_ped, 0, horizon)
 ped_pos = [x_ped, y_ped]
 u_ped = 0.3                                         # initial velocity of the pedestrian
 a_ped = 0.05                                        # acceleration of the pedestrian
 
 # for car moving in diagonal direction
-agent_type = agent[3]
 start_pos_car_1_x = -5
 x_pt = np.linspace(start_pos_car_1_x, 0, horizon)
-theta = np.pi/12
-x_car_1 = x_pt*np.cos(theta)
-y_car_1 = x_pt*np.sin(theta)
+phi = np.pi/8
+x_car_1 = x_pt*np.cos(phi)
+y_car_1 = x_pt*np.sin(phi)
 car1_pos = [x_car_1, y_car_1]
-u_car_1 = 1.5                                       # initial velocity of the traffic car 1
-a_car_1 = 0.2                                       # acceleration of the traffic car 1
+u_car1 = 0.5                                        # initial velocity of the traffic car 1
+a_car1 = 0.1                                        # acceleration of the traffic car 1
 
 # for car moving on curves
-agent_type = agent[3]
 start_pos_car_2_x = -5
 x_car_2 = np.linspace(start_pos_car_2_x,1,horizon)     
 a = 0.05
@@ -87,20 +83,20 @@ d = -7
 y_car_2 = np.multiply(b, np.power(x_car_2,2)) + np.multiply(c,x_car_2) 
 # y_car_2 = np.sin(x_car_2)
 car2_pos = [x_car_2, y_car_2]
-u_car_2 = 0.5                                       # initial velocity of the traffic car 2
-a_car_2 = 0.05                                      # acceleration of the traffic car 2
+u_car2 = 0.9                                        # initial velocity of the traffic car 2
+a_car2 = 0.1                                        # acceleration of the traffic car 2
 
 # plotting 
 plt.title("Collision Predictor")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.plot(x_ego[-1], y_ego[-1], marker='s', markersize=5, label='ego')
-plt.plot(x_ped[-1], y_ped[-1], marker='s', markersize=5, label='pedestrian')
-plt.plot(x_car_1[-1], y_car_1[-1], marker = 's', markersize = 5, label='veh 1')
-plt.plot(x_car_2[-1], y_car_2[-1], marker = 's', markersize = 5, label='veh 2')
+plt.plot(x_ego[-1], y_ego[-1], marker='s', color='r', markersize=5, label='ego')
+plt.plot(x_ped[-1], y_ped[-1], marker='s', color='g', markersize=5, label='pedestrian')
+plt.plot(x_car_1[-1], y_car_1[-1], marker = 's', color='b', markersize = 5, label='veh 1')
+plt.plot(x_car_2[-1], y_car_2[-1], marker = 's', color='c', markersize = 5, label='veh 2')
 plt.legend()
-plt.xlim(-5,15)
-plt.ylim(-5,5) 
+# plt.xlim(-5,15)
+# plt.ylim(-5,5) 
 
 # proximity check function
 def close(pos1, pos2):
@@ -109,14 +105,6 @@ def close(pos1, pos2):
             if np.sqrt((pos1[0][i]-pos2[0][j])**2 + (pos1[1][i]-pos2[1][j])**2) < tol:
                 return True
     return False
-
-# curve fitting to approximate future trajectory
-def fit(x, y, order):
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', np.RankWarning)
-        z = np.polyfit(x, y, order)
-        f = np.poly1d(z)
-    return f
 
 # stopping function
 def collision(ego_future, ped_future, car1_future, car2_future):    
@@ -134,56 +122,80 @@ def collision(ego_future, ped_future, car1_future, car2_future):
         return False
     return True
 
-def step(pos):
-    # average velocity estimation
+# average velocity from history
+def velocity(vel, factor):
     vel_profile = []
+    for _ in range(horizon):
+        vel_profile.append(vel+np.random.random()/factor) 
+    avg_vel = np.mean(vel_profile)           
+    return avg_vel
+
+# average acceleration from history
+def acceleration(acc, factor):
     acc_profile = []
     for _ in range(horizon):
-        vel_profile.append(u_car_2+np.random.random())            # adding noise
-        acc_profile.append(a_car_2+np.random.choice([-1,1])*np.random.random()/2)
-    # pedestrian case
-    vel_profile_ped = []
-    acc_profile_ped = []
-    for _ in range(horizon):
-        vel_profile_ped.append(u_car_2+np.random.random()/10)            # adding noise
-        acc_profile_ped.append(a_car_2+np.random.choice([-1,1])*np.random.random()/5)
-    
-    avg_vel = np.mean(vel_profile)
+        acc_profile.append(acc+np.random.choice([-1,1])*np.random.random()/factor) 
     avg_acc = np.mean(acc_profile)
-    avg_vel_ped = np.mean(vel_profile_ped)
-    avg_acc_ped = np.mean(acc_profile_ped)
+    return avg_acc
+
+# compute the slope
+def angle(x, y):
+    if x[-1]-x[0] == 0 and y[-1]-y[0] != 0:
+        theta = np.pi/2
+    else:
+        theta = np.arctan((y[-1]-y[-5])/(x[-1]-x[-5]))
+    return theta
+
+# curve fitting to approximate future trajectory
+def fit(x, y, order):
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', np.RankWarning)
+        z = np.polyfit(x, y, order)
+        f = np.poly1d(z)
+    return f
+
+# update function
+def update(x, y, v, a, t, theta, f):
+    # maximum stopping distance
+    s = v**2 / (2*max_dec)
+    if math.isclose(theta, np.pi/2):                                    # vertical movement
+        future_x = np.linspace(x[-1], x[-1], future_horizon)
+        future_y = np.linspace(y[-1],y[-1]+s, future_horizon)
+        x_new = x + v*np.cos(theta)*t + 0.5*a*np.cos(theta)*(t**2)
+        y_new = y + v*np.sin(theta)*t + 0.5*a*np.sin(theta)*(t**2)
+    else:
+        future_x = np.linspace(x[-1], x[-1]+s*np.cos(theta), future_horizon)
+        future_y = f(future_x)
+        x_new = x + v*np.cos(theta)*t + 0.5*a*np.cos(theta)*(t**2)
+        y_new = y + v*np.sin(theta)*t + 0.5*a*np.sin(theta)*(t**2)
+    updated_pos = [x_new, y_new]
+    updated_future_pos = [future_x, future_y]
+    return updated_pos, updated_future_pos
+        
+# move one step forward
+def step(pos, agent_type):
+    if agent_type == "ego":
+        vel = velocity(u_ego, 1)
+        acc = acceleration(a_ego, 1)
+
+    if agent_type == "pedestrian":
+        vel = velocity(u_ped, 20)
+        acc = acceleration(a_ped, 20)
+
+    if agent_type == "cyclist":
+        vel = velocity(u_car1, 5)
+        acc = acceleration(a_car1, 5)
+
+    if agent_type == "traffic":
+        vel = velocity(u_car2, 1.5)
+        acc = acceleration(a_car2, 1.5)
 
     # future trajectory estimation
     x, y = pos[0], pos[1]
     f = fit(x, y, order)
-    if x[-1]-x[0] == 0 and y[-1]-y[0] != 0:
-        theta = np.pi/2
-    elif x[-1]-x[0] != 0 and y[-1]-y[0] == 0:
-        theta = 0
-    else:
-        theta = np.arctan((y[-1]-y[-5])/(x[-1]-x[-5]))
-
-    s = avg_vel**2 / (2*max_dec)
-    # final_x = x[-1] + avg_vel*t + 0.5*avg_acc*(future_time_step**2)
-    if math.isclose(theta, np.pi/2):
-        future_x = np.linspace(x[-1], x[-1], future_horizon)
-        future_y = y[-1] + np.linspace(y[-1],y[-1]+s, future_horizon)
-        x_new = x + avg_vel_ped*np.cos(theta)*t + 0.5*avg_acc_ped*np.cos(theta)*(t**2)
-        y_new = y + avg_vel_ped*np.sin(theta)*t + 0.5*avg_acc_ped*np.sin(theta)*(t**2)
-        updated_pos = [x_new, y_new]
-        updated_future_pos = [future_x, future_y]
-        return updated_pos, updated_future_pos
-    else:
-        future_x = np.linspace(x[-1], x[-1]+s*np.cos(theta), future_horizon)
-        future_y = f(future_x)
-
-    # update 
-    x_new = x + avg_vel*np.cos(theta)*t + 0.5*avg_acc*np.cos(theta)*(t**2)
-    y_new = y + avg_vel*np.sin(theta)*t + 0.5*avg_acc*np.sin(theta)*(t**2)
-
-    updated_pos = [x_new, y_new]
-    updated_future_pos = [future_x, future_y]
-    return updated_pos, updated_future_pos
+    theta = angle(x,y)
+    next_pos, future_pos = update(x, y, vel, acc, t, theta, f)
+    return next_pos, future_pos
 
 # initialization for the future trajectories
 ego_future = ego_pos
@@ -194,36 +206,37 @@ car2_future = car2_pos
 # main function
 if __name__ == '__main__':
     while collision(ego_future, ped_future, car1_future, car2_future):
+        # agent = ["ego", "pedestrian", "cyclist", "traffic"]    <- agent types
         # straight moving car
-        ego_pos, ego_future = step(ego_pos)
+        ego_pos, ego_future = step(ego_pos, agent[0])
 
         # pedestrian dynamics
-        ped_pos, ped_future = step(ped_pos)
+        ped_pos, ped_future = step(ped_pos, agent[1])
         
         # diagonally moving car dynamics
-        car1_pos, car1_future = step(car1_pos)
+        car1_pos, car1_future = step(car1_pos, agent[3])
 
         # curvy car dynamics
-        car2_pos, car2_future = step(car2_pos)
+        car2_pos, car2_future = step(car2_pos, agent[3])
 
         # plotting
         # past trajectories
         # plt.plot(ego_pos[0], ego_pos[1])
-        plt.plot(ego_pos[0][-1], ego_pos[1][-1], marker='s', markersize=5, label='ego')
+        plt.plot(ego_pos[0][-1], ego_pos[1][-1], marker='s', color='r', markersize=5, label='ego')
         # plt.plot(ped_pos[0], ped_pos[1])
-        plt.plot(ped_pos[0][-1], ped_pos[1][-1], marker='s', markersize=5, label='pedestrian')
+        plt.plot(ped_pos[0][-1], ped_pos[1][-1], marker='s', markersize=5, color='g', label='pedestrian')
         # plt.plot(car1_pos[0], car1_pos[1])
-        plt.plot(car1_pos[0][-1], car1_pos[1][-1], marker = 's', markersize = 5, label='veh 1')
+        plt.plot(car1_pos[0][-1], car1_pos[1][-1], marker = 's', markersize = 5, color='b', label='veh 1')
         # plt.plot(car2_pos[0], car2_pos[1], marker = ',', markersize = 0.5)
-        plt.plot(car2_pos[0][-1], car2_pos[1][-1], marker = 's', markersize = 5, label='veh 2')
+        plt.plot(car2_pos[0][-1], car2_pos[1][-1], marker = 's', markersize = 5, color='c', label='veh 2')
 
         #future trajectories
-        plt.plot(ego_future[0], ego_future[1], marker='>', markersize=2)
-        plt.plot(ped_future[0], ped_future[1], marker='^', markersize=3)
-        plt.plot(car1_future[0], car1_future[1], marker = '*', markersize = 2)
-        plt.plot(car2_future[0], car2_future[1], marker = 'o', markersize = 2)
+        plt.plot(ego_future[0], ego_future[1], marker='>', color='r', markersize=2)
+        plt.plot(ped_future[0], ped_future[1], marker='^', color='g', markersize=3)
+        plt.plot(car1_future[0], car1_future[1], marker = '*', color='b', markersize = 2)
+        plt.plot(car2_future[0], car2_future[1], marker = 'o', color='c', markersize = 2)
         
-        plt.pause(0.5)
+        plt.pause(0.2)
 
     plt.show()
 
