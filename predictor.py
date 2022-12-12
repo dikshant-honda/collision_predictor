@@ -33,40 +33,50 @@ TO DO:
 3. improve the collision function
 4. add noise function
 5. change position to list instead of individual int
+6. improve the way of adding the vehicle
+7. add a vehicle registry class or function
 '''
 
-horizon = 10                                    # length of velocity profile 
-future_horizon = 10                             # number of time steps
-max_time = 5                                    # future time horizon
-t = 0.5                                         # time step
-tol = 0.5                                       # tolerance value for proximity check
-order = 4                                       # degree of the polynomial fit curve
-max_dec = 0.3                                   # max deceleration value
+horizon = 10                                        # length of velocity profile 
+future_horizon = 10                                 # number of time steps
+max_time = 5                                        # future time horizon
+t = 0.5                                             # time step
+tol = 0.5                                           # tolerance value for proximity check
+order = 4                                           # degree of the polynomial fit curve
+max_dec = 0.3                                       # max deceleration value
+agent = ["ego", "pedestrian", "cyclist", "traffic"] # type of agents
 
-# for car
+# for ego
+agent_type = agent[0]
 start_pos_car = -5
-x_car = np.linspace(start_pos_car, -1, horizon)
-y_car = np.linspace(3, 3, horizon)
-u_car = 5                                       # initial velocity of the car    
-a_car = 0.5                                     # acceleration of the car
+x_ego = np.linspace(start_pos_car, -1, horizon)
+y_ego = np.linspace(3, 3, horizon)
+ego_pos = [x_ego, y_ego]
+u_car = 5                                           # initial velocity of the ego car    
+a_car = 0.5                                         # acceleration of the ego car
 
 # for pedestrian
+agent_type = agent[1]
 start_pos_ped = -2
 x_ped = np.linspace(7,7,horizon)
 y_ped = np.linspace(start_pos_ped, -1, horizon)
-u_ped = 0.3                                     # initial velocity of the pedestrian
-a_ped = 0.05                                    # acceleration of the pedestrian
+ped_pos = [x_ped, y_ped]
+u_ped = 0.3                                         # initial velocity of the pedestrian
+a_ped = 0.05                                        # acceleration of the pedestrian
 
 # for car moving in diagonal direction
+agent_type = agent[3]
 start_pos_car_1_x = -5
 x_pt = np.linspace(start_pos_car_1_x, 0, horizon)
 theta = np.pi/12
 x_car_1 = x_pt*np.cos(theta)
 y_car_1 = x_pt*np.sin(theta)
-u_car_1 = 1.5
-a_car_1 = 0.2
+car1_pos = [x_car_1, y_car_1]
+u_car_1 = 1.5                                       # initial velocity of the traffic car 1
+a_car_1 = 0.2                                       # acceleration of the traffic car 1
 
 # for car moving on curves
+agent_type = agent[3]
 start_pos_car_2_x = -5
 x_car_2 = np.linspace(start_pos_car_2_x,1,horizon)     
 a = 0.05
@@ -76,14 +86,15 @@ d = -7
 # y_car_2 = np.multiply(a, np.power(x_car_2,3))+np.multiply(b, np.power(x_car_2,2))+np.multiply(c,x_car_2)+d
 y_car_2 = np.multiply(b, np.power(x_car_2,2)) + np.multiply(c,x_car_2) 
 # y_car_2 = np.sin(x_car_2)
-u_car_2 = 0.5
-a_car_2 = 0.05
+car2_pos = [x_car_2, y_car_2]
+u_car_2 = 0.5                                       # initial velocity of the traffic car 2
+a_car_2 = 0.05                                      # acceleration of the traffic car 2
 
 # plotting 
 plt.title("Collision Predictor")
 plt.xlabel("x")
 plt.ylabel("y")
-plt.plot(x_car[-1], y_car[-1], marker='s', markersize=5, label='ego')
+plt.plot(x_ego[-1], y_ego[-1], marker='s', markersize=5, label='ego')
 plt.plot(x_ped[-1], y_ped[-1], marker='s', markersize=5, label='pedestrian')
 plt.plot(x_car_1[-1], y_car_1[-1], marker = 's', markersize = 5, label='veh 1')
 plt.plot(x_car_2[-1], y_car_2[-1], marker = 's', markersize = 5, label='veh 2')
@@ -108,26 +119,22 @@ def fit(x, y, order):
     return f
 
 # stopping function
-def collision(x_car, y_car, x_ped, y_ped, x_car_1, y_car_1, x_car_2, y_car_2):    
-    car_pos = [x_car, y_car]
-    ped_pos = [x_ped, y_ped]
-    car_1_pos = [x_car_1, y_car_1]
-    car_2_pos = [x_car_2, y_car_2]
-    if close(car_pos, ped_pos):
+def collision(ego_future, ped_future, car1_future, car2_future):    
+    if close(ego_future, ped_future):
         print("collision with pedestrian")
         print("!!STOP!!")
         return False   
-    if close(car_pos, car_1_pos):
+    if close(ego_future, car1_future):
         print("collision with diagonally moving car")
         print("!!STOP!!")
         return False
-    if close(car_pos, car_2_pos):
+    if close(ego_future, car2_future):
         print("collision with car moving on curvy path")
         print("!!STOP!!")
         return False
     return True
 
-def step(x, y):
+def step(pos):
     # average velocity estimation
     vel_profile = []
     acc_profile = []
@@ -147,6 +154,7 @@ def step(x, y):
     avg_acc_ped = np.mean(acc_profile_ped)
 
     # future trajectory estimation
+    x, y = pos[0], pos[1]
     f = fit(x, y, order)
     if x[-1]-x[0] == 0 and y[-1]-y[0] != 0:
         theta = np.pi/2
@@ -162,7 +170,9 @@ def step(x, y):
         future_y = y[-1] + np.linspace(y[-1],y[-1]+s, future_horizon)
         x_new = x + avg_vel_ped*np.cos(theta)*t + 0.5*avg_acc_ped*np.cos(theta)*(t**2)
         y_new = y + avg_vel_ped*np.sin(theta)*t + 0.5*avg_acc_ped*np.sin(theta)*(t**2)
-        return x_new, y_new, future_x, future_y
+        updated_pos = [x_new, y_new]
+        updated_future_pos = [future_x, future_y]
+        return updated_pos, updated_future_pos
     else:
         future_x = np.linspace(x[-1], x[-1]+s*np.cos(theta), future_horizon)
         future_y = f(future_x)
@@ -170,45 +180,48 @@ def step(x, y):
     # update 
     x_new = x + avg_vel*np.cos(theta)*t + 0.5*avg_acc*np.cos(theta)*(t**2)
     y_new = y + avg_vel*np.sin(theta)*t + 0.5*avg_acc*np.sin(theta)*(t**2)
-    return x_new, y_new, future_x, future_y
+
+    updated_pos = [x_new, y_new]
+    updated_future_pos = [future_x, future_y]
+    return updated_pos, updated_future_pos
 
 # initialization for the future trajectories
-x_car_future, y_car_future = x_car, y_car
-x_ped_future, y_ped_future = x_ped, y_ped
-x_car_future_1, y_car_future_1 = x_car_1, y_car_1
-x_car_future_2, y_car_future_2 = x_car_2, y_car_2
+ego_future = ego_pos
+ped_future = ped_pos
+car1_future = car1_pos
+car2_future = car2_pos
 
 # main function
 if __name__ == '__main__':
-    while collision(x_car_future,y_car_future,x_ped_future,y_ped_future,x_car_future_1,y_car_future_1, x_car_future_2,y_car_future_2):
+    while collision(ego_future, ped_future, car1_future, car2_future):
         # straight moving car
-        x_car, y_car, x_car_future, y_car_future = step(x_car, y_car)
+        ego_pos, ego_future = step(ego_pos)
 
         # pedestrian dynamics
-        x_ped, y_ped, x_ped_future, y_ped_future = step(x_ped, y_ped)
+        ped_pos, ped_future = step(ped_pos)
         
         # diagonally moving car dynamics
-        x_car_1, y_car_1, x_car_future_1, y_car_future_1 = step(x_car_1, y_car_1)
+        car1_pos, car1_future = step(car1_pos)
 
         # curvy car dynamics
-        x_car_2, y_car_2, x_car_future_2, y_car_future_2 = step(x_car_2, y_car_2)
+        car2_pos, car2_future = step(car2_pos)
 
         # plotting
         # past trajectories
-        # plt.plot(x_car, y_car)
-        plt.plot(x_car[-1], y_car[-1], marker='s', markersize=5, label='ego')
-        # plt.plot(x_ped, y_ped)
-        plt.plot(x_ped[-1], y_ped[-1], marker='s', markersize=5, label='pedestrian')
-        # plt.plot(x_car_1, y_car_1)
-        plt.plot(x_car_1[-1], y_car_1[-1], marker = 's', markersize = 5, label='veh 1')
-        # plt.plot(x_car_2, y_car_2, marker = ',', markersize = 0.5)
-        plt.plot(x_car_2[-1], y_car_2[-1], marker = 's', markersize = 5, label='veh 2')
+        # plt.plot(ego_pos[0], ego_pos[1])
+        plt.plot(ego_pos[0][-1], ego_pos[1][-1], marker='s', markersize=5, label='ego')
+        # plt.plot(ped_pos[0], ped_pos[1])
+        plt.plot(ped_pos[0][-1], ped_pos[1][-1], marker='s', markersize=5, label='pedestrian')
+        # plt.plot(car1_pos[0], car1_pos[1])
+        plt.plot(car1_pos[0][-1], car1_pos[1][-1], marker = 's', markersize = 5, label='veh 1')
+        # plt.plot(car2_pos[0], car2_pos[1], marker = ',', markersize = 0.5)
+        plt.plot(car2_pos[0][-1], car2_pos[1][-1], marker = 's', markersize = 5, label='veh 2')
 
         #future trajectories
-        plt.plot(x_car_future, y_car_future, marker='>', markersize=2)
-        plt.plot(x_ped_future, y_ped_future, marker='^', markersize=3)
-        plt.plot(x_car_future_1, y_car_future_1, marker = '*', markersize = 2)
-        plt.plot(x_car_future_2, y_car_future_2, marker = 'o', markersize = 2)
+        plt.plot(ego_future[0], ego_future[1], marker='>', markersize=2)
+        plt.plot(ped_future[0], ped_future[1], marker='^', markersize=3)
+        plt.plot(car1_future[0], car1_future[1], marker = '*', markersize = 2)
+        plt.plot(car2_future[0], car2_future[1], marker = 'o', markersize = 2)
         
         plt.pause(0.5)
 
