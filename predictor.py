@@ -14,11 +14,11 @@ TO DO:
 3. angular velocity and steering angle dynamics                                     # DONE
 4. inclusion of curvy roads and intersection scenario                               # DONE
 5. different time horizons for ego vehicle and traffic participants 
-6. head-to-head and lane merge scenario                 
+6. head-to-head and lane merge scenario                                                     
 -> scenario change
 1. think about the motion of the traffic participants in both direction             # DONE
-2. adding vehicles with angular velocities                                          
-3. adding bounds of the vehicle motion
+2. adding vehicles with angular velocities                                          # DONE             
+3. adding bounds of the vehicle motion                                              # needed ?
 4. changing the vehicle from a point object to a box
 5. adding uncertainities into the velocity profile of the traffic participants      # DONE
 6. add more traffic participants and check their collision probability              # DONE
@@ -143,7 +143,7 @@ def angle(x, y):
     if x[-1]-x[0] == 0 and y[-1]-y[0] != 0:
         theta = np.pi/2
     else:
-        theta = np.arctan((y[-1]-y[-5])/(x[-1]-x[-5]))
+        theta = np.arctan((y[-1]-y[0])/(x[-1]-x[0]))
     return theta
 
 # curve fitting to approximate future trajectory
