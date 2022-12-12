@@ -11,22 +11,28 @@ TO DO:
 -> dynamics update
 1. include acceleration in the dynamics                                             # DONE
 2. check the velocity profile update system                                         # DONE
-3. angular velocity and steering angle dynamics
-4. inclusion of curvy roads and intersection scenario
+3. angular velocity and steering angle dynamics                                     # DONE
+4. inclusion of curvy roads and intersection scenario                               # DONE
 5. different time horizons for ego vehicle and traffic participants 
-6. head-to-head and lane merge scenario 
+6. head-to-head and lane merge scenario                 
 -> scenario change
-1. think about the motion of the traffic participants in both direction
-2. adding vehicles with angular velocities 
+1. think about the motion of the traffic participants in both direction             # DONE
+2. adding vehicles with angular velocities                                          
 3. adding bounds of the vehicle motion
 4. changing the vehicle from a point object to a box
-5. adding uncertainities into the velocity profile of the traffic participants
-6. add more traffic participants and check their collision probability
-7. simulate everything on the gazebo
-8. fusion from camera and radar data
+5. adding uncertainities into the velocity profile of the traffic participants      # DONE
+6. add more traffic participants and check their collision probability              # DONE
+7. simulate everything on the gazebo                
+8. fusion from camera and radar data            
 -> plotting
 1. plotting the velocity profiles                                                   # DONE
 2. add road boundaries 
+-> coding practices
+1. add agent type to the step function
+2. improve the number of check in close function
+3. improve the collision function
+4. add noise function
+5. change position to list instead of individual int
 '''
 
 horizon = 10                                    # length of velocity profile 
@@ -62,13 +68,14 @@ a_car_1 = 0.2
 
 # for car moving on curves
 start_pos_car_2_x = -5
-x_car_2 = np.linspace(start_pos_car_2_x,1,horizon)    ## update this 
+x_car_2 = np.linspace(start_pos_car_2_x,1,horizon)     
 a = 0.05
-b = 0.01
-c = 0.7
+b = -0.03
+c = 0.5
 d = -7
 # y_car_2 = np.multiply(a, np.power(x_car_2,3))+np.multiply(b, np.power(x_car_2,2))+np.multiply(c,x_car_2)+d
 y_car_2 = np.multiply(b, np.power(x_car_2,2)) + np.multiply(c,x_car_2) 
+# y_car_2 = np.sin(x_car_2)
 u_car_2 = 0.5
 a_car_2 = 0.05
 
@@ -81,11 +88,10 @@ plt.plot(x_ped[-1], y_ped[-1], marker='s', markersize=5, label='pedestrian')
 plt.plot(x_car_1[-1], y_car_1[-1], marker = 's', markersize = 5, label='veh 1')
 plt.plot(x_car_2[-1], y_car_2[-1], marker = 's', markersize = 5, label='veh 2')
 plt.legend()
-# plt.xlim(-5,35)
-# plt.ylim(-10,15) 
+plt.xlim(-5,15)
+plt.ylim(-5,5) 
 
 # proximity check function
-### IMPROVE THE NUMBER OF CHECKS
 def close(pos1, pos2):
     for i in range(len(pos1[0])):
         for j in range(len(pos2[0])):
@@ -121,7 +127,7 @@ def collision(x_car, y_car, x_ped, y_ped, x_car_1, y_car_1, x_car_2, y_car_2):
         return False
     return True
 
-def step(x, y):    #  ADD ANOTHER VARIABLE FOR AGENT TYPE
+def step(x, y):
     # average velocity estimation
     vel_profile = []
     acc_profile = []
@@ -188,6 +194,7 @@ if __name__ == '__main__':
         x_car_2, y_car_2, x_car_future_2, y_car_future_2 = step(x_car_2, y_car_2)
 
         # plotting
+        # past trajectories
         # plt.plot(x_car, y_car)
         plt.plot(x_car[-1], y_car[-1], marker='s', markersize=5, label='ego')
         # plt.plot(x_ped, y_ped)
@@ -196,15 +203,14 @@ if __name__ == '__main__':
         plt.plot(x_car_1[-1], y_car_1[-1], marker = 's', markersize = 5, label='veh 1')
         # plt.plot(x_car_2, y_car_2, marker = ',', markersize = 0.5)
         plt.plot(x_car_2[-1], y_car_2[-1], marker = 's', markersize = 5, label='veh 2')
+
+        #future trajectories
         plt.plot(x_car_future, y_car_future, marker='>', markersize=2)
         plt.plot(x_ped_future, y_ped_future, marker='^', markersize=3)
         plt.plot(x_car_future_1, y_car_future_1, marker = '*', markersize = 2)
         plt.plot(x_car_future_2, y_car_future_2, marker = 'o', markersize = 2)
-        # plotting the velocity profile
-        # time = [i for i in range(horizon)]
-        # plt.plot(time, vel_profile_acr)
-        # plt.plot(time, vel_profile_ped)
-        plt.pause(2)
+        
+        plt.pause(0.5)
 
     plt.show()
 
