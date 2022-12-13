@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import warnings
+from bisect import bisect
+from operator import itemgetter
+import sys
 
 '''
 TO DO: 
@@ -42,7 +45,8 @@ future_horizon = 10                                 # number of time steps
 max_time = 5                                        # future time horizon
 t = 0.5                                             # time step
 tol = 0.1                                           # tolerance value for proximity check
-order = 4                                           # degree of the polynomial fit curve
+delta = 0.0005
+order = 3                                           # degree of the polynomial fit curve
 max_dec = 0.3                                       # max deceleration value
 agent = ["ego", "pedestrian", "cyclist", "traffic"] # type of agents
 
@@ -51,7 +55,7 @@ start_pos_car = -5
 x_ego = np.linspace(start_pos_car, -1, horizon)
 y_ego = np.linspace(3, 3, horizon)
 ego_pos = [x_ego, y_ego]
-u_ego = 0.6                                         # initial velocity of the ego car    
+u_ego = 0.5                                         # initial velocity of the ego car    
 a_ego = 0.2                                         # acceleration of the ego car
 
 # for pedestrian
@@ -83,7 +87,7 @@ d = -7
 y_car_2 = np.multiply(b, np.power(x_car_2,2)) + np.multiply(c,x_car_2) 
 # y_car_2 = np.sin(x_car_2)
 car2_pos = [x_car_2, y_car_2]
-u_car2 = 0.9                                        # initial velocity of the traffic car 2
+u_car2 = 0.7                                        # initial velocity of the traffic car 2
 a_car2 = 0.1                                        # acceleration of the traffic car 2
 
 # plotting 
@@ -99,11 +103,22 @@ plt.legend()
 # plt.ylim(-5,5) 
 
 # proximity check function
-def close(pos1, pos2):
-    for i in range(len(pos1[0])):
-        for j in range(len(pos2[0])):
-            if np.sqrt((pos1[0][i]-pos2[0][j])**2 + (pos1[1][i]-pos2[1][j])**2) < tol:
-                return True
+def close(points1, points2):
+    pos1 = []
+    pos2 = []
+    for i in range(len(points1[0])):
+        pos1.append((points1[0][i], points1[1][i]))
+    for i in range(len(points2[0])):
+        pos2.append((points2[0][i], points2[1][i]))
+    pos2.sort()
+    for point in pos1:
+        contenders = pos2[bisect(pos2, (point[0]-tol-delta, 0)):bisect(pos2,(point[0]+tol+delta, 0))]
+        contenders = list(map(lambda p:(p[1],p[0]), contenders))
+        contenders.sort()
+        contenders = contenders[bisect(contenders,(point[1]-tol-delta, 0)) : bisect(contenders,(point[1]+tol+delta, 0))]
+        matches = [(point, p2) for p2 in contenders if (point[0] - p2[1])**2 + (point[1] - p2[0])**2 <= tol**2]
+        if len(matches) > 0:
+            return True
     return False
 
 # stopping function
