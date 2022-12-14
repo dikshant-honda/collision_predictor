@@ -38,6 +38,9 @@ TO DO:
 5. change position to list instead of individual int                                # DONE
 6. improve the way of adding the vehicle    
 7. add a vehicle registry class or function
+-> MPQP additions
+1. convert the frame into frenet frame
+2. smarter way of calculating the collision point
 '''
 
 horizon = 10                                        # length of velocity profile 
