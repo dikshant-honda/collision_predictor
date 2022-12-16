@@ -79,7 +79,7 @@ def distanceToLine(start, end, point):
     dist = ((point.x - start.x) * (end.y - start.y) - (point.y - start.y) * (end.x - start.x)) / normalLength
     return np.fabs(dist)
 
-##################### 3D point functions
+##################### 3D point functions  ###################################
 
 def distance3D(p1, p2):
     return np.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z))
@@ -110,3 +110,17 @@ def isInRange2D(a, b, range):
 
 def isSamePoint2D(a, b, tolerance):
     return distance(a, b) <= tolerance
+
+############################################################################
+
+def findClosestIndex2D(vect_pts, point_input):
+    min_distance = np.inf
+    ind_closest = -1
+
+    for i in range(len(vect_pts)):
+        distance_val = distance(point_input, vect_pts[i])
+        if distance_val < min_distance:
+            min_distance = distance_val
+            ind_closest = i
+    
+    return ind_closest
