@@ -104,3 +104,9 @@ def isPointInRect(r1, p):
 
 def perpDotProduct(a, b, c):
     return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
+
+def isInRange2D(a, b, range):
+    return distance(a, b) <= range
+
+def isSamePoint2D(a, b, tolerance):
+    return distance(a, b) <= tolerance
