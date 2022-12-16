@@ -124,3 +124,24 @@ def findClosestIndex2D(vect_pts, point_input):
             ind_closest = i
     
     return ind_closest
+
+def rotate(inp, theta):
+    out = Point2D()
+    s = np.sin(theta)
+    c = np.cos(theta)
+    out.x = inp.x*c - inp.y*s
+    out.y = inp.x*s + inp.y*c
+
+    return out
+
+def globalToLocal(center, theta, p):
+    delta = Point2D()
+    delta.x = p.x - center.x
+    delta.y = p.y - center.y 
+    return rotate(delta, -theta)
+
+def localToGlobal(center, theta, p):
+    out = rotate(p, theta)
+    out.x += center.x
+    out.y += center.y
+    return out
