@@ -12,7 +12,7 @@ class Point2D:
     def __repr__(self):
         return "".join(["Point(", str(self.x), ",", str(self.y), ")"])
 
-class Point3D(object):
+class Point3D():
     def __init__(self,x,y,z):
         self.x = x
         self.y = y
@@ -20,6 +20,11 @@ class Point3D(object):
 
     def __repr__(self):
         return "(%i, %i, %i)"%(self.x,self.y,self.z)
+
+class Point_Frenet():
+    def __init__(self, s, d):
+        self.s = s
+        self.d = d
 
 def distance(p1, p2):
     return np.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
