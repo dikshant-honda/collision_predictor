@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import sys
+import bisect
 from geometry_utils import *
 
 path_m = Point2D(0,0)
@@ -44,6 +44,20 @@ def SetPath(path, spec_origin, origin):
         return
     path_m = path
     CreateSPath(spec_origin, origin)
+
+def findClosestIndex2DWithDirection(point_input, theta):
+    min_distance = np.inf
+    ind_closest = -1
+    for i in range(0, len(path_m)):
+        aux_angle = math.atan2(np.sin(path_theta_m[i]-theta), np.cos(path_theta_m[i]-theta))
+        if aux_angle < -3*np.pi/4 or aux_angle > 3*np.pi/4:
+            continue
+        distance_val = distance(point_input, path_m[i])
+        if distance_val < min_distance:
+            min_distance = distance_val
+            ind_closest = i
+    
+    return ind_closest
 
 def ToFrenet(p_xy, p_sd, road_dir, closest):
     if len(path_m) < 2:
@@ -115,3 +129,31 @@ def ToFrenetDirectional(p_xy, theta, p_sd, road_dir):
         return False
     return ToFrenet(p_xy, p_sd, road_dir, closest)
 
+def ToCartesian(p_sd, p_xy, road_dir):
+    if len(path_m) < 2:
+        print("Path needs at least 2 points. Cannot compute Frenet")
+        p_xy.x = -np.inf
+        p_xy.y = -np.inf
+        return False
+
+    prev_point_ind = 0
+
+    if p_sd.s <= path_s_m[0] or p_sd.s >= path_s_m[-1]:
+        if p_sd.s < path_s_m[0]:
+            prev_point_ind = 0
+        else:
+            prev_point_ind = len(path_s_m) - 2
+    else:
+        it = bisect.bisect_left(path_s_m, p_sd.s)
+        prev_point_ind = it - path_s_m[0] - 1
+    
+    p1 = Point2D()
+    p2 = Point2D()
+    p1.x = path_m[prev_point_ind].x
+    p1.y = path_m[prev_point_ind].y
+    p2.x = path_m[prev_point_ind+1].x
+    p2.y = path_m[prev_point_ind+1].y
+
+    road_dir = math.atan2(p2.y - p1.y, p2.x - p1.x)
+    p_xy = localToGlobal(p1, road_dir,Point2D(p_sd.s - path_s_m[prev_point_ind], p_sd.d))
+    return True
