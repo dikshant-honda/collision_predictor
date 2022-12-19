@@ -8,7 +8,7 @@ path_s_m = []
 path_theta_m = []
 
 def CreateSPath(spec_origin, origin):
-    if path_m.size < 2: return
+    if len(path_m) < 2: return
 
     path_s_m = np.resize(path_s_m, len(path_m))
     path_theta_m = np.resize(path_theta_m, len(path_m))
@@ -30,14 +30,14 @@ def CreateSPath(spec_origin, origin):
             dir_vec = path_m[i+1] - path_m[i]
             path_theta_m[i] = math.atan2(dir_vec.y, dir_vec.x)
 
-        for i in range(ind_closest, len(path_m)):
+        for i in range(ind_closest + 1, len(path_m)):
             path_s_m[i] = distance(path_m[i], path_m[i-1]) + path_s_m[i-1]
             dir_vec = path_m[i] - path_m[i-1]
             path_theta_m[i-1] = math.atan2(dir_vec.y, dir_vec.x)
         path_theta_m[len(path_theta_m)-1] = path_theta_m[len(path_theta_m)-2]
 
 def SetPath(path, spec_origin, origin):
-    if path.size < 2:
+    if len(path) < 2:
         path_m.clear() 
         path_s_m.clear()
         print("Frenet path needs at least 2 points")

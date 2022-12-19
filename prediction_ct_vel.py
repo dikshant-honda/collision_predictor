@@ -48,7 +48,7 @@ def PredictTrajectoryVehicles(sorted_vehicles, lane_id, msg_vehicles):
         v = min(np.hpot(sorted_vehicles[k].v.x, sorted_vehicles[k].v.y), max_speed_agts_m)
 
         p_sd = Point_Frenet()
-        map_lanes_frenet_m[project_lane].ToFrentet(p_xy, p_sd)
+        map_lanes_frenet_m[project_lane].ToFrenet(p_xy, p_sd)
 
         # int_traj.trajectory_estimated.waypoints = np.resize(int_traj.trajectory_estimated.waypoints, np_m)
         # int_traj.trajectory_uncertainity.waypoints = np.resize(int_traj.trajectory_uncertainity.waypoints, np_m)
@@ -59,5 +59,8 @@ def PredictTrajectoryVehicles(sorted_vehicles, lane_id, msg_vehicles):
             if t < interp_back_path:
                 d_val = p_sd.d - t*p_sd.d / interp_back_path
                 map_lanes_frenet_m[project_lane].ToCartersian(
-                    Point_Frenet(p_sd.s+v*dt_m*t, d_val)
-                )
+                    Point_Frenet(p_sd.s+v*dt_m*t, d_val), pred_xy, road_dir)
+            else:
+                map_lanes_frenet_m[project_lane].ToCartesian(
+                    Point_Frenet(p_sd.s+v*dt_m*t, 0), pred_xy, road_dir)
+            
