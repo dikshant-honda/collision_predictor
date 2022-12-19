@@ -22,9 +22,9 @@ class Point3D():
         return "(%i, %i, %i)"%(self.x,self.y,self.z)
 
 class Point_Frenet():
-    def __init__(self, s, d):
-        self.s = s
-        self.d = d
+    def __init__(self, s_init, d_init):
+        self.s = s_init
+        self.d = d_init
 
 def distance(p1, p2):
     return np.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
@@ -150,3 +150,13 @@ def localToGlobal(center, theta, p):
     out.x += center.x
     out.y += center.y
     return out
+
+def judgeDirection(p1, p2, p):
+    A = -(p2.y - p1.y)
+    B = p2.x - p1.x
+    C = -(A * p1.x + B * p1.y)
+    D = A * p.x + B * p.y + C
+
+    if D <= 0.00001 and D >= -0.00001:  return 0
+    if D > 0:   return 1
+    if D <0:    return -1
