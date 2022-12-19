@@ -1,27 +1,52 @@
 import numpy as np
-import math
-import bisect
 from geometry_utils import *
 from frenet import *
 
-# const
-kADLane = 0
-kTargetCrossTraffoc = 100
+'''
+TO DO:
+=> variable names
+1. lane center callback: determining the center of the lanes
+2. prediction array: type of traffic message, 
+3. target_lane_m: stores target lane id
+4. plan_t: plan horizon length in sec and dt_m is the time increment
+5. kADLane: id used for AV ego lane
+6. kTargetCrossTraffic: id used as the target lane in a cross traffic scenario
+7. sorted_vehicles: vector of vehicle states sorted from front to back in direction of traffic
+8. interp_back_path: how many meters to return to path
+9. lifetime_id: id for the agent
+'''
 
-# simulation variables
-plan_t_m = None
-dt_m = None
-np_m = None
-target_lane_m = None
-count_prev_lane_m = None
-lane_switch_case_m = False
+# planning horizon parameters
+plan_t_m = 7
+dt_m = 0.1
+np_m = round(plan_t_m / dt_m) + 1
 
 # prediction variables
-max_speed_agts_m = None
+max_speed_agts_m = 35
 
 # vehicle_variables
 map_lanes_frenet_m = None
 map_car_lanes_m = None
+
+def PedestrianCallback():
+    # get the pedestrian data in the form of pedestrian state array and store to 
+    # pedestrain_vec_m variable
+    pass
+
+def LanesPerceptionCallback():
+    # get the lane information and store 2 things
+    # map_car_lanes_m: map for each car it tells how many lanes it is in
+    # map_vehicles_lanes_m: map for correspoding lane id, ig
+    pass
+
+def LanesCenterCallback():
+    # getting the lane centers and storing them to map_lanes_frenet_frame
+    pass
+
+def TimerCallback():
+    # define all the timeout and failure conditions
+    # store lane and cars future prediction messages
+    pass
 
 def PredictTrajectoryVehicles(sorted_vehicles, lane_id, msg_vehicles):
     n_cars = len(sorted_vehicles)
