@@ -1,4 +1,5 @@
 import std_msgs
+import numpy as np
 
 class Vector3:
     def __init__(self, x=0, y=0, z=0):
@@ -44,17 +45,47 @@ class TwistStamped:
         self.header = header
         self.twist = Twist(twist.linear, twist.angular)
 
-def PoseWithCovariance(self):
-    self.pose = self.Pose()
-    # self.covariance = covariance     # of size 36
+class PoseWithCovariance:
+    def __init__(self, pose, covariance):
+        self.pose = Pose(pose.position, pose.orientation)
+        pos_deviation = 0.5
+        ori_deviation = np.pi/6
+        covariance = np.zeros((6,6))
+        covariance[0] = pos_deviation**2
+        covariance[6+1] = 0.001
+        covariance[12+2] = 0.0001
+        covariance[18+3] = ori_deviation**2
+        covariance[24+4] = ori_deviation**3
+        covariance[30+5] = ori_deviation**4
+        self.covariance = covariance     
 
-def TwistWithCovariance(self):
-    self.twist = self.Twist()
-    # self.covariance = covariance
+class TwistWithCovariance:
+    def __init__(self, twist, covariance):
+        self.twist = Twist(twist.linear, twist.angular)
+        pos_deviation = 0.5
+        ori_deviation = np.pi/6
+        covariance = np.zeros((6,6))
+        covariance[0] = pos_deviation**2
+        covariance[6+1] = 0.001
+        covariance[12+2] = 0.0001
+        covariance[18+3] = ori_deviation**2
+        covariance[24+4] = ori_deviation**3
+        covariance[30+5] = ori_deviation**4
+        self.covariance = covariance 
 
-def AccelWithCovariance(self):
-    self.accel = self.Accel()
-    # self.covariance = covariance
+class AccelWithCovariance:
+    def __init__(self, accel, covariance):
+        self.accel = Accel(accel.linear, accel.angular)
+        pos_deviation = 0.5
+        ori_deviation = np.pi/6
+        covariance = np.zeros((6,6))
+        covariance[0] = pos_deviation**2
+        covariance[6+1] = 0.001
+        covariance[12+2] = 0.0001
+        covariance[18+3] = ori_deviation**2
+        covariance[24+4] = ori_deviation**3
+        covariance[30+5] = ori_deviation**4
+        self.covariance = covariance 
 
 # TEST
 # pt = Point()
