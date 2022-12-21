@@ -1,4 +1,6 @@
 import numpy as np
+import sys
+sys.path.append('../')
 
 class Point2D:
     def __init__(self,x_init=0,y_init=0):
@@ -160,3 +162,98 @@ def judgeDirection(p1, p2, p):
     if D <= 0.00001 and D >= -0.00001:  return 0
     if D > 0:   return 1
     if D <0:    return -1
+
+##################################################################
+
+from nav_msgs.msg import Path
+from geometry_msgs.msg import Pose2D
+from typing import List
+from scipy.signal import butter, filtfilt
+
+
+def compute_speed_based_on_curvature(path: Path, lat_acc_max: float, speed_limit: float) -> List[float]:
+    """
+    Compute speed limit based on curvature for each point
+    Args:
+            center_line: Center line path
+            lat_acc_max: Maximum lateral acceleration [m/s2]
+            speed_limit: Speed limits for that center line [m/s]
+    Returns:
+            List of speed limits for each point
+    """
+
+    curvature = np.zeros(len(path.poses), dtype=float)
+    for i in range(len(path.poses)):
+        if i >= len(path.poses)-2:
+            curvature[i] = curvature[i-1]
+        else:
+            a = np.array(
+                (path.poses[i].pose.position.x, path.poses[i].pose.position.y))
+            b = np.array(
+                (path.poses[i+1].pose.position.x, path.poses[i+1].pose.position.y))
+            c = np.array(
+                (path.poses[i+2].pose.position.x, path.poses[i+2].pose.position.y))
+            curvature[i] = menger_curvature(a, b, c)
+
+    curvature[curvature < 1e-05] = 1e-05
+    np.set_printoptions(precision=5)
+    np.set_printoptions(suppress=True)
+    np.set_printoptions(threshold=np.inf)
+    # print(("curvature"))
+    # print(curvature)
+
+    speed_lim_curv = np.sqrt(lat_acc_max / curvature)
+    speed_signal = np.minimum(speed_lim_curv, speed_limit)
+    speed_limit_pts = speed_signal.tolist()
+
+    # print("before filter")
+    # print(speed_signal)
+
+    if speed_signal.tolist().count(speed_signal[0]) is not len(speed_signal):
+        b, a = butter(10, 0.125)
+        speed_signal_filter = filtfilt(b, a, speed_signal)
+        np.clip(speed_signal_filter, 0.0, speed_limit, speed_signal_filter)
+        # print("after filter")
+        # print(speed_signal_filter)
+        speed_limit_pts = speed_signal_filter.tolist()
+
+    return speed_limit_pts
+
+
+def menger_curvature(a, b, c,):
+    # Formula curvature
+    twice_triangle_area = (b[0] - a[0])*(c[1] - a[1]) - \
+        (b[1]-a[1]) * (c[0]-a[0])
+    curvature = (2 * twice_triangle_area /
+                 (np.linalg.norm(a - b) * np.linalg.norm(b - c) * np.linalg.norm(c - a)))
+
+    return abs(curvature)
+
+
+def cleanup_close_points(cl_path: Path) -> Path:
+
+    min_dist = 1e-03
+
+    skip_previous = False
+    p_prev = Pose2D()
+    new_path = Path()
+    for i in range(len(cl_path.poses)):
+        if not skip_previous:
+            p_prev = cl_path.poses[i]
+            p_prev_aux = np.array(
+                (p_prev.pose.position.x, p_prev.pose.position.y))
+            new_path.poses.append(p_prev)
+
+        if i == len(cl_path.poses) - 1:
+            break
+
+        # Make sure that there are no repeated points
+        p_next = np.array(
+            (cl_path.poses[i+1].pose.position.x, cl_path.poses[i+1].pose.position.y))
+        init_dist = np.linalg.norm(p_prev_aux - p_next)
+        if (init_dist < min_dist):
+            skip_previous = True
+        else:
+            skip_previous = False
+
+    return new_path
