@@ -1,7 +1,7 @@
 import numpy as np
 
 class Point2D:
-    def __init__(self,x_init,y_init):
+    def __init__(self,x_init=0,y_init=0):
         self.x = x_init
         self.y = y_init
 
@@ -13,7 +13,7 @@ class Point2D:
         return "".join(["Point(", str(self.x), ",", str(self.y), ")"])
 
 class Point3D():
-    def __init__(self,x,y,z):
+    def __init__(self,x=0,y=0,z=0):
         self.x = x
         self.y = y
         self.z = z
