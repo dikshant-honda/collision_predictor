@@ -21,18 +21,6 @@ TO DO:
 9. lifetime_id: id for the agent
 '''
 
-# planning horizon parameters
-plan_t_m = 7
-dt_m = 0.1
-np_m = round(plan_t_m / dt_m) + 1
-
-# prediction variables
-max_speed_agts_m = 35
-
-# vehicle_variables
-map_lanes_frenet_m = None
-map_car_lanes_m = None
-
 def PedestrianCallback():
     # get the pedestrian data in the form of pedestrian state array and store to 
     # pedestrain_vec_m variable
@@ -101,8 +89,39 @@ def PredictTrajectoryVehicles(sorted_vehicles, lane_id, msg_vehicles):
                     Point_Frenet(p_sd.s+v*dt_m*t, 0), pred_xy, road_dir)
             
 if __name__ == '__main__':
+    lanes_perception_sub_m = None
+    pedestrian_sub_m = None
+    lanes_center_sub_m = None
+    target_lane_sub_m = None
+    lanes_prediction_pub_m = None       # publish
+    pedestrian_prediction_pub_m = None  # publish
+    all_cars_pub_m = None               # publish
+    
+    # functions to be subscribed
+    LanesPerceptionCallback()
+    PedestrianCallback()
+    LanesCenterCallback()
+    # TargetLaneCallback()
+
     lanes_perception = None # region/lanes_perception
     lanes_perception_sub_m = LanesPerceptionCallback(lanes_perception)
     lanes_center = lane_publisher.publish_all_lanes()
     # timer = None # ros time
     # timer_compute_m = TimerCallback(timer)
+
+    # planning horizon parameters
+    plan_t_m = 7
+    dt_m = 0.1
+    np_m = round(plan_t_m / dt_m) + 1
+
+    # prediction variables
+    max_speed_agts_m = 35
+
+    # vehicle_variables
+    map_vehicles_lane_m = {}    # { (int) key : (list(traffic_message.VehicleState)) value  }
+    map_lanes_frenet_m = {}     # { (int) key : (geometry.Frenet) value 
+    map_car_lanes_m = {}        # { (int) key : (list) value
+
+    # target_lane_check
+    target_lane_m = -100
+    prev_target_lane_m = -200
