@@ -30,6 +30,12 @@ class Pose:
         self.position = Point(pose.x , pose.y, pose.z)
         self.orientation = Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 
+class Pose2D:
+    def __init__(self, x, y, theta):
+        self.x = x
+        self.y = y
+        self.theta = theta
+
 class PoseStamped:
     def __init__(self, header, pose):
         self.header = std_msgs.Header(header.seq, header.stamp, header.frame_id)
