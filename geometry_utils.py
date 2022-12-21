@@ -1,8 +1,6 @@
 import numpy as np
-import sys
-sys.path.append('../')
-from msg.geometry_msgs import Pose2D
-from msg.nav_msgs import Path
+from geometry_msgs import Pose2D
+from nav_msgs import Path
 from typing import List
 from scipy.signal import butter, filtfilt
 
