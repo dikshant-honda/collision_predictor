@@ -1,6 +1,10 @@
 import numpy as np
 import sys
 sys.path.append('../')
+from msg.geometry_msgs import Pose2D
+from msg.nav_msgs import Path
+from typing import List
+from scipy.signal import butter, filtfilt
 
 class Point2D:
     def __init__(self,x_init=0,y_init=0):
@@ -164,12 +168,6 @@ def judgeDirection(p1, p2, p):
     if D <0:    return -1
 
 ##################################################################
-
-from nav_msgs.msg import Path
-from geometry_msgs.msg import Pose2D
-from typing import List
-from scipy.signal import butter, filtfilt
-
 
 def compute_speed_based_on_curvature(path: Path, lat_acc_max: float, speed_limit: float) -> List[float]:
     """
