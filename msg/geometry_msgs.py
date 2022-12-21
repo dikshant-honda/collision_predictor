@@ -32,7 +32,7 @@ class Pose:
 
 class PoseStamped:
     def __init__(self, header, pose):
-        self.header = header
+        self.header = std_msgs.Header(header.seq, header.stamp, header.frame_id)
         self.pose = Pose(pose.position, pose.orientation)
 
 class Twist:
@@ -42,7 +42,7 @@ class Twist:
 
 class TwistStamped:
     def __init__(self, header, twist):
-        self.header = header
+        self.header = std_msgs.Header(header.seq, header.stamp, header.frame_id)
         self.twist = Twist(twist.linear, twist.angular)
 
 class PoseWithCovariance:
@@ -93,3 +93,4 @@ class AccelWithCovariance:
 # pose = Pose(pt,quat)
 # head = std_msgs.Header()
 # poses = PoseStamped(head,pose)
+# print(poses.pose.orientation.w)
