@@ -1,12 +1,17 @@
 import numpy as np
 from geometry_utils import *
 from frenet import *
+from traffic_msgs import *
+from geometry_msgs import *
+from nav_msgs import *
+from std_msgs import *
+from lane_publisher import *
 
 '''
 TO DO:
 => variable names
 1. lane center callback: determining the center of the lanes
-2. prediction array: type of traffic message, 
+2. prediction array: type of traffic message
 3. target_lane_m: stores target lane id
 4. plan_t: plan horizon length in sec and dt_m is the time increment
 5. kADLane: id used for AV ego lane
@@ -39,9 +44,15 @@ def LanesPerceptionCallback():
     # map_vehicles_lanes_m: map for correspoding lane id, ig
     pass
 
-def LanesCenterCallback():
+def LanesCenterCallback(CenterLanes):
     # getting the lane centers and storing them to map_lanes_frenet_frame
-    pass
+    map_lanes_frenet_m.clear()
+    for l in range(len(CenterLanes.ids)):
+        path = [Point2D()]*CenterLanes[l].path.poses.size()
+        for i in range(CenterLanes[l].path.poses.size()):
+            path[i] = Point2D(CenterLanes[l].path.poses[i].pose.position.x,
+                              CenterLanes[l].path.poses[i].pose.position.y)
+        map_lanes_frenet_m[CenterLanes.ids[l]] = ToFrenet(path)  ## check
 
 def TimerCallback():
     # define all the timeout and failure conditions
@@ -89,3 +100,9 @@ def PredictTrajectoryVehicles(sorted_vehicles, lane_id, msg_vehicles):
                 map_lanes_frenet_m[project_lane].ToCartesian(
                     Point_Frenet(p_sd.s+v*dt_m*t, 0), pred_xy, road_dir)
             
+if __name__ == '__main__':
+    lanes_perception = None # region/lanes_perception
+    lanes_perception_sub_m = LanesPerceptionCallback(lanes_perception)
+    lanes_center = lane_publisher.publish_all_lanes()
+    # timer = None # ros time
+    # timer_compute_m = TimerCallback(timer)
