@@ -9,6 +9,12 @@ class Path:
             pose_arr.append(geometry_msgs.PoseStamped(posestamped.header, posestamped.pose))
         self.poses = pose_arr
 
+class Odometry:
+    def __init__(self, header, pose, twist):
+        self.header = std_msgs.Header(header.seq, header.stamp, header.frame_id)
+        self.pose = geometry_msgs.PoseWithCovariance(pose.pose, pose.covariance)
+        self.twist = geometry_msgs.TwistWithCovariance(twist.twist, twist.covariance)
+
 # TEST
 # pt = geometry_msgs.Point()
 # quat = geometry_msgs.Quaternion()
