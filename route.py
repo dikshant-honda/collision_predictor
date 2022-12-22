@@ -23,22 +23,12 @@ lane_center4, id4 = register_lane(x4, y4, count+4)
 current_waypoint = [-2,0]
 destination_waypoint = [3,0]
 lane_route = np.linspace(current_waypoint, destination_waypoint, 10)   # replace this by a path planning algorithm to get the modified route
-pt = Point(current_waypoint[0], current_waypoint[1])
-quat = Quaternion()
-pose = Pose(pt,quat)
-head = std_msgs.Header()
-poses = PoseStamped(head,pose)
-current_pose = poses
-# print(current_pose.pose.position.x)
 
 pose_arr = [] 
 for i in range(len(lane_route)):
-    pt = Point(lane_route[i][0], lane_route[i][1])
-    quat = Quaternion()
-    pose = Pose(pt, quat)
-    poses = PoseStamped(std_msgs.Header(), pose)
+    poses = PoseStamped(std_msgs.Header(), Pose(Point(lane_route[i][0], lane_route[i][1]), Quaternion()))
     pose_arr.append(poses)
 
 path_route = Path(std_msgs.Header(), pose_arr)
 prev_wp = None
-print(path_route)
+
