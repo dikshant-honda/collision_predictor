@@ -26,9 +26,20 @@ lane_route = np.linspace(current_waypoint, destination_waypoint, 10)   # replace
 
 pose_arr = [] 
 for i in range(len(lane_route)):
+    # change the yaw angle for obtaining different quaternions and then append it to pose
     poses = PoseStamped(std_msgs.Header(), Pose(Point(lane_route[i][0], lane_route[i][1]), Quaternion()))
     pose_arr.append(poses)
 
 path_route = Path(std_msgs.Header(), pose_arr)
-prev_wp = None
+lane_line_list, lane_s_map = path_to_list(path_route)
 
+s_arr = []
+d_arr = []
+for i in range(len(path_route.poses)):
+    s, d, _ = get_frenet(path_route.poses[i].pose.position.x, path_route.poses[i].pose.position.y, lane_line_list, lane_s_map) 
+    s_arr.append(s)
+    d_arr.append(d)
+
+plt.plot(x1, y1)
+plt.plot(d_arr, s_arr, s, 'r--')
+plt.show()
