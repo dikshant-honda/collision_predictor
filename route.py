@@ -6,19 +6,11 @@ from traffic_msgs import *
 from nav_msgs import *
 from geometry_msgs import *
 
-def frenet_to_xy_test():
-    # return cartesian coordinates from frenet coordinates
-    pass
-
-def xy_to_frenet():
+def xy_to_frenet(x1, y1, current_waypt, destination_waypt):
     # return frenet coordinates from catersian coordinates
-    pass
-
-def get_sd(x, y):
-    pose_arr = [] 
-    # current_waypoint = [-2,0]
-    # destination_waypoint = [3,0]
-    lane_route = np.linspace([x[0], y[0]], [x[-1], y[-1]], 100)   # replace this by a path planning algorithm to get the modified route
+    pose_arr = []
+    x_g, y_g = get_spline(0,3,0,3,np.pi/2,np.pi/4)
+    lane_route = [x_g, y_g]
     for i in range(len(lane_route)-1):
         point = Point(lane_route[i][0], lane_route[i][1])
         # replace this by actual yaw of the vehicle maybe
@@ -39,14 +31,18 @@ def get_sd(x, y):
         s_arr.append(s)
         d_arr.append(d)
 
+    return s_arr, d_arr, lane_line_list, lane_s_map
+
+def frenet_to_xy_test(s_arr, d_arr, lane_line_list, lane_s_map):
+    # return cartesian coordinates from frenet coordinates
     x_arr = []
     y_arr = []
     for i in range(len(s_arr)):
-        x_, y_, _ = get_xy(s_arr[i], d_arr[i], lane_line_list, lane_s_map)
-        x_arr.append(x_)
-        y_arr.append(y_)
-
-    return s_arr, d_arr, x_arr, y_arr
+        x, y, _ = get_xy(s_arr[i], d_arr[i], lane_line_list, lane_s_map)
+        x_arr.append(x)
+        y_arr.append(y)
+    
+    return x_arr, y_arr
 
 x1, y1, bound1_1, bound1_2 = get_straight(-5,0,5,0,0)            # horizontal road 
 x2, y2, bound2_1, bound2_2 = get_straight(6,1,6,11,np.pi/2)      # vertical road
@@ -62,38 +58,16 @@ lane_center4, id4 = register_lane(x4, y4, count+3)
 # figure out
 # lane_info = lane_publisher.publish_all_lanes()  # get lanes info without carla
 
-# current_waypoint = [-2,0]
-# destination_waypoint = [3,0]
-# lane_route = np.linspace(current_waypoint, destination_waypoint, 10)   # replace this by a path planning algorithm to get the modified route
+x, y = get_spline(0,3,0,3,np.pi/2,np.pi/4)
+# x_,y_ = get_spline(3,6,3,0,np.pi/9,np.pi/5)
+# x = x + x_
+# y = y + y_
 
-# pose_arr = [] 
-# for i in range(len(lane_route)):
-#     # change the yaw angle for obtaining different quaternions and then append it to pose
-#     poses = PoseStamped(std_msgs.Header(), Pose(Point(lane_route[i][0], lane_route[i][1]), Quaternion()))
-#     pose_arr.append(poses)
-
-# path_route = Path(std_msgs.Header(), pose_arr)
-# lane_line_list, lane_s_map = path_to_list(path_route)
-
-# s_arr = []
-# d_arr = []
-# for i in range(len(path_route.poses)):
-#     s, d, _ = get_frenet(path_route.poses[i].pose.position.x, path_route.poses[i].pose.position.y, lane_line_list, lane_s_map) 
-#     s_arr.append(s)
-#     d_arr.append(d)
-
-x, y = get_spline(0,3,0,3,np.pi/2,np.pi/9)
-x_,y_ = get_spline(3,6,3,0,np.pi/9,np.pi/5)
-x = x + x_
-y = y + y_
-
-s_str, d_str, x_str, y_str = get_sd(x1, y1)
-s, d, x_org, y_org  = get_sd(x, y)
-print(y_str[0])
+current_waypoint = [1,1]
+destination_waypoint = [2,2]
+s, d, lane_line, s_map = xy_to_frenet(x, y, current_waypoint, destination_waypoint)
+x_test, y_test = frenet_to_xy_test(s, d, lane_line, s_map)
 # plt.plot(x, y)
-# plt.plot(d, s, 'b--')
-plt.plot(x1, y1)
-plt.plot(x_str, y_str)
-# plt.plot(d_str, s_str, 'r--')
-# plt.plot(x_org, y_org, 'b-')
+# plt.plot(d, s)
+plt.plot(x_test, y_test)
 plt.show()
