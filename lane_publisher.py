@@ -107,7 +107,12 @@ class lane_publisher:
         pass
 
     def calculate_route(self):
-        route_planner = None   # design a global route planner for traffic participants
+        grp = None
+        ## design global route planner (grp) for tracing route
+        ## design a global route planner for traffic participants
+        dao = GlobalRoutePlannerDAO(self.map, sampling_resolution=1.0)
+        grp = GlobalRoutePlanner(dao)
+        grp.setup()
 
         self.lanes_dict = {}
         self.lanes_frenet = {}
@@ -115,11 +120,7 @@ class lane_publisher:
 
         # For each lane find the route and save it in the dictionary
         for key, value in self.lane_info_dict.items():
-            # find the center lane for each of the lanes
-            #######################
-            grp = None
-            ## design global route planner (grp) for tracing route
-            #########################
+             # find the center lane for each of the lanes
             lane_route = grp.trace_route(value.start_wp.transform.location, value.target_wp.transform.location)
             lane_route.append([value.target_wp, None])
 
