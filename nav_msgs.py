@@ -2,11 +2,11 @@ import std_msgs
 import geometry_msgs
 
 class Path:
-    def __init__(self, header, posestamped):
+    def __init__(self, header, poses):
         self.header = std_msgs.Header(header.seq, header.stamp, header.frame_id)
         pose_arr = []
-        for i in range(len(posestamped)):
-            pose_arr.append(geometry_msgs.PoseStamped(posestamped.header, posestamped.pose))
+        for i in range(len(poses)):
+            pose_arr.append(geometry_msgs.PoseStamped(self.header, poses[i].pose))
         self.poses = pose_arr
 
 class Odometry:
