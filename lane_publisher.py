@@ -67,7 +67,20 @@ class lane_publisher:
             #     self.merging_s_set = False
 
         def on_odom(self, odom):   # complete this function
-            pass
+            if not self.lane_fixed:
+                self.lane_fixed = True
+                self.reroute()
+            
+            # figure out AD car lane
+            if self.lanes_dict:
+                ## define scenarios in future
+                if self.ad_current_lane != self.ad_past_lane:
+                    self.ad_past_lane = self.ad_current_lane
+                    self.lane_published = False
+            
+            if not self.lane_published:
+                self.publish_all_lanes()
+
 
         # AD position
         self.ego_odom = on_odom()
@@ -110,9 +123,9 @@ class lane_publisher:
         grp = None
         ## design global route planner (grp) for tracing route
         ## design a global route planner for traffic participants
-        dao = GlobalRoutePlannerDAO(self.map, sampling_resolution=1.0)
-        grp = GlobalRoutePlanner(dao)
-        grp.setup()
+        # dao = GlobalRoutePlannerDAO(self.map, sampling_resolution=1.0)
+        # grp = GlobalRoutePlanner(dao)
+        # grp.setup()
 
         self.lanes_dict = {}
         self.lanes_frenet = {}
