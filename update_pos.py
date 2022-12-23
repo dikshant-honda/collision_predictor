@@ -43,7 +43,7 @@ def PredictTrajectoryVehicles(init_x, init_y, path, s_map):    # msg_vehicles ->
         future_y.append(new_y)
     return future_x, future_y
 
-def move(curr_pos_x, curr_pos_y, v, dt_m, path):
+def move(x, y, v, dt_m, path):
     # find the closest index from the curve and compute theta between those points
     # shift the vehicle along that direction to get the modified points
     # in real world, we will get it from our detection algorithm
@@ -75,16 +75,16 @@ def move(curr_pos_x, curr_pos_y, v, dt_m, path):
 
         # Get the point in the local coordinate with center p1
         theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
-    new_x = curr_pos_x + v*np.cos(theta)*dt_m
-    new_y = curr_pos_y + v*np.sin(theta)*dt_m
+    new_x = x + v*np.cos(theta)*dt_m
+    new_y = y + v*np.sin(theta)*dt_m
 
     return [new_x, new_y]
 
 # main function
 if __name__ == '__main__':
-    interp_back_path = 2
-    plan_t_m = 3
-    dt_m = 0.3
+    interp_back_path = 5
+    plan_t_m = 1
+    dt_m = 0.1
     np_m = int(plan_t_m/dt_m)
 
     # path
@@ -95,17 +95,18 @@ if __name__ == '__main__':
     plt.plot(x, y)
 
     # velocity obtained from vehicles.twist.twist.linear.x
-    v = 1                   # change later
+    v = 0.5                   # change later
 
     current_waypoint = [3.04, 3.05]
 
     # replace by collision check
     horizon = 0
-    while horizon < 14:
+    while horizon < 100:
         lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
         future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map)
         current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
         horizon += 1
-        plt.plot(future_x, future_y)
+        plt.plot(future_x, future_y, 'r--')
+        plt.plot(current_waypoint[0], current_waypoint[1], 'b*')
         plt.pause(0.2)
     plt.show()
