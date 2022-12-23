@@ -92,7 +92,7 @@ if __name__ == '__main__':
     x_,y_ = get_spline(3,6,3,0,np.pi/2,np.pi/4)
     x = x + x_
     y = y + y_
-    plt.plot(x, y)
+    plt.plot(x, y, 'g')
 
     # velocity obtained from vehicles.twist.twist.linear.x
     v = 0.5                   # change later
@@ -101,10 +101,12 @@ if __name__ == '__main__':
 
     # replace by collision check
     horizon = 0
-    while horizon < 100:
+    while horizon < 114:
         lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
         future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map)
         current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
+        # update these waypoints as ros messages -> geometry_msgs.pose.position
+        # later provide this information on ros traffic messages
         horizon += 1
         plt.plot(future_x, future_y, 'r--')
         plt.plot(current_waypoint[0], current_waypoint[1], 'b*')
