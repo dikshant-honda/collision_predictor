@@ -7,8 +7,8 @@ from traffic_msgs import *
 from nav_msgs import *
 from geometry_msgs import *
 
-def xy_to_frenet(x1, y1, current_waypoint, destination_waypoint):
-    # return frenet coordinates from catersian coordinates
+def xy_to_frenet(x1, y1): #, current_waypoint, destination_waypoint):
+    # return frenet coordinates from cartesian coordinates
     pose_arr = []
     # x_g, y_g = get_spline(current_waypoint[0],destination_waypoint[0],current_waypoint[1],destination_waypoint[1],np.pi/2,np.pi/4)
     lane_route = []
@@ -70,7 +70,7 @@ y = y + y_
 
 current_waypoint = [3.04, 3.05]
 destination_waypoint = [8.45, 2.875]
-s, d, lane_line, s_map = xy_to_frenet(x, y, current_waypoint, destination_waypoint)
+s, d, lane_line, s_map = xy_to_frenet(x, y)#, current_waypoint, destination_waypoint)
 x_test, y_test = frenet_to_xy_test(s, d, lane_line, s_map)
 plt.plot(x, y)
 plt.plot(d, s)
