@@ -9,11 +9,11 @@ from geometry_msgs import *
 from update_pos import *
 
 def lineIntersection(traj_1, traj_2):
-    p1_start = Point2D(traj_1[0].x, traj_1[0].y)
-    p1_end = Point2D(traj_1[-1].x, traj_1[-1].y)
-    p2_start = Point2D(traj_2[0].x, traj_2[0].y)
-    p2_end = Point2D(traj_2[-1].x, traj_2[-1].y)
-    intersect = Point2D()
+    p1_start = Point2D(traj_1[0][0], traj_1[1][0])
+    p1_end = Point2D(traj_1[0][-1], traj_1[1][-1])
+    p2_start = Point2D(traj_2[0][0], traj_2[1][0])
+    p2_end = Point2D(traj_2[0][-1], traj_2[1][-1])
+    intersect = Point2D(0,0)
     p0_x = p1_start.x
     p0_y = p1_start.y
     p1_x = p1_end.x
@@ -35,9 +35,20 @@ def lineIntersection(traj_1, traj_2):
         # collision detected
         intersect.x = p0_x + (t * s1_x)
         intersect.y = p0_y + (t * s1_y)
+        print("!!COLLISION!!")
         return True
     
     return False  # no collision
+
+def get_future_trajectory(x, y, current_waypoint, v):
+    # return the future trajectory of the vehicle
+    lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
+    future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map)
+    current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
+    # update these waypoints as ros messages -> geometry_msgs.pose.position
+    # later provide this information on ros traffic messages
+
+    return [future_x, future_y], current_waypoint
 
 # main function
 if __name__ == '__main__':
@@ -60,23 +71,23 @@ if __name__ == '__main__':
     plt.plot(x2, y2, 'k')
 
     # velocity obtained from vehicles.twist.twist.linear.x
-    v = 0.5                   # change later
+    v_1 = 0.9                   # change later
+    v_2 = 0.5
 
     current_waypoint_1 = [3.04, 3.05]
-    current_waypoint_2 = [4.5, 2.08]
+    current_waypoint_2 = [4.5, 2.8]
 
     # initialization of future_trajectories as their starting point
-    future_traj_1 = current_waypoint_1
-    future_traj_2 = current_waypoint_2
+    # figure out a better way to initialize these variables
+    future_traj_1 = [[current_waypoint_1[0], current_waypoint_1[1]], [current_waypoint_1[0]+0.1, current_waypoint_1[1]+0.1]]
+    future_traj_2 = [[current_waypoint_2[0], current_waypoint_2[1]], [current_waypoint_2[0]+0.1, current_waypoint_2[1]+0.1]]
 
-    while lineIntersection(future_traj_1, future_traj_2):
-        lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
-        future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map)
-        current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
-        # update these waypoints as ros messages -> geometry_msgs.pose.position
-        # later provide this information on ros traffic messages
-        horizon += 1
-        plt.plot(future_x, future_y, 'r--')
-        plt.plot(current_waypoint[0], current_waypoint[1], 'b*')
+    while not lineIntersection(future_traj_1, future_traj_2):
+        future_traj_1, current_waypoint_1 = get_future_trajectory(x1, y1, current_waypoint_1,v_1)
+        future_traj_2, current_waypoint_2 = get_future_trajectory(x2, y2, current_waypoint_2, v_2)
+        plt.plot(future_traj_1[0], future_traj_1[1], 'r--')
+        plt.plot(current_waypoint_1[0], current_waypoint_1[1], 'b*')
+        plt.plot(future_traj_2[0], future_traj_2[1], 'g--')
+        plt.plot(current_waypoint_2[0], current_waypoint_2[1], 'b*')
         plt.pause(0.2)
     plt.show()
