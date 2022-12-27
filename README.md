@@ -1,5 +1,9 @@
 # collision-predictor
 
+❗❗ ISSUE ❗❗
+
+We are not using the past information and we don't know the final goal location
+
 ### Algorithm pseudo code:
 ```python
 future_traj_vehicle = {}
