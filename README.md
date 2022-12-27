@@ -1,5 +1,20 @@
 # collision-predictor
 
+### Algorithm pseudo code:
+```python
+future_traj_vehicle = {}
+while not collision(future_traj_vehicle):
+  for veh in range(len(vehicles):
+      store velocity information from last 'n' time steps: [v1, v2, .., vn]
+      compute average velocity from these time steps: v_avg
+      get a route to trace from local path planner: [p1, p2, ..., pn]
+      convert this route into s-map along the curvature: [dist(p1,p2), dist(p1,p3), ..., dist(p1,pn)]
+      convert the current cartesian point into frenet point: [(s1, d1)]
+      get the future trajectory based on the constant velocity assumption: [(s1,d1), (s2,d2), ..., (sn,dn)]
+      revert these future trajectory points into cartesian coordinates: [(x1,y1), (x2,y2), ...,(xn,yn)]
+      future_traj_veh[veh] = [(x1,y1), (x2,y2), ...,(xn,yn)]
+```
+
 ### Pending tasks:
 1. Limit the number of vehicles: for computation, register only the vehicles which are in vicinity of the ego vehicle
 2. Restart ego vehicle behavior: ego vehicle should start moving once the collision scenario is over
