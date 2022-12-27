@@ -16,12 +16,12 @@ TO DO:
 2. check the velocity profile update system                                         # DONE
 3. angular velocity and steering angle dynamics                                     # DONE
 4. inclusion of curvy roads and intersection scenario                               # DONE
-5. different time horizons for ego vehicle and traffic participants 
-6. head-to-head and lane merge scenario                                                     
+5. different time horizons for ego vehicle and traffic participants                 # DONE
+6. head-to-head and lane merge scenario                                               
 -> scenario change
 1. think about the motion of the traffic participants in both direction             # DONE
 2. adding vehicles with angular velocities                                          # DONE             
-3. adding bounds of the vehicle motion                                              # needed ?
+3. adding bounds of the vehicle motion                                              # DONE
 4. changing the vehicle from a point object to a box
 5. adding uncertainities into the velocity profile of the traffic participants      # DONE
 6. add more traffic participants and check their collision probability              # DONE
@@ -29,18 +29,18 @@ TO DO:
 8. fusion from camera and radar data            
 -> plotting
 1. plotting the velocity profiles                                                   # DONE
-2. add road boundaries 
+2. add road boundaries                                                              # DONE
 -> coding practices
 1. add agent type to the step function                                              # DONE
-2. improve the number of check in close function
-3. improve the collision function
+2. improve the number of check in close function                                    # DONE
+3. improve the collision function                                                   # DONE
 4. add noise function                                                               # DONE
 5. change position to list instead of individual int                                # DONE
 6. improve the way of adding the vehicle    
-7. add a vehicle registry class or function
+7. add a vehicle registry class or function                 
 -> MPQP additions
-1. convert the frame into frenet frame
-2. smarter way of calculating the collision point
+1. convert the frame into frenet frame                                              # DONE
+2. smarter way of calculating the collision point                                   # DONE            
 '''
 
 horizon = 10                                        # length of velocity profile 
