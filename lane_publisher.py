@@ -8,6 +8,10 @@ from std_msgs import *
 from tf import *
 from collections import namedtuple
 
+'''
+note: get ideas from here and use it in route.py file. remove this file later
+'''
+
 LaneInfo = namedtuple('LaneInfo', ['start_wp', 'target_wp', 'merging_wp','speed_limit'])
 
 class lane_publisher:
