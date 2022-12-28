@@ -4,6 +4,12 @@ from nav_msgs import Path
 from typing import List
 from scipy.signal import butter, filtfilt
 
+'''
+note: 
+1. explore all these functions for better collision check part
+2, explore more compute_speed_based_on_curvature for computing speed and how to use it
+'''
+
 class Point2D:
     def __init__(self,x_init=0,y_init=0):
         self.x = x_init
