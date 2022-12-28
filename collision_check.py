@@ -8,7 +8,24 @@ from nav_msgs import *
 from geometry_msgs import *
 from update_pos import *
 
+'''
+TO DO:
+1. change the line intersection function because:
+a. line intersection isn't the best way to check the collision because it will not take
+   into account the vehicles which are moving across the junction (check memo).
+b. it will also not work when the vehicle future trajectories are in spline form
+2. improve the initial few lines of line intersection function, redundantly define
+3. update the current_waypoint in geometry_msgs.pose.position
+4. make a separate class or dictionary for vehicle dynamic data like its pos and vel
+5. check the usage of interp_back_path, what if the vehicle doesn't want to follow the
+   center lane. 
+6. figure out a better way to initialize the future_traj variable
+7. again maintain a class for the future trajectory of the vehicles, maybe a maintain a
+   proper class for each vehicle dynamics
+'''
+
 def lineIntersection(traj_1, traj_2):
+    # check the intersection of the future trajectory of the vehicles
     p1_start = Point2D(traj_1[0][0], traj_1[1][0])
     p1_end = Point2D(traj_1[0][-1], traj_1[1][-1])
     p2_start = Point2D(traj_2[0][0], traj_2[1][0])
@@ -78,7 +95,6 @@ if __name__ == '__main__':
     current_waypoint_2 = [4.5, 2.8]
 
     # initialization of future_trajectories as their starting point
-    # figure out a better way to initialize these variables
     future_traj_1 = [[current_waypoint_1[0], current_waypoint_1[1]], [current_waypoint_1[0]+0.1, current_waypoint_1[1]+0.1]]
     future_traj_2 = [[current_waypoint_2[0], current_waypoint_2[1]], [current_waypoint_2[0]+0.1, current_waypoint_2[1]+0.1]]
 
