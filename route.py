@@ -7,6 +7,9 @@ from traffic_msgs import *
 from nav_msgs import *
 from geometry_msgs import *
 
+'''
+this script is used for testing the conversion from cartesian to frenet to cartesian
+'''
 def xy_to_frenet(x1, y1): #, current_waypoint, destination_waypoint):
     # return frenet coordinates from cartesian coordinates
     pose_arr = []
