@@ -7,6 +7,13 @@ from nav_msgs import *
 from geometry_msgs import *
 from update_pos import *
 
+'''
+TO DO:
+1. remove the similar functions from collision-check and leave ros-update only
+2. get the yaw of the vehicle incorporated in the dynamics
+3. update according to the corresponding instance of the vehicle instance
+'''
+
 def lineIntersection(traj_1, traj_2):
     p1_start = Point2D(traj_1[0][0], traj_1[1][0])
     p1_end = Point2D(traj_1[0][-1], traj_1[1][-1])
