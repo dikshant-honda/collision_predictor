@@ -7,6 +7,19 @@ from traffic_msgs import *
 from nav_msgs import *
 from geometry_msgs import *
 
+'''
+note:
+1. reduce "d" more gradually, store the past d_vals, compute d_avg from there to get the
+average deviation from the center line
+2. assume that the driver will tend to come back to the center lane so reduce by some 
+factor of d_avg after few time steps
+
+TO DO:
+1. change the s-path by the entire trajectory in FOV and get lane route from there
+2. update the predict trajectory vehicles, offset from center(d) from the idea mentioned above
+3. change the s=ut dynamics and try to get the vehicle towards the lane
+'''
+
 def get_lane_and_s_map(x1, y1):
     pose_arr = []
     # x_g, y_g = get_spline(current_waypoint[0],destination_waypoint[0],current_waypoint[1],destination_waypoint[1],np.pi/2,np.pi/4)
