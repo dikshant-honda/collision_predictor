@@ -3,6 +3,13 @@ import matplotlib.pyplot as plt
 
 width = 2
 
+'''
+TO DO:
+1. think of the intersection, how to sample trajectories along it
+2. make a more complex environment involving agent coming from all directions
+3. add the pedestrian path and add pedestrian to it
+'''
+
 def get_straight(x0, y0, x1, y1, theta, steps=100):
     x = np.linspace(x0, x1, steps)
     y = np.linspace(y0, y1, steps)
@@ -50,9 +57,15 @@ def get_spline(x0, x1, y0, y1, theta0, theta1, steps=100):
 	return x, y
 
 def register_lane(x, y,count):
+    # register all lanes and store them to a dictonary
     lane_center = [x, y]
     id = count
     return lane_center, id
+
+def register_vehicles():
+    # register all the vehicles which are in vicinity to ego vehicle or intersection
+    # maintain 2 different scenarios of ego vehicle and intersection
+    pass
 
 if __name__ == '__main__':
     x1, y1, bound1_1, bound1_2 = get_straight(-5,0,5,0,0)            # horizontal road 
