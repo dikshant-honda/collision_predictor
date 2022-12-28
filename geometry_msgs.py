@@ -1,6 +1,12 @@
 import std_msgs
 import numpy as np
 
+'''
+TO DO:
+1. just cross-check all the messages are written correctly
+2. covariance matrix thing, better way to design it
+'''
+
 class Vector3:
     def __init__(self, x=0, y=0, z=0):
         self.x = x
