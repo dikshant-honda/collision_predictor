@@ -8,6 +8,7 @@ TO DO:
 1. think of the intersection, how to sample trajectories along it
 2. make a more complex environment involving agent coming from all directions
 3. add the pedestrian path and add pedestrian to it
+4. add the lane road to nav_msgs.Path() variable
 '''
 
 def get_straight(x0, y0, x1, y1, theta, steps=100):
@@ -25,7 +26,8 @@ def get_straight(x0, y0, x1, y1, theta, steps=100):
         x_boundary_2 = [a+(width/2) for a in x]
         return x, y, x_boundary_1, x_boundary_2
 
-def get_spline(x0, x1, y0, y1, theta0, theta1, steps=100):
+def get_spline(x0, x1, y0, y1, theta0, theta1, steps=100): 
+    # change the format of input to the function to point
 	t = np.linspace(0, 1, steps) 
 
 	dx0 = np.cos(theta0) 
