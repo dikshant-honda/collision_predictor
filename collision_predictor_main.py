@@ -5,7 +5,42 @@ from nav_msgs import *
 from geometry_msgs import *
 from tf import *
 from frenet import *
- 
+
+class Vehicle:
+    def __init__(self, pose, twist, s, d, past_waypoints, future_waypoints):
+        self.pose = geometry_msgs.Pose(pose.position, pose.orientation)
+        self.twist = geometry_msgs.Twist(twist.linear, twist.angular)
+        self.s = s 
+        self.d = d
+        self.past_waypoints = past_waypoints
+        self.future_waypoints = future_waypoints
+
+class VehicleArray:
+    def __init__(self, vehicles):
+        vehicle_arr = []
+        for i in range(len(vehicles)):
+            vehicle_arr.append(Vehicle(i.pose, i.twist, i.s, i.d, i.past, i.future))
+        self.vehicles = vehicle_arr
+    
+    def add_vehicle(self, veh):
+        self.vehicles.append(veh)
+
+# register the ego vehicle
+def register_ego(ego):
+    VehicleArray.add_vehicle(ego)
+
+# register the vehicle into dynamics
+def register_vehicle(ego, veh):
+    if ego_vicinity(ego, veh):
+        VehicleArray.add_vehicle(veh)
+
+# vehicles which are in the vicinity of the ego vehicle
+def ego_vicinity(ego, veh):
+    ego_pos = ego.pose.position
+    veh_pos = veh.pose.position
+    if distance(ego_pos, veh_pos) < vision_radius:
+        return True
+
 # generating straight lanes
 def get_straight(x0, y0, x1, y1, theta, steps=100):
     x = np.linspace(x0, x1, steps)
@@ -96,7 +131,6 @@ def lineIntersection(traj_1, traj_2):
 def move(x, y, v, dt_m, path):
     # find the closest index from the curve and compute theta between those points
     # shift the vehicle along that direction to get the modified points
-    # in real world, we will get it from our detection algorithm
 
     ind_closest = closest_point_ind(path, x, y)
     # Determine the indices of the 2 closest points
@@ -156,7 +190,7 @@ def get_future_trajectory(x, y, current_waypoint, v):
 
     return [future_x, future_y], current_waypoint
 
-
+# get the s map and lane info
 def get_lane_and_s_map(x1, y1):
     pose_arr = []
     # x_g, y_g = get_spline(current_waypoint[0],destination_waypoint[0],current_waypoint[1],destination_waypoint[1],np.pi/2,np.pi/4)
@@ -181,11 +215,12 @@ def get_lane_and_s_map(x1, y1):
 
 # main function
 if __name__ == '__main__':
-    width = 2
-    interp_back_path = 5
-    plan_t_m = 1
-    dt_m = 0.1
-    np_m = int(plan_t_m/dt_m)
+    width = 2                       # lane width
+    interp_back_path = 5            # interpolate back to path after this # of steps
+    plan_t_m = 1                    # planning horizon
+    dt_m = 0.1                      # time step update
+    np_m = int(plan_t_m/dt_m)       # number of future waypoints
+    vision_radius = 5               # register vehicles which are within this radius of the ego vehicle
 
     # path
     x, y = get_spline(0,3,0,3,np.pi/2,np.pi/4)
@@ -200,8 +235,25 @@ if __name__ == '__main__':
     y2 = y + y_
     plt.plot(x2, y2, 'k')
 
+    # registering the ego vehicle
+    ###############################################
+    position = None
+    orientation = None
+    linear = None
+    angular = None
+    ego_pose = geometry_msgs.Pose(position, orientation)
+    ego_twist = geometry_msgs.Twist(linear, angular)
+    s = None
+    d = None
+    past_waypoints = None
+    future_waypoints = None
+    ###############################################
+    
+    ego = Vehicle(ego_pose, ego_twist, s, d, past_waypoints, future_waypoints)
+    register_ego(ego)
+
     # velocity obtained from vehicles.twist.twist.linear.x
-    v_1 = 0.9                   # change later
+    v_1 = 0.9                  
     v_2 = 0.5
 
     current_waypoint_1 = [3.04, 3.05]
