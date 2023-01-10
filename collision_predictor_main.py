@@ -6,6 +6,9 @@ from geometry_msgs import *
 from tf import *
 from frenet import *
 
+'''
+TO DO: added in the notebook
+'''
 class Vehicle:
     count = 0
     ids = []
@@ -250,7 +253,7 @@ if __name__ == '__main__':
     yaw = np.pi/4                                             # change
     out = quaternion_from_euler(0, 0, yaw)
     orientation = Quaternion(out[0], out[1], out[2], out[3])
-    v_ego = 0.9                                         # obtain from perception || vehicles.twist.twist.linear.x
+    v_ego = 0.9                                         # obtain from perception || vehicles.twist.twist.linear
     linear = Vector3(v_ego*math.cos(yaw), v_ego*math.sin(yaw), 0)
     angular = Vector3(0, 0, yaw)
     ego_pose = geometry_msgs.Pose(position, orientation)
@@ -268,7 +271,7 @@ if __name__ == '__main__':
     yaw = np.pi/4                                             # change
     out = quaternion_from_euler(0, 0, yaw)
     orientation = Quaternion(out[0], out[1], out[2], out[3])
-    v_veh = 0.5                                         # obtain from perception || vehicles.twist.twist.linear.x
+    v_veh = 0.5                                         # obtain from perception || vehicles.twist.twist.linear
     linear = Vector3(v_ego*math.cos(yaw), v_ego*math.sin(yaw), 0)
     angular = Vector3(0, 0, yaw)
     veh_pose = geometry_msgs.Pose(position, orientation)
@@ -280,7 +283,6 @@ if __name__ == '__main__':
     
     veh = Vehicle(veh_pose, veh_twist, s, d, past_waypoints, future_waypoints_veh, "veh1")
 
-    # initialization of future_trajectories as their starting point
     future_traj_1 = future_waypoints_ego
     future_traj_2 = future_waypoints_veh
 
