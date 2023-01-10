@@ -9,18 +9,22 @@ from frenet import *
 class Vehicle:
     count = 0
     vehicles_arr = []
-    def __init__(self, pose, twist, s, d, past_waypoints, future_waypoints):
+    ids = []
+    def __init__(self, pose, twist, s, d, past_waypoints, future_waypoints, id):
         self.pose = geometry_msgs.Pose(pose.position, pose.orientation)
         self.twist = geometry_msgs.Twist(twist.linear, twist.angular)
         self.s = s 
         self.d = d
         self.past_waypoints = past_waypoints
         self.future_waypoints = future_waypoints
+        self.id = id
 
-    # add the vehicle to vehicles array
+    # add the vehicle with unique ids to vehicles array
     def add_vehicle(self, veh):
-        Vehicle.count += 1
-        Vehicle.vehicles_arr.append(veh)
+        if self.id not in Vehicle.ids:
+            Vehicle.count += 1
+            Vehicle.ids.append(self.id)
+            Vehicle.vehicles_arr.append(veh)  
 
     # register the ego vehicle
     def register_ego(self, ego):
@@ -32,61 +36,12 @@ class Vehicle:
             # print("start registering")
             self.add_vehicle(veh)
 
-# vehicles which are in the vicinity of the ego vehicle
+# check for the vehicles which are in the vicinity of the ego vehicle
 def ego_vicinity(ego, veh):
     ego_pos = ego.pose.position
     veh_pos = veh.pose.position
     if distance(ego_pos.x, ego_pos.y, veh_pos.x, veh_pos.y) < vision_radius:
         return True
-
-# generating straight lanes
-def get_straight(x0, y0, x1, y1, theta, steps=100):
-    x = np.linspace(x0, x1, steps)
-    y = np.linspace(y0, y1, steps)
-
-    # horizontal road
-    if theta == 0:
-        y_boundary_1 = [a-(width/2) for a in y]
-        y_boundary_2 = [a+(width/2) for a in y]
-        return x, y, y_boundary_1, y_boundary_2
-    # vertical road
-    else:
-        x_boundary_1 = [a-(width/2) for a in x]
-        x_boundary_2 = [a+(width/2) for a in x]
-        return x, y, x_boundary_1, x_boundary_2
-
-# generate spline lanes
-def get_spline(x0, x1, y0, y1, theta0, theta1, steps=100): 
-    # change the format of input to the function to point
-	t = np.linspace(0, 1, steps) 
-
-	dx0 = np.cos(theta0) 
-	dy0 = np.sin(theta0)
-	dx1 = np.cos(theta1) 
-	dy1 = np.sin(theta1)
-
-	t0 = 0
-	t1 = 1
-
-	Ax = np.asarray([[1, t0,   t0**2,   t0**3],  # x  @ 0
-					[0, 1,  2*t0,    3*t0**2],  # x' @ 0
-					[1, t1,   t1**2,   t1**3],  # x  @ 1
-					[0, 1,  2*t1,    3*t1**2]]) # x' @ 1
-
-	X = np.asarray([x0, dx0, x1, dx1]).transpose()
-	bx = np.linalg.solve(Ax, X)
-
-	Ay = np.asarray([[1, t0,   t0**2,   t0**3],  # x  @ 0
-					[0, 1,  2*t0,    3*t0**2],  # x' @ 0
-					[1, t1,   t1**2,   t1**3],  # x  @ 1
-					[0, 1,  2*t1,    3*t1**2]]) # x' @ 1
-	Y = np.asarray([y0, dy0, y1, dy1]).transpose()
-	by = np.linalg.solve(Ay, Y)
-
-	x = np.dot(np.vstack([np.ones_like(t), t, t**2, t**3]).transpose(),bx)
-	y = np.dot(np.vstack([np.ones_like(t), t, t**2, t**3]).transpose(),by)
-
-	return x, y
 
 # collision check
 def lineIntersection(traj_1, traj_2):
@@ -218,6 +173,55 @@ def get_lane_and_s_map(x1, y1):
 
     return lane_line_list, lane_s_map
 
+# generating straight lanes
+def get_straight(x0, y0, x1, y1, theta, steps=100):
+    x = np.linspace(x0, x1, steps)
+    y = np.linspace(y0, y1, steps)
+
+    # horizontal road
+    if theta == 0:
+        y_boundary_1 = [a-(width/2) for a in y]
+        y_boundary_2 = [a+(width/2) for a in y]
+        return x, y, y_boundary_1, y_boundary_2
+    # vertical road
+    else:
+        x_boundary_1 = [a-(width/2) for a in x]
+        x_boundary_2 = [a+(width/2) for a in x]
+        return x, y, x_boundary_1, x_boundary_2
+
+# generate spline lanes
+def get_spline(x0, x1, y0, y1, theta0, theta1, steps=100): 
+    # change the format of input to the function to point
+	t = np.linspace(0, 1, steps) 
+
+	dx0 = np.cos(theta0) 
+	dy0 = np.sin(theta0)
+	dx1 = np.cos(theta1) 
+	dy1 = np.sin(theta1)
+
+	t0 = 0
+	t1 = 1
+
+	Ax = np.asarray([[1, t0,   t0**2,   t0**3],  # x  @ 0
+					[0, 1,  2*t0,    3*t0**2],  # x' @ 0
+					[1, t1,   t1**2,   t1**3],  # x  @ 1
+					[0, 1,  2*t1,    3*t1**2]]) # x' @ 1
+
+	X = np.asarray([x0, dx0, x1, dx1]).transpose()
+	bx = np.linalg.solve(Ax, X)
+
+	Ay = np.asarray([[1, t0,   t0**2,   t0**3],  # x  @ 0
+					[0, 1,  2*t0,    3*t0**2],  # x' @ 0
+					[1, t1,   t1**2,   t1**3],  # x  @ 1
+					[0, 1,  2*t1,    3*t1**2]]) # x' @ 1
+	Y = np.asarray([y0, dy0, y1, dy1]).transpose()
+	by = np.linalg.solve(Ay, Y)
+
+	x = np.dot(np.vstack([np.ones_like(t), t, t**2, t**3]).transpose(),bx)
+	y = np.dot(np.vstack([np.ones_like(t), t, t**2, t**3]).transpose(),by)
+
+	return x, y
+
 # main function
 if __name__ == '__main__':
     width = 2                       # lane width
@@ -255,7 +259,7 @@ if __name__ == '__main__':
     past_waypoints = None                               # record waypoints  # think how to implement this
     future_waypoints_ego, _, _ = get_future_trajectory(x1, y1, [position.x, position.y], v_ego)
     
-    ego = Vehicle(ego_pose, ego_twist, s, d, past_waypoints, future_waypoints_ego)
+    ego = Vehicle(ego_pose, ego_twist, s, d, past_waypoints, future_waypoints_ego, "ego")
     ego.register_ego(ego)
 
     # other vehicles 
@@ -273,7 +277,7 @@ if __name__ == '__main__':
     past_waypoints = None                               # record waypoints  # think how to implement this
     future_waypoints_veh, _, _ = get_future_trajectory(x2, y2, [position.x, position.y], v_veh)
     
-    veh = Vehicle(veh_pose, veh_twist, s, d, past_waypoints, future_waypoints_veh)
+    veh = Vehicle(veh_pose, veh_twist, s, d, past_waypoints, future_waypoints_veh, "veh1")
     # Vehicle.register_vehicle(ego, veh)
 
     current_waypoint_1 = [3.04, 3.05]
@@ -287,9 +291,10 @@ if __name__ == '__main__':
         veh.register_vehicle(ego, veh)
         future_traj_1, ego_pose, ego_twist = get_future_trajectory(x1, y1, [ego_pose.position.x, ego_pose.position.y],v_ego)
         future_traj_2, veh_pose, veh_twist = get_future_trajectory(x2, y2, [veh_pose.position.x, veh_pose.position.y], v_veh)
-        ego = Vehicle(ego_pose, ego_twist, s, d, past_waypoints, future_traj_1)
-        veh = Vehicle(veh_pose, veh_twist, s, d, past_waypoints, future_traj_2)
+        ego = Vehicle(ego_pose, ego_twist, s, d, past_waypoints, future_traj_1, "ego")
+        veh = Vehicle(veh_pose, veh_twist, s, d, past_waypoints, future_traj_2, "veh1")
         print(Vehicle.count)
+        print(Vehicle.vehicles_arr[0].pose.position.x)
         plt.plot(future_traj_1[0], future_traj_1[1], 'r--')
         plt.plot(ego_pose.position.x, ego_pose.position.y, 'b*')
         plt.plot(future_traj_2[0], future_traj_2[1], 'g--')
