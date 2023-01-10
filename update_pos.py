@@ -42,7 +42,7 @@ def get_lane_and_s_map(x1, y1):
 
     return lane_line_list, lane_s_map
 
-def PredictTrajectoryVehicles(init_x, init_y, path, s_map):    # msg_vehicles -> traffic_msg/PredictionArray
+def PredictTrajectoryVehicles(init_x, init_y, path, s_map, v):    # msg_vehicles -> traffic_msg/PredictionArray
     s, d, _ = get_frenet(init_x, init_y, path, s_map)
     future_x = []
     future_y = []
@@ -56,6 +56,9 @@ def PredictTrajectoryVehicles(init_x, init_y, path, s_map):    # msg_vehicles ->
         future_y.append(new_y)
     return future_x, future_y
 
+# for time being, i am updating the next position from the future trajectory point 
+# directly. in real world, we will get it from pose after the detection part
+# collect the info from vehicle[i].twist.twist.linear._
 def move(x, y, v, dt_m, path):
     # find the closest index from the curve and compute theta between those points
     # shift the vehicle along that direction to get the modified points

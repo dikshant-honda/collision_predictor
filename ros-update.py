@@ -49,7 +49,7 @@ def lineIntersection(traj_1, traj_2):
 def get_future_trajectory(x, y, current_waypoint, v):
     # return the future trajectory of the vehicle
     lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
-    future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map)
+    future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v)
     current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
     # update these waypoints as ros messages -> geometry_msgs.pose.position
     # later provide this information on ros traffic messages
