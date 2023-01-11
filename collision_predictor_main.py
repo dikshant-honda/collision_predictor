@@ -36,6 +36,31 @@ class Vehicle:
             # print("start registering")
             self.add_vehicle(veh)
 
+# average velocity from history
+def velocity(vel, factor):
+    vel_profile = []
+    for _ in range(horizon):
+        vel_profile.append(vel+np.random.random()/factor)         
+    return vel_profile
+
+# average offset from history
+def dist_from_center(d, factor):
+    d_profile = []
+    for _ in range(horizon):
+        d_profile.append(d+np.random.random()/factor*2)          
+    return d_profile
+
+# storing the past information of the vehicle
+def past_info_update(vehicle, past_vel, past_d):
+    vel_x = Vehicle.vehicle_dynamics[vehicle.id][1].linear.x
+    vel_y = Vehicle.vehicle_dynamics[vehicle.id][1].linear.y
+    vel = np.sqrt(vel_x**2+vel_y**2)
+    past_vel.pop(0)
+    past_vel.append(vel)
+    past_d.pop(0)
+    past_d.append(Vehicle.vehicle_dynamics[vehicle.id][3])
+    print(vel, past_d)
+
 # check for the vehicles which are in the vicinity of the ego vehicle
 def ego_vicinity(ego, veh):
     ego_pos = ego.pose.position
@@ -115,7 +140,7 @@ def move(x, y, v, dt_m, path):
 
 # future waypoints
 def PredictTrajectoryVehicles(init_x, init_y, path, s_map, v):    # msg_vehicles -> traffic_msg/PredictionArray
-    s, d, _ = get_frenet(init_x, init_y, path, s_map)
+    s, d, yaw, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
     future_x = []
     future_y = []
     for t in range(np_m):
@@ -126,18 +151,18 @@ def PredictTrajectoryVehicles(init_x, init_y, path, s_map, v):    # msg_vehicles
             new_x, new_y, _ = get_xy(s+v*dt_m*t, 0, path, s_map)
         future_x.append(new_x)
         future_y.append(new_y)
-    return future_x, future_y
+    return future_x, future_y, yaw
 
 # getting the future trajectory
-def get_future_trajectory(x, y, current_waypoint, v, id):
+def get_future_trajectory(x, y, current_waypoint, v, d, id):
     # return the future trajectory of the vehicle
     lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
-    future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v)
+    future_x, future_y, yaw = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v)
     curr = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
     # update these waypoints as ros messages -> geometry_msgs.pose.position
     # later provide this information on ros traffic messages
 
-    yaw = np.pi/4
+    # yaw = np.pi/4
     out = quaternion_from_euler(0, 0, yaw)
     orientation = Quaternion(out[0], out[1], out[2], out[3])
     pose = geometry_msgs.Pose(Point(curr[0], curr[1], 0), orientation)
@@ -222,11 +247,13 @@ def get_spline(x0, x1, y0, y1, theta0, theta1, steps=100):
 # main function
 if __name__ == '__main__':
     width = 2                       # lane width
-    interp_back_path = 20          # interpolate back to path after this # of steps
-    plan_t_m = 1                   # planning horizon
+    interp_back_path = 20           # interpolate back to path after this # of steps
+    plan_t_m = 1                    # planning horizon
     dt_m = 0.1                      # time step update
     np_m = int(plan_t_m/dt_m)       # number of future waypoints
     vision_radius = 1               # register vehicles which are within this radius of the ego vehicle
+    horizon = 10                    # number of past points info
+    factor = 5                      # scale down factor for randomness
 
     # path
     x, y = get_spline(0,3,0,3,np.pi/2,np.pi/4)
@@ -252,11 +279,11 @@ if __name__ == '__main__':
     ego_pose = geometry_msgs.Pose(position, orientation)
     ego_twist = geometry_msgs.Twist(linear, angular)
     s = 0
-    d = 0
+    d_ego = 0.5
     past_waypoints = None                               # record waypoints  # think how to implement this
-    future_waypoints_ego, _, _ = get_future_trajectory(x1, y1, [position.x, position.y], v_ego, "ego")
+    future_waypoints_ego, _, _ = get_future_trajectory(x1, y1, [position.x, position.y], v_ego, d_ego, "ego")
     
-    ego = Vehicle(ego_pose, ego_twist, s, d, past_waypoints, future_waypoints_ego, "ego")
+    ego = Vehicle(ego_pose, ego_twist, s, d_ego, past_waypoints, future_waypoints_ego, "ego")
     ego.register_ego(ego)
 
     # other vehicles 
@@ -270,24 +297,32 @@ if __name__ == '__main__':
     veh_pose = geometry_msgs.Pose(position, orientation)
     veh_twist = geometry_msgs.Twist(linear, angular)
     s = 0
-    d = 0
+    d_veh = 0.5
     past_waypoints = None                               # record waypoints  # think how to implement this
-    future_waypoints_veh, _, _ = get_future_trajectory(x2, y2, [position.x, position.y], v_veh, "veh1")
+    future_waypoints_veh, _, _ = get_future_trajectory(x2, y2, [position.x, position.y], v_veh, d_veh, "veh1")
     
-    veh = Vehicle(veh_pose, veh_twist, s, d, past_waypoints, future_waypoints_veh, "veh1")
+    veh = Vehicle(veh_pose, veh_twist, s, d_veh, past_waypoints, future_waypoints_veh, "veh1")
 
     future_traj_1 = future_waypoints_ego
     future_traj_2 = future_waypoints_veh
 
+    # past information storage initialization, later record it from the camera
+    past_ego_vel = velocity(v_ego, factor)
+    past_ego_d = dist_from_center(d_ego, factor)
+
+    past_veh_vel = velocity(v_veh, factor)
+    past_veh_d = dist_from_center(d_veh, factor)
+
     while not lineIntersection(future_traj_1, future_traj_2):
         veh.register_vehicle(ego, veh)
-        future_traj_1, ego_pose, ego_twist = get_future_trajectory(x1, y1, [ego_pose.position.x, ego_pose.position.y],v_ego, "ego")
-        future_traj_2, veh_pose, veh_twist = get_future_trajectory(x2, y2, [veh_pose.position.x, veh_pose.position.y], v_veh, "veh1")
-        ego = Vehicle(ego_pose, ego_twist, s, d, past_waypoints, future_traj_1, "ego")
-        veh = Vehicle(veh_pose, veh_twist, s, d, past_waypoints, future_traj_2, "veh1")
+        future_traj_1, ego_pose, ego_twist = get_future_trajectory(x1, y1, [ego_pose.position.x, ego_pose.position.y],v_ego, d_ego, "ego")
+        future_traj_2, veh_pose, veh_twist = get_future_trajectory(x2, y2, [veh_pose.position.x, veh_pose.position.y], v_veh, d_veh, "veh1")
+        ego = Vehicle(ego_pose, ego_twist, s, d_ego, past_waypoints, future_traj_1, "ego")
+        veh = Vehicle(veh_pose, veh_twist, s, d_veh, past_waypoints, future_traj_2, "veh1")
         # print(Vehicle.count)
         # for id, val in Vehicle.vehicle_dynamics.items():
         #     print(id, val[0].position.x)
+        past_info_update(ego, past_ego_vel, past_ego_d)
         plt.plot(future_traj_1[0], future_traj_1[1], 'r--')
         plt.plot(ego_pose.position.x, ego_pose.position.y, 'b*')
         plt.plot(future_traj_2[0], future_traj_2[1], 'g--')
