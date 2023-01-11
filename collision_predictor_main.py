@@ -19,7 +19,7 @@ class Vehicle:
 
         # updating the past information
         past_vel.pop(0)
-        v = np.sqrt(self.twist.linear.x**2+self.twist.linear.y**2)
+        v = np.sqrt(twist.linear.x**2+twist.linear.y**2)
         past_vel.append(v)
         past_d.pop(0)
         past_d.append(d)
@@ -28,7 +28,7 @@ class Vehicle:
         self.past_d = past_d
 
         self.d = np.mean(self.past_d)
-        print("udpating:", id, v, self.d)
+        print("udpating:", id, past_vel, past_d)
         Vehicle.vehicle_dynamics[self.id] = [self.pose, self.twist, self.s, self.d, self.past_vel, self.past_d, self.future_waypoints]
 
     # add the vehicle with unique ids to vehicles array
@@ -62,15 +62,15 @@ def dist_from_center(d, factor):
     return d_profile
 
 # storing the past information of the vehicle
-def past_info_update(id, past_vel, past_d):
-    vel_x = Vehicle.vehicle_dynamics[id][1].linear.x
-    vel_y = Vehicle.vehicle_dynamics[id][1].linear.y
-    vel = np.sqrt(vel_x**2+vel_y**2)
-    past_vel.pop(0)
-    past_vel.append(vel)
-    past_d.pop(0)
-    past_d.append(Vehicle.vehicle_dynamics[id][3])
-    return past_vel, past_d
+# def past_info_update(id, past_vel, past_d):
+#     vel_x = Vehicle.vehicle_dynamics[id][1].linear.x
+#     vel_y = Vehicle.vehicle_dynamics[id][1].linear.y
+#     vel = np.sqrt(vel_x**2+vel_y**2)
+#     past_vel.pop(0)
+#     past_vel.append(vel)
+#     past_d.pop(0)
+#     past_d.append(Vehicle.vehicle_dynamics[id][3])
+#     return past_vel, past_d
 
 # check for the vehicles which are in the vicinity of the ego vehicle
 def ego_vicinity(ego, veh):
@@ -167,9 +167,10 @@ def PredictTrajectoryVehicles(init_x, init_y, path, s_map, v):    # msg_vehicles
 # getting the future trajectory
 def get_future_trajectory(x, y, current_waypoint, past_v, past_d, id):
     # return the future trajectory of the vehicle
+    v = np.mean(past_v)
     lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
-    future_x, future_y, yaw, d = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, np.mean(past_v))
-    curr = move(current_waypoint[0], current_waypoint[1], np.mean(past_v), dt_m, lane_line_list)
+    future_x, future_y, yaw, d = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v)
+    curr = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
     # update these waypoints as ros messages -> geometry_msgs.pose.position
     # later provide this information on ros traffic messages
 
@@ -177,7 +178,7 @@ def get_future_trajectory(x, y, current_waypoint, past_v, past_d, id):
     out = quaternion_from_euler(0, 0, yaw)
     orientation = Quaternion(out[0], out[1], out[2], out[3])
     pose = geometry_msgs.Pose(Point(curr[0], curr[1], 0), orientation)
-    linear = Vector3(v_ego*math.cos(yaw), v_ego*math.sin(yaw), 0)
+    linear = Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
     angular = Vector3(0, 0, yaw)
     twist = geometry_msgs.Twist(linear, angular)
     Vehicle.vehicle_dynamics[id] = [pose, twist, s, d, past_v, past_d, [future_x, future_y]]
@@ -258,7 +259,7 @@ def get_spline(x0, x1, y0, y1, theta0, theta1, steps=100):
 # main function
 if __name__ == '__main__':
     width = 2                       # lane width
-    interp_back_path = 20           # interpolate back to path after this # of steps
+    interp_back_path = 15           # interpolate back to path after this # of steps
     plan_t_m = 1                    # planning horizon
     dt_m = 0.1                      # time step update
     np_m = int(plan_t_m/dt_m)       # number of future waypoints
@@ -335,6 +336,6 @@ if __name__ == '__main__':
         plt.plot(future_waypoints_ego[0], future_waypoints_ego[1], 'r--')
         plt.plot(ego_pose.position.x, ego_pose.position.y, 'b*')
         plt.plot(future_waypoints_veh[0], future_waypoints_veh[1], 'g--')
-        plt.plot(veh_pose.position.x, veh_pose.position.y, 'b*')
+        plt.plot(veh_pose.position.x, veh_pose.position.y, 'bo')
         plt.pause(0.2)
     plt.show()
