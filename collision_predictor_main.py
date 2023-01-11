@@ -6,9 +6,6 @@ from geometry_msgs import *
 from tf import *
 from frenet import *
 
-'''
-TO DO: added in the notebook
-'''
 class Vehicle:
     count = 0
     ids = []
@@ -48,19 +45,15 @@ def ego_vicinity(ego, veh):
 
 # collision check
 def lineIntersection(traj_1, traj_2):
-    p1_start = Point2D(traj_1[0][0], traj_1[1][0])
-    p1_end = Point2D(traj_1[0][-1], traj_1[1][-1])
-    p2_start = Point2D(traj_2[0][0], traj_2[1][0])
-    p2_end = Point2D(traj_2[0][-1], traj_2[1][-1])
     intersect = Point2D(0,0)
-    p0_x = p1_start.x
-    p0_y = p1_start.y
-    p1_x = p1_end.x
-    p1_y = p1_end.y
-    p2_x = p2_start.x
-    p2_y = p2_start.y
-    p3_x = p2_end.x
-    p3_y = p2_end.y
+    p0_x = traj_1[0][0]
+    p0_y = traj_1[1][0]
+    p1_x = traj_1[0][-1]
+    p1_y = traj_1[1][-1]
+    p2_x = traj_2[0][0]
+    p2_y = traj_2[1][0]
+    p3_x = traj_2[0][-1]
+    p3_y = traj_2[1][-1]
 
     s1_x = p1_x - p0_x
     s1_y = p1_y - p0_y
