@@ -28,7 +28,13 @@ class Vehicle:
         self.past_d = past_d
 
         self.d = np.mean(self.past_d)
-        print("udpating:", id, past_vel, past_d)
+
+        print("****************************************************")
+        print("vehicle type:", id)
+        print("position:", self.pose.position.x, self.pose.position.y)
+        print("velocity:", v)
+        print("offset from center line:", d)
+
         Vehicle.vehicle_dynamics[self.id] = [self.pose, self.twist, self.s, self.d, self.past_vel, self.past_d, self.future_waypoints]
 
     # add the vehicle with unique ids to vehicles array
@@ -181,7 +187,7 @@ def get_future_trajectory(x, y, current_waypoint, past_v, past_d, id):
     linear = Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
     angular = Vector3(0, 0, yaw)
     twist = geometry_msgs.Twist(linear, angular)
-    Vehicle.vehicle_dynamics[id] = [pose, twist, s, d, past_v, past_d, [future_x, future_y]]
+    # Vehicle.vehicle_dynamics[id] = [pose, twist, s, d, past_v, past_d, [future_x, future_y]]  # update in vehicle class
     return [future_x, future_y], pose, twist, d
 
 # get the s map and lane info
@@ -324,18 +330,30 @@ if __name__ == '__main__':
     # defining the traffic vehicles
     veh = Vehicle(veh_pose, veh_twist, s, d_veh, past_veh_vel, past_veh_d, future_waypoints_veh, "veh1")
 
-    while not lineIntersection(future_waypoints_ego, future_waypoints_veh):
-        veh.register_vehicle(ego, veh)
-        future_waypoints_ego, ego_pose, ego_twist, d_ego = get_future_trajectory(x1, y1, [ego_pose.position.x, ego_pose.position.y],past_ego_vel, past_ego_d, "ego")
-        future_waypoints_veh, veh_pose, veh_twist, d_veh = get_future_trajectory(x2, y2, [veh_pose.position.x, veh_pose.position.y], past_veh_vel, past_veh_d, "veh1")
-        ego = Vehicle(ego_pose, ego_twist, s, d_ego, past_ego_vel, past_ego_d, future_waypoints_ego, "ego")
-        veh = Vehicle(veh_pose, veh_twist, s, d_veh, past_veh_vel, past_veh_d, future_waypoints_veh, "veh1")
-        # print(Vehicle.count)
-        # for id, val in Vehicle.vehicle_dynamics.items():
-        #     print(id, val[0].position.x)
-        plt.plot(future_waypoints_ego[0], future_waypoints_ego[1], 'r--')
-        plt.plot(ego_pose.position.x, ego_pose.position.y, 'b*')
-        plt.plot(future_waypoints_veh[0], future_waypoints_veh[1], 'g--')
-        plt.plot(veh_pose.position.x, veh_pose.position.y, 'bo')
-        plt.pause(0.2)
+    while True:                             # modify this condition
+        # if there's no collision, then ego vehicle should keep moving forward
+        if not lineIntersection(future_waypoints_ego, future_waypoints_veh):
+            veh.register_vehicle(ego, veh)
+            future_waypoints_ego, ego_pose, ego_twist, d_ego = get_future_trajectory(x1, y1, [ego_pose.position.x, ego_pose.position.y],past_ego_vel, past_ego_d, "ego")
+            future_waypoints_veh, veh_pose, veh_twist, d_veh = get_future_trajectory(x2, y2, [veh_pose.position.x, veh_pose.position.y], past_veh_vel, past_veh_d, "veh1")
+            ego = Vehicle(ego_pose, ego_twist, s, d_ego, past_ego_vel, past_ego_d, future_waypoints_ego, "ego")
+            veh = Vehicle(veh_pose, veh_twist, s, d_veh, past_veh_vel, past_veh_d, future_waypoints_veh, "veh1")
+            # print(Vehicle.count)
+            # for id, val in Vehicle.vehicle_dynamics.items():
+            #     print(id, val[0].position.x)
+            plt.plot(future_waypoints_ego[0], future_waypoints_ego[1], 'r--')
+            plt.plot(ego_pose.position.x, ego_pose.position.y, 'b*')
+            plt.plot(future_waypoints_veh[0], future_waypoints_veh[1], 'g--')
+            plt.plot(veh_pose.position.x, veh_pose.position.y, 'bo')
+            plt.pause(0.2)
+
+        # if there's collision, then stop the ego vehicle and let other participants move
+        else:
+            veh.register_vehicle(ego, veh)
+            future_waypoints_veh, veh_pose, veh_twist, d_veh = get_future_trajectory(x2, y2, [veh_pose.position.x, veh_pose.position.y], past_veh_vel, past_veh_d, "veh1")
+            veh = Vehicle(veh_pose, veh_twist, s, d_veh, past_veh_vel, past_veh_d, future_waypoints_veh, "veh1")
+            plt.plot(future_waypoints_veh[0], future_waypoints_veh[1], 'g--')
+            plt.plot(veh_pose.position.x, veh_pose.position.y, 'bo')
+            plt.pause(0.2)
+        
     plt.show()
