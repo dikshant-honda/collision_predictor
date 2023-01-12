@@ -83,20 +83,72 @@ if __name__ == '__main__':
     lane_center4, id4 = register_lane(x4, y4, count+4)
 
     # plotting
-    plt.plot(x1, y1, 'b--', markersize=1)
-    plt.plot(x1, bound1_1, 'k')
-    plt.plot(x1, bound1_2, 'k')
-    plt.plot(x2, y2, 'b--', markersize=1)
-    plt.plot(bound2_1, y2, 'k')
-    plt.plot(bound2_2, y2, 'k')
-    plt.plot(x3, y3, 'b--', markersize=1)
-    plt.plot(x3, bound3_1, 'k')
-    plt.plot(x3, bound3_2, 'k')
-    plt.plot(x4, y4, 'b--', markersize=1)
-    plt.plot(bound4_1, y4, 'k')
-    plt.plot(bound4_2, y4, 'k')
-    # x, y = get_spline(0,3,0,3,np.pi/2,np.pi/9)
-    # x1,y1 = get_spline(3,6,3,0,np.pi/9,np.pi/5)
-    # plt.plot(x,y)
-    # plt.plot(x1,y1)
+    # plt.plot(x1, y1, 'b--', markersize=1)
+    # plt.plot(x1, bound1_1, 'k--')
+    # plt.plot(x1, bound1_2, 'k--')
+    # plt.plot(x2, y2, 'b--', markersize=1)
+    # plt.plot(bound2_1, y2, 'k--')
+    # plt.plot(bound2_2, y2, 'k--')
+    # plt.plot(x3, y3, 'b--', markersize=1)
+    # plt.plot(x3, bound3_1, 'k--')
+    # plt.plot(x3, bound3_2, 'k--')
+    # plt.plot(x4, y4, 'b--', markersize=1)
+    # plt.plot(bound4_1, y4, 'k--')
+    # plt.plot(bound4_2, y4, 'k--')
+
+    # x, y = get_spline(0,10,0,10,np.pi/2,np.pi/2)
+    # x_,y_ = get_spline(10,15,10,0,np.pi/2,np.pi/2)
+    # x1 = x + x_
+    # y1 = y + y_
+    # plt.plot(x1, y1, 'g')
+
+    # x, y = get_spline(0,10,0,10,-np.pi/2,-np.pi/2)
+    # x_,y_ = get_spline(10,15,10,0,-np.pi/2,-np.pi/2)
+    # x2 = x + x_
+    # y2 = y + y_
+    # plt.plot(x2, y2, 'k--')
+
+    # new environment
+
+    # center lanes
+    # sinusoidal curves
+    x_sin = np.linspace(-5,6.4,500)
+    y_sin = 5*np.sin(x_sin/4)
+    y_sin_ = -5*np.sin(x_sin/4)
+    plt.plot(x_sin, y_sin, 'k--')
+    plt.plot(x_sin, y_sin_, 'k--')
+
+    x_sin_2 = np.linspace(0,6.4,100)
+    y_sin_2 = -5*np.sin(x_sin_2/4)+10
+    plt.plot(x_sin_2, y_sin_2, 'k--')
+    
+    # straight path
+    x_str_1 = np.linspace(6.4, 10, 100)
+    y_str_1 = np.linspace(5, 5, 100)
+    plt.plot(x_str_1, y_str_1, 'k--')
+
+    x_str_2 = np.linspace(6.4, 10, 100)
+    y_str_2 = np.linspace(-5, -5, 100)
+    plt.plot(x_str_2, y_str_2, 'k--')
+
+    x_str_3 = np.linspace(10, 10, 100)
+    y_str_3 = np.linspace(-5, 5, 100)
+    plt.plot(x_str_3, y_str_3, 'k--')
+
+    x_str_4 = np.linspace(6.4, 6.4, 100)
+    y_str_4 = np.linspace(-8, -5, 100)
+    plt.plot(x_str_4, y_str_4, 'k--')
+
+    x_str_5 = np.linspace(10, 10, 100)
+    y_str_5 = np.linspace(5, 10, 100)
+    plt.plot(x_str_5, y_str_5, 'k--')
+
+    x_str_6 = np.linspace(10, 14, 100)
+    y_str_6 = np.linspace(5, 5, 100)
+    plt.plot(x_str_6, y_str_6, 'k--')
+
+    x_str_7 = np.linspace(10, 14, 100)
+    y_str_7 = -x_str_7+5
+    plt.plot(x_str_7, y_str_7, 'k--')
+
     plt.show()
