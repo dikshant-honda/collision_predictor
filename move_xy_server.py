@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 import math
-from msg import MoveXYAction, MoveXYResult, MoveXYFeedback
+from action import MoveXY
 from geometry_msgs.msg import Pose2D, Twist
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
@@ -11,9 +11,6 @@ from tf.transformations import euler_from_quaternion
 class MoveXY:
 
     def __init__(self):
-        self._feedback = MoveXYFeedback()
-        self._result = MoveXYResult()
-
         self.epsilon_dist = 3e-02 # 3 cm
         self.epsilon_ang = 0.0872665 # 5 degrees
 
@@ -27,7 +24,7 @@ class MoveXY:
         rospy.Subscriber('/odom', Odometry, self.callback_odom)
         self.cmd = rospy.Publisher('/cmd_vel', Twist, queue_size = 10)
 
-        self._as = actionlib.SimpleActionServer("move_xy", MoveXYAction, self.callback_move, False)
+        self._as = actionlib.SimpleActionServer("move_xy", MoveXY, self.callback_move, False)
         self._as.start()
         
     def callback_odom(self, data):
