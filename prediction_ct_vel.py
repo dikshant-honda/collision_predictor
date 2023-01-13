@@ -1,9 +1,9 @@
 import numpy as np
 from geometry_utils import *
 from frenet import *
-from traffic_msgs import *
-from geometry_msgs import *
-from nav_msgs import *
+from py_msgs.traffic_msgs import *
+from py_msgs.geometry_msgs import *
+from py_msgs.nav_msgs import *
 from std_msgs import *
 from lane_publisher import *
 

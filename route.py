@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from environment import *
 from lane_publisher import *
-from traffic_msgs import *
-from nav_msgs import *
-from geometry_msgs import *
+from py_msgs.traffic_msgs import *
+from py_msgs.nav_msgs import *
+from py_msgs.geometry_msgs import *
 
 '''
 this script is used for testing the conversion from cartesian to frenet to cartesian

@@ -1,9 +1,9 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from nav_msgs import *
-from geometry_msgs import *
-from tf import *
+from py_msgs.nav_msgs import *
+from py_msgs.geometry_msgs import *
+from py_msgs.tf import *
 from frenet import *
 
 class Vehicle:

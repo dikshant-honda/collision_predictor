@@ -1,6 +1,6 @@
 import numpy as np
-from geometry_msgs import Pose2D
-from nav_msgs import Path
+from py_msgs.geometry_msgs import Pose2D
+from py_msgs.nav_msgs import Path
 from typing import List
 from scipy.signal import butter, filtfilt
 
