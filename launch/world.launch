@@ -1,5 +1,5 @@
 <launch>
-  <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, burger, burger, burger, burger]"/>
+  <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
   <arg name="agent_1"  default="tb3_1"/>
   <arg name="agent_2" default="tb3_2"/>
   <arg name="agent_3"  default="tb3_3"/>
