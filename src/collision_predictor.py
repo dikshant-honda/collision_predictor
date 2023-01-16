@@ -1,0 +1,276 @@
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+import std_msgs
+import geometry_msgs 
+import tf
+from frenet import *
+from geometry_utils import *
+
+class Vehicle:
+    count = 0
+    ids = []
+    vehicle_dynamics = {}        # [pose, twist, s, d, past, future]
+    def __init__(self, pose, twist, s, d, past_vel, past_d, future_waypoints_x, future_waypoints_y, id):
+        self.pose = geometry_msgs.Pose(pose.position, pose.orientation)
+        self.twist = geometry_msgs.Twist(twist.linear, twist.angular)
+        self.s = s
+        self.d = d
+        self.id = id
+        self.future_waypoints_x = future_waypoints_x
+        self.future_waypoints_y = future_waypoints_y
+
+        # updating the past information
+        past_vel.pop(0)
+        v = np.sqrt(twist.linear.x**2+twist.linear.y**2)
+        past_vel.append(v)
+        past_d.pop(0)
+        past_d.append(d)
+
+        self.past_vel = past_vel
+        self.past_d = past_d
+
+        # print("****************************************************")
+        # print("vehicle type:", id)
+        # print("position:", self.pose.position.x, self.pose.position.y)
+        # print("velocity:", v)
+        # print("offset from center line:", d)
+
+        Vehicle.vehicle_dynamics[self.id] = [self.pose, self.twist, self.s, self.d, self.past_vel, self.past_d, self.future_waypoints_x, self.future_waypoints_y]
+
+
+    # add the vehicle with unique ids to vehicles array
+    def add_vehicle(self, veh):
+        if self.id not in Vehicle.ids:
+            Vehicle.count += 1
+            Vehicle.ids.append(self.id) 
+
+    # register the ego vehicle
+    def register_ego(self, ego):
+        self.add_vehicle(ego)
+
+    # register the vehicle into dynamics
+    def register_vehicle(self, ego, veh):
+        if ego_vicinity(ego, veh):
+            # print("start registering")
+            self.add_vehicle(veh)
+
+
+# check for the vehicles which are in the vicinity of the ego vehicle
+def ego_vicinity(ego, veh):
+    ego_pos = ego.pose.position
+    veh_pos = veh.pose.position
+    if distance(ego_pos.x, ego_pos.y, veh_pos.x, veh_pos.y) < vision_radius:
+        return True
+
+# average velocity from history
+def velocity(vel, factor):
+    vel_profile = []
+    for _ in range(horizon):
+        vel_profile.append(vel+np.random.random()/factor)         
+    return vel_profile
+
+# average offset from history
+def dist_from_center(d, factor):
+    d_profile = []
+    for _ in range(horizon):
+        d_profile.append(d+np.random.random()/(factor*10))          
+    return d_profile
+
+# check for the vehicles which are in the vicinity of the ego vehicle
+def ego_vicinity(ego, veh):
+    ego_pos = ego.pose.position
+    veh_pos = veh.pose.position
+    if distance(ego_pos.x, ego_pos.y, veh_pos.x, veh_pos.y) < vision_radius:
+        return True
+
+# collision check
+def lineIntersection(traj_1_x, traj_1_y, traj_2_x, traj_2_y):
+    intersect = Point2D(0,0)
+    p0_x = traj_1_x[0]
+    p0_y = traj_1_y[0]
+    p1_x = traj_1_x[-1]
+    p1_y = traj_1_y[-1]
+    p2_x = traj_2_x[0]
+    p2_y = traj_2_y[0]
+    p3_x = traj_2_x[-1]
+    p3_y = traj_2_y[-1]
+
+    s1_x = p1_x - p0_x
+    s1_y = p1_y - p0_y
+    s2_x = p3_x - p2_x
+    s2_y = p3_y - p2_y
+
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y))/(-s2_x * s1_y + s1_x * s2_y)
+    t = (s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x))/(-s2_x * s1_y + s1_x * s2_y)
+
+    if s >= 0 and s <= 1 and t >=0 and t <= 1:
+        # collision detected
+        intersect.x = p0_x + (t * s1_x)
+        intersect.y = p0_y + (t * s1_y)
+        print("!!COLLISION AHEAD!!")
+        print("Wait for the other vehicle to pass")
+        return True
+    
+    return False  # no collision
+
+# change this
+def move(x, y, v, dt_m, path):
+    # find the closest index from the curve and compute theta between those points
+    # shift the vehicle along that direction to get the modified points
+
+    ind_closest = closest_point_ind(path, x, y)
+    # Determine the indices of the 2 closest points
+    if ind_closest < len(path):
+        # Check if we are at the end of the segment
+        if ind_closest == len(path) - 1:
+            use_previous = True
+        elif ind_closest == 0:
+            use_previous = False
+        else:
+            dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, x, y)
+            dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, x, y)
+
+            if dist_prev <= dist_next:
+                use_previous = True
+            else:
+                use_previous = False
+
+        # Get the 2 points
+        if use_previous:
+            p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
+            p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
+        else:
+            p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
+            p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
+
+        # Get the point in the local coordinate with center p1
+        theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
+    new_x = x + v*np.cos(theta)*dt_m
+    new_y = y + v*np.sin(theta)*dt_m
+
+    return [new_x, new_y]
+
+# adding on theta to get the yaw of the vehicle
+def get_frenet_with_theta(x, y, path, s_map):
+    if path == None:
+        print("Empty map. Cannot return Frenet coordinates")
+        return 0.0, 0.0, 0.0, False
+
+    ind_closest = closest_point_ind(path, x, y)
+
+    # Determine the indices of the 2 closest points
+    if ind_closest < len(path):
+        # Check if we are at the end of the segment
+        if ind_closest == len(path) - 1:
+            use_previous = True
+        elif ind_closest == 0:
+            use_previous = False
+        else:
+            dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, x, y)
+            dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, x, y)
+
+            if dist_prev <= dist_next:
+                use_previous = True
+            else:
+                use_previous = False
+
+        # Get the 2 points
+        if use_previous:
+            p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
+            p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
+            prev_idx = ind_closest - 1
+        else:
+            p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
+            p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
+            prev_idx = ind_closest
+
+        # Get the point in the local coordinate with center p1
+        theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
+        local_p = global_to_local(p1, theta, Point2D(x,y))
+
+        # Get the coordinates in the Frenet frame
+        p_s = s_map[prev_idx] + local_p.x
+        p_d = local_p.y
+
+    else:
+        print("Incorrect index")
+        return 0.0, 0.0, 0.0, False
+
+    return p_s, p_d, theta, True
+
+# future waypoints
+def PredictTrajectoryVehicles(init_x, init_y, path, s_map, v, d):    # msg_vehicles -> traffic_msg/PredictionArray
+    s, d_curr, yaw, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
+    d = (d_curr + d) / 2                                                # average of all the deviations from center
+    future_x = []
+    future_y = []
+    for t in range(np_m):
+        if t < interp_back_path:
+            d_val = d - ((t*d) / interp_back_path)
+            new_x, new_y, _ = get_xy(s+v*dt_m*t, d_val, path, s_map)
+        else:
+            new_x, new_y, _ = get_xy(s+v*dt_m*t, 0, path, s_map)
+        future_x.append(new_x)
+        future_y.append(new_y)
+    return future_x, future_y, yaw, d
+
+# getting the future trajectory
+def get_future_trajectory(x, y, current_waypoint, past_v, past_d, id):
+    # return the future trajectory of the vehicle
+    v = np.mean(past_v)
+    d = np.mean(past_d)
+    lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
+    future_x, future_y, yaw, d = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v, d)
+    curr = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
+    # update these waypoints as ros messages -> geometry_msgs.pose.position
+    # later provide this information on ros traffic messages
+
+    # yaw = np.pi/4
+    orientation = tf.quaternion_from_euler(0, 0, yaw)
+    # orientation = Quaternion(out[0], out[1], out[2], out[3])
+    pose = geometry_msgs.Pose(geometry_msgs.Point(curr[0], curr[1], 0), orientation)
+    linear = geometry_msgs.Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
+    angular = geometry_msgs.Vector3(0, 0, yaw)
+    twist = geometry_msgs.Twist(linear, angular)
+
+    # future trajectory obtained from the current waypoint
+    future_x.insert(0, current_waypoint[0])
+    future_y.insert(0, current_waypoint[1])
+
+    # Vehicle.vehicle_dynamics[id] = [pose, twist, s, d, past_v, past_d, [future_x, future_y]]  # update in vehicle class
+    return future_x, future_y, pose, twist, d
+
+# get the s map and lane info
+def get_lane_and_s_map(x, y):
+    pose_arr = []
+    # x_g, y_g = get_spline(current_waypoint[0],destination_waypoint[0],current_waypoint[1],destination_waypoint[1],np.pi/2,np.pi/4)
+    lane_route = []
+    for i in range(len(x)):
+        lane_route.append([x[i], y[i]])
+    
+    for i in range(len(lane_route)-1):
+        point = geometry_msgs.Point(lane_route[i][0], lane_route[i][1])
+        # replace this by actual yaw of the vehicle maybe
+        yaw = math.atan2((lane_route[i+1][1]-lane_route[i][1]),(lane_route[i+1][0]-lane_route[i][0]))
+        quat = tf.quaternion_from_euler(0,0,yaw)
+        # quat = Quaternion(out[0], out[1], out[2], out[3])
+        poses = geometry_msgs.PoseStamped(std_msgs.Header(), geometry_msgs.Pose(point, quat))
+        pose_arr.append(poses)
+    # adding the last point
+    pose_arr.append(geometry_msgs.PoseStamped(std_msgs.Header(), geometry_msgs.Pose(geometry_msgs.Point(lane_route[-1][0], lane_route[-1][1]), quat)))
+    path_route = Path(std_msgs.Header(), pose_arr)
+    lane_line_list, lane_s_map = path_to_list(path_route)
+
+    return lane_line_list, lane_s_map
+
+# main function
+if __name__ == '__main__':
+    width = 2                       # lane width
+    interp_back_path = 15           # interpolate back to path after this # of steps
+    plan_t_m = 1                    # planning horizon
+    dt_m = 0.1                      # time step update
+    np_m = int(plan_t_m/dt_m)       # number of future waypoints
+    vision_radius = 1               # register vehicles which are within this radius of the ego vehicle
+    horizon = 10                    # number of past points info
+    factor = 10                     # scale down factor for randomness
