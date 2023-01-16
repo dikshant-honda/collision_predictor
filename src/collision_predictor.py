@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+
+import rospy
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,6 +9,7 @@ import geometry_msgs
 import tf
 from frenet import *
 from geometry_utils import *
+from lane_info import *
 
 class Vehicle:
     count = 0
@@ -264,6 +268,10 @@ def get_lane_and_s_map(x, y):
 
     return lane_line_list, lane_s_map
 
+# ros callbacks
+def callback1(msg):
+    pass
+
 # main function
 if __name__ == '__main__':
     width = 2                       # lane width
@@ -274,3 +282,80 @@ if __name__ == '__main__':
     vision_radius = 1               # register vehicles which are within this radius of the ego vehicle
     horizon = 10                    # number of past points info
     factor = 10                     # scale down factor for randomness
+
+    rospy.init_node("collision detector") 
+
+    # registering the vehicles
+    pos_car_1 = geometry_msgs.Point(-4.0, 0.0, 0.0)
+    yaw_car_1 = 0
+    lin_vel_1 = 0.2
+    ang_vel_1 = 0.0
+    car_1_pose = geometry_msgs.Pose(pos_car_1, tf.quaternion_from_euler(0, 0, yaw_car_1))
+    car_1_twist = geometry_msgs.Twist(lin_vel_1, ang_vel_1)
+    s = 0 
+    d_car_1 = 0.0
+
+    pos_car_2 = geometry_msgs.Point(8.0, -2.0, 0.0)
+    yaw_car_2 = 2.36
+    lin_vel_2 = 0.1
+    ang_vel_2 = 0.0
+    car_2_pose = geometry_msgs.Pose(pos_car_2, tf.quaternion_from_euler(0, 0, yaw_car_2))
+    car_2_twist = geometry_msgs.Twist(lin_vel_2, ang_vel_2)
+    s = 0 
+    d_car_2 = 0.0
+
+    pos_car_3 = geometry_msgs.Point(0.5, 3.0, 0.0)
+    yaw_car_3 = -1.57
+    lin_vel_3 = 0.1
+    ang_vel_3 = 0.0
+    car_3_pose = geometry_msgs.Pose(pos_car_3, tf.quaternion_from_euler(0, 0, yaw_car_3))
+    car_3_twist = geometry_msgs.Twist(lin_vel_3, ang_vel_3)
+    s = 0 
+    d_car_3 = 0.0
+
+    pos_car_4 = geometry_msgs.Point(-6.0, -8.0, 0.0)
+    yaw_car_4 = 1.57
+    lin_vel_4 = 0.1
+    ang_vel_4 = 0.0
+    car_4_pose = geometry_msgs.Pose(pos_car_4, tf.quaternion_from_euler(0, 0, yaw_car_4))
+    car_4_twist = geometry_msgs.Twist(lin_vel_4, ang_vel_4)
+    s = 0 
+    d_car_4 = 0.0
+
+    pos_car_5 = geometry_msgs.Point(0.5, -3.0, 0.0)
+    yaw_car_5 = 1.57
+    lin_vel_5 = 0.2
+    ang_vel_5 = 0.0
+    car_5_pose = geometry_msgs.Pose(pos_car_5, tf.quaternion_from_euler(0, 0, yaw_car_5))
+    car_5_twist = geometry_msgs.Twist(lin_vel_5, ang_vel_5)
+    s = 0 
+    d_car_5 = 0.0
+    
+    # past information storage initialization, later record it from the camera
+    past_vel_1 = velocity(lin_vel_1, factor)
+    past_d_1 = dist_from_center(d_car_1, factor)
+    past_vel_2 = velocity(lin_vel_2, factor)
+    past_d_2 = dist_from_center(d_car_2, factor)
+    past_vel_3 = velocity(lin_vel_3, factor)
+    past_d_3 = dist_from_center(d_car_3, factor)
+    past_vel_4 = velocity(lin_vel_4, factor)
+    past_d_4 = dist_from_center(d_car_4, factor)
+    past_vel_5 = velocity(lin_vel_5, factor)
+    past_d_5 = dist_from_center(d_car_5, factor)
+
+    # future waypoints from current point
+    future_waypoints_x_1, future_waypoints_y_1, _, _, _  = get_future_trajectory(x_car_1, y_car_1, car_1_pose.x, car_1_pose.y, past_d_1, past_vel_1, "car1")
+    future_waypoints_x_2, future_waypoints_y_2, _, _, _  = get_future_trajectory(x_car_2, y_car_2, car_2_pose.x, car_2_pose.y, past_d_2, past_vel_2, "car2")
+    future_waypoints_x_3, future_waypoints_y_3, _, _, _  = get_future_trajectory(x_car_3, y_car_3, car_3_pose.x, car_3_pose.y, past_d_3, past_vel_3, "car3")
+    future_waypoints_x_4, future_waypoints_y_4, _, _, _  = get_future_trajectory(x_car_4, y_car_4, car_4_pose.x, car_4_pose.y, past_d_4, past_vel_4, "car4")
+    future_waypoints_x_5, future_waypoints_y_5, _, _, _  = get_future_trajectory(x_car_5, y_car_5, car_5_pose.x, car_5_pose.y, past_d_5, past_vel_5, "car5")
+
+    # defining the vehicles
+    car_1 = Vehicle(car_1_pose, car_1_twist, s, d_car_1, past_vel_1, past_d_1, future_waypoints_x_1, future_waypoints_y_1, "car1")
+    car_2 = Vehicle(car_2_pose, car_2_twist, s, d_car_2, past_vel_2, past_d_2, future_waypoints_x_2, future_waypoints_y_2, "car2")
+    car_3 = Vehicle(car_3_pose, car_3_twist, s, d_car_3, past_vel_3, past_d_3, future_waypoints_x_3, future_waypoints_y_3, "car3")
+    car_4 = Vehicle(car_4_pose, car_4_twist, s, d_car_4, past_vel_4, past_d_4, future_waypoints_x_4, future_waypoints_y_4, "car4")
+    car_5 = Vehicle(car_5_pose, car_5_twist, s, d_car_5, past_vel_5, past_d_5, future_waypoints_x_5, future_waypoints_y_5, "car5")
+
+    # define car 1 as ego vehicle
+    car_1.register_ego(car_1)
