@@ -7,7 +7,7 @@
   <arg name="agent_5"  default="tb3_5"/>
 
   <arg name="agent_1_x_pos" default="-4.0"/>
-  <arg name="agent_1_y_pos" default="0.0"/>
+  <arg name="agent_1_y_pos" default=" 0.0"/>
   <arg name="agent_1_z_pos" default=" 0.0"/>
   <arg name="agent_1_yaw"   default=" 0.0"/>
 
@@ -19,15 +19,15 @@
   <arg name="agent_3_x_pos" default=" 0.5"/>
   <arg name="agent_3_y_pos" default=" 3.0"/>
   <arg name="agent_3_z_pos" default=" 0.0"/>
-  <arg name="agent_3_yaw"   default=" -1.57"/>
+  <arg name="agent_3_yaw"   default="-1.57"/>
 
-  <arg name="agent_4_x_pos" default=" 9.0"/>
-  <arg name="agent_4_y_pos" default=" 3.0"/>
+  <arg name="agent_4_x_pos" default="-6.0"/>
+  <arg name="agent_4_y_pos" default="-8.0"/>
   <arg name="agent_4_z_pos" default=" 0.0"/>
-  <arg name="agent_4_yaw"   default=" -2.36"/>
+  <arg name="agent_4_yaw"   default=" 1.57"/>
 
   <arg name="agent_5_x_pos" default=" 0.5"/>
-  <arg name="agent_5_y_pos" default=" -3.0"/>
+  <arg name="agent_5_y_pos" default="-3.0"/>
   <arg name="agent_5_z_pos" default=" 0.0"/>
   <arg name="agent_5_yaw"   default=" 1.57"/>
 
