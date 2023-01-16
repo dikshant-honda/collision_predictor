@@ -5,6 +5,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import std_msgs
+import nav_msgs
 import geometry_msgs 
 import tf
 from frenet import *
@@ -16,8 +17,8 @@ class Vehicle:
     ids = []
     vehicle_dynamics = {}        # [pose, twist, s, d, past, future]
     def __init__(self, pose, twist, s, d, past_vel, past_d, future_waypoints_x, future_waypoints_y, id):
-        self.pose = geometry_msgs.Pose(pose.position, pose.orientation)
-        self.twist = geometry_msgs.Twist(twist.linear, twist.angular)
+        self.pose = pose
+        self.twist = twist
         self.s = s
         self.d = d
         self.id = id
@@ -118,42 +119,48 @@ def lineIntersection(traj_1_x, traj_1_y, traj_2_x, traj_2_y):
     
     return False  # no collision
 
-# change this
-def move(x, y, v, dt_m, path):
-    # find the closest index from the curve and compute theta between those points
-    # shift the vehicle along that direction to get the modified points
+# # change this
+# def move(x, y, v, dt_m, path):
+#     # find the closest index from the curve and compute theta between those points
+#     # shift the vehicle along that direction to get the modified points
 
-    ind_closest = closest_point_ind(path, x, y)
-    # Determine the indices of the 2 closest points
-    if ind_closest < len(path):
-        # Check if we are at the end of the segment
-        if ind_closest == len(path) - 1:
-            use_previous = True
-        elif ind_closest == 0:
-            use_previous = False
-        else:
-            dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, x, y)
-            dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, x, y)
+#     ind_closest = closest_point_ind(path, x, y)
+#     # Determine the indices of the 2 closest points
+#     if ind_closest < len(path):
+#         # Check if we are at the end of the segment
+#         if ind_closest == len(path) - 1:
+#             use_previous = True
+#         elif ind_closest == 0:
+#             use_previous = False
+#         else:
+#             dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, x, y)
+#             dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, x, y)
 
-            if dist_prev <= dist_next:
-                use_previous = True
-            else:
-                use_previous = False
+#             if dist_prev <= dist_next:
+#                 use_previous = True
+#             else:
+#                 use_previous = False
 
-        # Get the 2 points
-        if use_previous:
-            p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
-            p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
-        else:
-            p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
-            p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
+#         # Get the 2 points
+#         if use_previous:
+#             p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
+#             p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
+#         else:
+#             p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
+#             p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
 
-        # Get the point in the local coordinate with center p1
-        theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
-    new_x = x + v*np.cos(theta)*dt_m
-    new_y = y + v*np.sin(theta)*dt_m
+#         # Get the point in the local coordinate with center p1
+#         theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
+#     new_x = x + v*np.cos(theta)*dt_m
+#     new_y = y + v*np.sin(theta)*dt_m
 
-    return [new_x, new_y]
+#     return [new_x, new_y]
+
+def move(pub, lin_vel, ang_vel):
+    update = geometry_msgs.Twist()
+    update.linear.x = lin_vel
+    update.angular.z = ang_vel
+    pub.publish(update)
 
 # adding on theta to get the yaw of the vehicle
 def get_frenet_with_theta(x, y, path, s_map):
@@ -220,30 +227,33 @@ def PredictTrajectoryVehicles(init_x, init_y, path, s_map, v, d):    # msg_vehic
     return future_x, future_y, yaw, d
 
 # getting the future trajectory
-def get_future_trajectory(x, y, current_waypoint, past_v, past_d, id):
+def get_future_trajectory(x, y, current_waypoint, past_v, w, past_d, pub):
     # return the future trajectory of the vehicle
     v = np.mean(past_v)
     d = np.mean(past_d)
     lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
     future_x, future_y, yaw, d = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v, d)
-    curr = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
+    # curr = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
+    move(pub, v, w)
+    pub.publish(move)
     # update these waypoints as ros messages -> geometry_msgs.pose.position
     # later provide this information on ros traffic messages
+    
 
     # yaw = np.pi/4
-    orientation = tf.quaternion_from_euler(0, 0, yaw)
+    # orientation = tf.quaternion_from_euler(0, 0, yaw)      # add yaw parameter to function
     # orientation = Quaternion(out[0], out[1], out[2], out[3])
-    pose = geometry_msgs.Pose(geometry_msgs.Point(curr[0], curr[1], 0), orientation)
-    linear = geometry_msgs.Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
-    angular = geometry_msgs.Vector3(0, 0, yaw)
-    twist = geometry_msgs.Twist(linear, angular)
+    # pose = geometry_msgs.Pose(car_1_pose, orientation)
+    # linear = geometry_msgs.Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
+    # angular = geometry_msgs.Vector3(0, 0, yaw)
+    # twist = geometry_msgs.Twist(linear, angular)
 
     # future trajectory obtained from the current waypoint
     future_x.insert(0, current_waypoint[0])
     future_y.insert(0, current_waypoint[1])
 
     # Vehicle.vehicle_dynamics[id] = [pose, twist, s, d, past_v, past_d, [future_x, future_y]]  # update in vehicle class
-    return future_x, future_y, pose, twist, d
+    return future_x, future_y, d #pose, twist, d
 
 # get the s map and lane info
 def get_lane_and_s_map(x, y):
@@ -270,7 +280,16 @@ def get_lane_and_s_map(x, y):
 
 # ros callbacks
 def callback1(msg):
-    pass
+    global pos_car_1
+    pos_car_1.x = msg.pose.pose.position.x
+    pos_car_1.y = msg.pose.pose.position.y
+    pos_car_1.z = msg.pose.pose.position.z
+
+def callback2(msg):
+    global pos_car_2
+    pos_car_2.x = msg.pose.pose.position.x
+    pos_car_2.y = msg.pose.pose.position.y
+    pos_car_2.z = msg.pose.pose.position.z
 
 # main function
 if __name__ == '__main__':
@@ -285,6 +304,16 @@ if __name__ == '__main__':
 
     rospy.init_node("collision detector") 
 
+    global pos_car_1, pos_car_2, pos_car_3, pos_car_4, pos_car_5
+
+    # velocity publishers
+    pub1 = rospy.Publisher('/tb3_1/cmd_vel', geometry_msgs.Twist, queue_size=10)
+    pub2 = rospy.Publisher('/tb3_2/cmd_vel', geometry_msgs.Twist, queue_size=10)
+    pub3 = rospy.Publisher('/tb3_3/cmd_vel', geometry_msgs.Twist, queue_size=10)
+    pub4 = rospy.Publisher('/tb3_4/cmd_vel', geometry_msgs.Twist, queue_size=10)
+    pub5 = rospy.Publisher('/tb3_5/cmd_vel', geometry_msgs.Twist, queue_size=10)
+    rate = rospy.Rate(2)
+
     # registering the vehicles
     pos_car_1 = geometry_msgs.Point(-4.0, 0.0, 0.0)
     yaw_car_1 = 0
@@ -292,7 +321,7 @@ if __name__ == '__main__':
     ang_vel_1 = 0.0
     car_1_pose = geometry_msgs.Pose(pos_car_1, tf.quaternion_from_euler(0, 0, yaw_car_1))
     car_1_twist = geometry_msgs.Twist(lin_vel_1, ang_vel_1)
-    s = 0 
+    s_car_1 = 0 
     d_car_1 = 0.0
 
     pos_car_2 = geometry_msgs.Point(8.0, -2.0, 0.0)
@@ -301,7 +330,7 @@ if __name__ == '__main__':
     ang_vel_2 = 0.0
     car_2_pose = geometry_msgs.Pose(pos_car_2, tf.quaternion_from_euler(0, 0, yaw_car_2))
     car_2_twist = geometry_msgs.Twist(lin_vel_2, ang_vel_2)
-    s = 0 
+    s_car_2 = 0 
     d_car_2 = 0.0
 
     pos_car_3 = geometry_msgs.Point(0.5, 3.0, 0.0)
@@ -310,7 +339,7 @@ if __name__ == '__main__':
     ang_vel_3 = 0.0
     car_3_pose = geometry_msgs.Pose(pos_car_3, tf.quaternion_from_euler(0, 0, yaw_car_3))
     car_3_twist = geometry_msgs.Twist(lin_vel_3, ang_vel_3)
-    s = 0 
+    s_car_3 = 0 
     d_car_3 = 0.0
 
     pos_car_4 = geometry_msgs.Point(-6.0, -8.0, 0.0)
@@ -319,7 +348,7 @@ if __name__ == '__main__':
     ang_vel_4 = 0.0
     car_4_pose = geometry_msgs.Pose(pos_car_4, tf.quaternion_from_euler(0, 0, yaw_car_4))
     car_4_twist = geometry_msgs.Twist(lin_vel_4, ang_vel_4)
-    s = 0 
+    s_car_4 = 0 
     d_car_4 = 0.0
 
     pos_car_5 = geometry_msgs.Point(0.5, -3.0, 0.0)
@@ -328,7 +357,7 @@ if __name__ == '__main__':
     ang_vel_5 = 0.0
     car_5_pose = geometry_msgs.Pose(pos_car_5, tf.quaternion_from_euler(0, 0, yaw_car_5))
     car_5_twist = geometry_msgs.Twist(lin_vel_5, ang_vel_5)
-    s = 0 
+    s_car_5 = 0 
     d_car_5 = 0.0
     
     # past information storage initialization, later record it from the camera
@@ -344,18 +373,55 @@ if __name__ == '__main__':
     past_d_5 = dist_from_center(d_car_5, factor)
 
     # future waypoints from current point
-    future_waypoints_x_1, future_waypoints_y_1, _, _, _  = get_future_trajectory(x_car_1, y_car_1, car_1_pose.x, car_1_pose.y, past_d_1, past_vel_1, "car1")
-    future_waypoints_x_2, future_waypoints_y_2, _, _, _  = get_future_trajectory(x_car_2, y_car_2, car_2_pose.x, car_2_pose.y, past_d_2, past_vel_2, "car2")
-    future_waypoints_x_3, future_waypoints_y_3, _, _, _  = get_future_trajectory(x_car_3, y_car_3, car_3_pose.x, car_3_pose.y, past_d_3, past_vel_3, "car3")
-    future_waypoints_x_4, future_waypoints_y_4, _, _, _  = get_future_trajectory(x_car_4, y_car_4, car_4_pose.x, car_4_pose.y, past_d_4, past_vel_4, "car4")
-    future_waypoints_x_5, future_waypoints_y_5, _, _, _  = get_future_trajectory(x_car_5, y_car_5, car_5_pose.x, car_5_pose.y, past_d_5, past_vel_5, "car5")
+    future_waypoints_x_1, future_waypoints_y_1, _, _, _  = get_future_trajectory(x_car_1, y_car_1, car_1_pose.x, car_1_pose.y, past_vel_1, ang_vel_1, past_d_1, pub1)
+    future_waypoints_x_2, future_waypoints_y_2, _, _, _  = get_future_trajectory(x_car_2, y_car_2, car_2_pose.x, car_2_pose.y, past_vel_2, ang_vel_2, past_d_2, pub2)
+    future_waypoints_x_3, future_waypoints_y_3, _, _, _  = get_future_trajectory(x_car_3, y_car_3, car_3_pose.x, car_3_pose.y, past_vel_3, ang_vel_3, past_d_3, pub3)
+    future_waypoints_x_4, future_waypoints_y_4, _, _, _  = get_future_trajectory(x_car_4, y_car_4, car_4_pose.x, car_4_pose.y, past_vel_4, ang_vel_4, past_d_4, pub4)
+    future_waypoints_x_5, future_waypoints_y_5, _, _, _  = get_future_trajectory(x_car_5, y_car_5, car_5_pose.x, car_5_pose.y, past_vel_5, ang_vel_5, past_d_5, pub5)
 
     # defining the vehicles
-    car_1 = Vehicle(car_1_pose, car_1_twist, s, d_car_1, past_vel_1, past_d_1, future_waypoints_x_1, future_waypoints_y_1, "car1")
-    car_2 = Vehicle(car_2_pose, car_2_twist, s, d_car_2, past_vel_2, past_d_2, future_waypoints_x_2, future_waypoints_y_2, "car2")
-    car_3 = Vehicle(car_3_pose, car_3_twist, s, d_car_3, past_vel_3, past_d_3, future_waypoints_x_3, future_waypoints_y_3, "car3")
-    car_4 = Vehicle(car_4_pose, car_4_twist, s, d_car_4, past_vel_4, past_d_4, future_waypoints_x_4, future_waypoints_y_4, "car4")
-    car_5 = Vehicle(car_5_pose, car_5_twist, s, d_car_5, past_vel_5, past_d_5, future_waypoints_x_5, future_waypoints_y_5, "car5")
+    car_1 = Vehicle(car_1_pose, car_1_twist, s_car_1, d_car_1, past_vel_1, past_d_1, future_waypoints_x_1, future_waypoints_y_1, "car1")
+    car_2 = Vehicle(car_2_pose, car_2_twist, s_car_2, d_car_2, past_vel_2, past_d_2, future_waypoints_x_2, future_waypoints_y_2, "car2")
+    car_3 = Vehicle(car_3_pose, car_3_twist, s_car_3, d_car_3, past_vel_3, past_d_3, future_waypoints_x_3, future_waypoints_y_3, "car3")
+    car_4 = Vehicle(car_4_pose, car_4_twist, s_car_4, d_car_4, past_vel_4, past_d_4, future_waypoints_x_4, future_waypoints_y_4, "car4")
+    car_5 = Vehicle(car_5_pose, car_5_twist, s_car_5, d_car_5, past_vel_5, past_d_5, future_waypoints_x_5, future_waypoints_y_5, "car5")
 
     # define car 1 as ego vehicle
     car_1.register_ego(car_1)
+
+    while not rospy.is_shutdown():
+        # position subscribers
+        sub1 = rospy.Subscriber("/tb3_1/odom", nav_msgs.Odometry, callback1)
+        sub2 = rospy.Subscriber("/tb3_2/odom", nav_msgs.Odometry, callback2)
+        # sub3 = rospy.Subscriber("/tb3_3/odom", nav_msgs.Odometry, callback3)
+        # sub4 = rospy.Subscriber("/tb3_4/odom", nav_msgs.Odometry, callback4)
+        # sub5 = rospy.Subscriber("/tb3_5/odom", nav_msgs.Odometry, callback5)
+
+        if not lineIntersection(future_waypoints_x_1, future_waypoints_y_1, future_waypoints_x_2, future_waypoints_y_2):
+            car_2.register_vehicle(car_1, car_2)
+            # future_waypoints_x_1, future_waypoints_y_1, car_1_pose, car_1_twist, d_car_1 = get_future_trajectory(x_car_1, y_car_1, [pos_car_1.x, pos_car_1.y], past_vel_1, ang_vel_1, past_d_1, pub1)
+            # future_waypoints_x_2, future_waypoints_y_2, car_2_pose, car_2_twist, d_car_2 = get_future_trajectory(x_car_2, y_car_2, [pos_car_2.x, pos_car_2.y], past_vel_2, ang_vel_2, past_d_2, pub2)
+            future_waypoints_x_1, future_waypoints_y_1, d_car_1 = get_future_trajectory(x_car_1, y_car_1, [pos_car_1.x, pos_car_1.y], past_vel_1, ang_vel_1, past_d_1, pub1)
+            future_waypoints_x_2, future_waypoints_y_2, d_car_2 = get_future_trajectory(x_car_2, y_car_2, [pos_car_2.x, pos_car_2.y], past_vel_2, ang_vel_2, past_d_2, pub2) 
+            car_1_pose = geometry_msgs.Pose(pos_car_1, tf.quaternion_from_euler(0, 0, yaw_car_1))
+            car_1_twist = geometry_msgs.Twist(np.mean(past_vel_1), ang_vel_1)
+            car_2_pose = geometry_msgs.Pose(pos_car_2, tf.quaternion_from_euler(0, 0, yaw_car_2))
+            car_2_twist = geometry_msgs.Twist(np.mean(past_vel_2), ang_vel_2)
+            car_1 = Vehicle(car_1_pose, car_1_twist, s_car_1, d_car_1, past_vel_1, past_d_1, future_waypoints_x_1, future_waypoints_y_1, "car1")
+            car_2 = Vehicle(car_2_pose, car_2_twist, s_car_2, d_car_2, past_vel_2, past_d_2, future_waypoints_x_2, future_waypoints_y_2, "car2")
+            plt.plot(future_waypoints_x_1, future_waypoints_y_1, 'r--')
+            plt.plot(car_1_pose.position.x, car_1_pose.position.y, 'b')
+            plt.plot(future_waypoints_x_2, future_waypoints_y_2, 'g--')
+            plt.plot(car_2_pose.position.x, car_2_pose.position.y, 'b')
+            plt.pause(0.1)
+
+        else:
+            car_2.register_vehicle(car_1, car_2)
+            future_waypoints_x_2, future_waypoints_y_2, car_2_pose, car_2_twist, d_car_2 = get_future_trajectory(x_car_2, y_car_2, [pos_car_2.x, pos_car_2.y], past_vel_2, ang_vel_2, past_d_2, pub2)
+            car_2 = Vehicle(car_2_pose, car_2_twist, s_car_2, d_car_2, past_vel_2, past_d_2, future_waypoints_x_2, future_waypoints_y_2, "car2")
+            plt.plot(future_waypoints_x_2, future_waypoints_y_2, 'g--')
+            plt.plot(car_2_pose.position.x, car_2_pose.position.y, 'b')
+            plt.pause(0.1)
+
+        rate.sleep()
+        rospy.spin()
