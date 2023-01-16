@@ -1,6 +1,6 @@
 import numpy as np
-from py_msgs.geometry_msgs import Pose2D
-from py_msgs.nav_msgs import Path
+# from py_msgs.geometry_msgs import Pose2D
+# from py_msgs.nav_msgs import Path
 from typing import List
 from scipy.signal import butter, filtfilt
 
@@ -36,8 +36,8 @@ class Point_Frenet():
         self.s = s_init
         self.d = d_init
 
-def distance(p1, p2):
-    return np.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
+# def distance(p1, p2):
+#     return np.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 def perpDotProduct(a, b, c):
     return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
@@ -96,166 +96,166 @@ def distanceToLine(start, end, point):
 
 ##################### 3D point functions  ###################################
 
-def distance3D(p1, p2):
-    return np.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z))
+# def distance3D(p1, p2):
+#     return np.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z))
 
-def judgeDirection(p1, p2, p):
-    A = -(p2.y - p1.y)
-    B = p2.x - p1.x
-    C = -(A * p1.x + B * p1.y)
-    D = A * p.x + B * p.y + C
-    if D <= 0.00001 and D >= -0.00001:  return 0
-    if D > 0:   return 1
-    if D < 0:   return -1
+# def judgeDirection(p1, p2, p):
+#     A = -(p2.y - p1.y)
+#     B = p2.x - p1.x
+#     C = -(A * p1.x + B * p1.y)
+#     D = A * p.x + B * p.y + C
+#     if D <= 0.00001 and D >= -0.00001:  return 0
+#     if D > 0:   return 1
+#     if D < 0:   return -1
 
-def isPointInRect(r1, p):
-    i = 0
-    i += judgeDirection(r1.p[0], r1.p[1], p)
-    i += judgeDirection(r1.p[1], r1.p[2], p)
-    i += judgeDirection(r1.p[2], r1.p[3], p)
-    i += judgeDirection(r1.p[3], r1.p[0], p)
-    if i == (-4) or i == (-3):  return True
-    return False
+# def isPointInRect(r1, p):
+#     i = 0
+#     i += judgeDirection(r1.p[0], r1.p[1], p)
+#     i += judgeDirection(r1.p[1], r1.p[2], p)
+#     i += judgeDirection(r1.p[2], r1.p[3], p)
+#     i += judgeDirection(r1.p[3], r1.p[0], p)
+#     if i == (-4) or i == (-3):  return True
+#     return False
 
-def perpDotProduct(a, b, c):
-    return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
+# def perpDotProduct(a, b, c):
+#     return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
 
-def isInRange2D(a, b, range):
-    return distance(a, b) <= range
+# def isInRange2D(a, b, range):
+#     return distance(a, b) <= range
 
-def isSamePoint2D(a, b, tolerance):
-    return distance(a, b) <= tolerance
+# def isSamePoint2D(a, b, tolerance):
+#     return distance(a, b) <= tolerance
 
-############################################################################
+# ############################################################################
 
-def findClosestIndex2D(vect_pts, point_input):
-    min_distance = np.inf
-    ind_closest = -1
+# def findClosestIndex2D(vect_pts, point_input):
+#     min_distance = np.inf
+#     ind_closest = -1
 
-    for i in range(len(vect_pts)):
-        distance_val = distance(point_input, vect_pts[i])
-        if distance_val < min_distance:
-            min_distance = distance_val
-            ind_closest = i
+#     for i in range(len(vect_pts)):
+#         distance_val = distance(point_input, vect_pts[i])
+#         if distance_val < min_distance:
+#             min_distance = distance_val
+#             ind_closest = i
     
-    return ind_closest
+#     return ind_closest
 
-def rotate(inp, theta):
-    out = Point2D()
-    s = np.sin(theta)
-    c = np.cos(theta)
-    out.x = inp.x*c - inp.y*s
-    out.y = inp.x*s + inp.y*c
+# def rotate(inp, theta):
+#     out = Point2D()
+#     s = np.sin(theta)
+#     c = np.cos(theta)
+#     out.x = inp.x*c - inp.y*s
+#     out.y = inp.x*s + inp.y*c
 
-    return out
+#     return out
 
-def globalToLocal(center, theta, p):
-    delta = Point2D()
-    delta.x = p.x - center.x
-    delta.y = p.y - center.y 
-    return rotate(delta, -theta)
+# def globalToLocal(center, theta, p):
+#     delta = Point2D()
+#     delta.x = p.x - center.x
+#     delta.y = p.y - center.y 
+#     return rotate(delta, -theta)
 
-def localToGlobal(center, theta, p):
-    out = rotate(p, theta)
-    out.x += center.x
-    out.y += center.y
-    return out
+# def localToGlobal(center, theta, p):
+#     out = rotate(p, theta)
+#     out.x += center.x
+#     out.y += center.y
+#     return out
 
-def judgeDirection(p1, p2, p):
-    A = -(p2.y - p1.y)
-    B = p2.x - p1.x
-    C = -(A * p1.x + B * p1.y)
-    D = A * p.x + B * p.y + C
+# def judgeDirection(p1, p2, p):
+#     A = -(p2.y - p1.y)
+#     B = p2.x - p1.x
+#     C = -(A * p1.x + B * p1.y)
+#     D = A * p.x + B * p.y + C
 
-    if D <= 0.00001 and D >= -0.00001:  return 0
-    if D > 0:   return 1
-    if D <0:    return -1
+#     if D <= 0.00001 and D >= -0.00001:  return 0
+#     if D > 0:   return 1
+#     if D <0:    return -1
 
 ##################################################################
 
-def compute_speed_based_on_curvature(path: Path, lat_acc_max: float, speed_limit: float) -> List[float]:
-    """
-    Compute speed limit based on curvature for each point
-    Args:
-            center_line: Center line path
-            lat_acc_max: Maximum lateral acceleration [m/s2]
-            speed_limit: Speed limits for that center line [m/s]
-    Returns:
-            List of speed limits for each point
-    """
+# def compute_speed_based_on_curvature(path: Path, lat_acc_max: float, speed_limit: float) -> List[float]:
+#     """
+#     Compute speed limit based on curvature for each point
+#     Args:
+#             center_line: Center line path
+#             lat_acc_max: Maximum lateral acceleration [m/s2]
+#             speed_limit: Speed limits for that center line [m/s]
+#     Returns:
+#             List of speed limits for each point
+#     """
 
-    curvature = np.zeros(len(path.poses), dtype=float)
-    for i in range(len(path.poses)):
-        if i >= len(path.poses)-2:
-            curvature[i] = curvature[i-1]
-        else:
-            a = np.array(
-                (path.poses[i].pose.position.x, path.poses[i].pose.position.y))
-            b = np.array(
-                (path.poses[i+1].pose.position.x, path.poses[i+1].pose.position.y))
-            c = np.array(
-                (path.poses[i+2].pose.position.x, path.poses[i+2].pose.position.y))
-            curvature[i] = menger_curvature(a, b, c)
+#     curvature = np.zeros(len(path.poses), dtype=float)
+#     for i in range(len(path.poses)):
+#         if i >= len(path.poses)-2:
+#             curvature[i] = curvature[i-1]
+#         else:
+#             a = np.array(
+#                 (path.poses[i].pose.position.x, path.poses[i].pose.position.y))
+#             b = np.array(
+#                 (path.poses[i+1].pose.position.x, path.poses[i+1].pose.position.y))
+#             c = np.array(
+#                 (path.poses[i+2].pose.position.x, path.poses[i+2].pose.position.y))
+#             curvature[i] = menger_curvature(a, b, c)
 
-    curvature[curvature < 1e-05] = 1e-05
-    np.set_printoptions(precision=5)
-    np.set_printoptions(suppress=True)
-    np.set_printoptions(threshold=np.inf)
-    # print(("curvature"))
-    # print(curvature)
+#     curvature[curvature < 1e-05] = 1e-05
+#     np.set_printoptions(precision=5)
+#     np.set_printoptions(suppress=True)
+#     np.set_printoptions(threshold=np.inf)
+#     # print(("curvature"))
+#     # print(curvature)
 
-    speed_lim_curv = np.sqrt(lat_acc_max / curvature)
-    speed_signal = np.minimum(speed_lim_curv, speed_limit)
-    speed_limit_pts = speed_signal.tolist()
+#     speed_lim_curv = np.sqrt(lat_acc_max / curvature)
+#     speed_signal = np.minimum(speed_lim_curv, speed_limit)
+#     speed_limit_pts = speed_signal.tolist()
 
-    # print("before filter")
-    # print(speed_signal)
+#     # print("before filter")
+#     # print(speed_signal)
 
-    if speed_signal.tolist().count(speed_signal[0]) is not len(speed_signal):
-        b, a = butter(10, 0.125)
-        speed_signal_filter = filtfilt(b, a, speed_signal)
-        np.clip(speed_signal_filter, 0.0, speed_limit, speed_signal_filter)
-        # print("after filter")
-        # print(speed_signal_filter)
-        speed_limit_pts = speed_signal_filter.tolist()
+#     if speed_signal.tolist().count(speed_signal[0]) is not len(speed_signal):
+#         b, a = butter(10, 0.125)
+#         speed_signal_filter = filtfilt(b, a, speed_signal)
+#         np.clip(speed_signal_filter, 0.0, speed_limit, speed_signal_filter)
+#         # print("after filter")
+#         # print(speed_signal_filter)
+#         speed_limit_pts = speed_signal_filter.tolist()
 
-    return speed_limit_pts
-
-
-def menger_curvature(a, b, c,):
-    # Formula curvature
-    twice_triangle_area = (b[0] - a[0])*(c[1] - a[1]) - \
-        (b[1]-a[1]) * (c[0]-a[0])
-    curvature = (2 * twice_triangle_area /
-                 (np.linalg.norm(a - b) * np.linalg.norm(b - c) * np.linalg.norm(c - a)))
-
-    return abs(curvature)
+#     return speed_limit_pts
 
 
-def cleanup_close_points(cl_path: Path) -> Path:
+# def menger_curvature(a, b, c,):
+#     # Formula curvature
+#     twice_triangle_area = (b[0] - a[0])*(c[1] - a[1]) - \
+#         (b[1]-a[1]) * (c[0]-a[0])
+#     curvature = (2 * twice_triangle_area /
+#                  (np.linalg.norm(a - b) * np.linalg.norm(b - c) * np.linalg.norm(c - a)))
 
-    min_dist = 1e-03
+#     return abs(curvature)
 
-    skip_previous = False
-    p_prev = Pose2D()
-    new_path = Path()
-    for i in range(len(cl_path.poses)):
-        if not skip_previous:
-            p_prev = cl_path.poses[i]
-            p_prev_aux = np.array(
-                (p_prev.pose.position.x, p_prev.pose.position.y))
-            new_path.poses.append(p_prev)
 
-        if i == len(cl_path.poses) - 1:
-            break
+# def cleanup_close_points(cl_path: Path) -> Path:
 
-        # Make sure that there are no repeated points
-        p_next = np.array(
-            (cl_path.poses[i+1].pose.position.x, cl_path.poses[i+1].pose.position.y))
-        init_dist = np.linalg.norm(p_prev_aux - p_next)
-        if (init_dist < min_dist):
-            skip_previous = True
-        else:
-            skip_previous = False
+#     min_dist = 1e-03
 
-    return new_path
+#     skip_previous = False
+#     p_prev = Pose2D()
+#     new_path = Path()
+#     for i in range(len(cl_path.poses)):
+#         if not skip_previous:
+#             p_prev = cl_path.poses[i]
+#             p_prev_aux = np.array(
+#                 (p_prev.pose.position.x, p_prev.pose.position.y))
+#             new_path.poses.append(p_prev)
+
+#         if i == len(cl_path.poses) - 1:
+#             break
+
+#         # Make sure that there are no repeated points
+#         p_next = np.array(
+#             (cl_path.poses[i+1].pose.position.x, cl_path.poses[i+1].pose.position.y))
+#         init_dist = np.linalg.norm(p_prev_aux - p_next)
+#         if (init_dist < min_dist):
+#             skip_previous = True
+#         else:
+#             skip_previous = False
+
+#     return new_path
