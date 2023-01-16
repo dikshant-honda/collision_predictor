@@ -50,9 +50,24 @@ if __name__ == '__main__':
     x8, y8 = get_lanes([6.5,0.5], [10,4])   # up left
 
     # splines
+    # T intersection
     x9, y9 = get_spline([-6,-1], [-5,0], np.pi/2,0)
     x10, y10 = get_spline([-6,-1], [-6,1], np.pi/2, -np.pi/2)
     x11, y11 = get_spline([-6,1], [-5,0], -np.pi/2, 0)
+    # X intersection
+    x12, y12 = get_spline([-1,0], [0,1], 0, np.pi/2)
+    x13, y13 = get_spline([-1,0], [0,-1], 0, -np.pi/2)
+    x14, y14 = get_spline([-1,0], [1,0], 0, 0)
+    x15, y15 = get_spline([0,-1], [1,0], np.pi/2, 0)
+    x16, y16 = get_spline([0,1], [0,-1], -np.pi/2, -np.pi/2)
+    x17, y17 = get_spline([0,1], [1,0], -np.pi/2, 0)
+
+    # Y intersection
+    x18, y18 = get_spline([5.5,0], [6.5, 0.5], 0, np.pi/4)
+    x19, y19 = get_spline([5.5,0], [6.5,-0.5], 0, -np.pi/4)
+    x20, y20 = get_spline([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
+
+    # plotting
     plt.plot(x1, y1, 'k')
     plt.plot(x2, y2, 'k')  
     plt.plot(x3, y3, 'k')  
@@ -65,5 +80,14 @@ if __name__ == '__main__':
     plt.plot(x9, y9, 'b--')  
     plt.plot(x10, y10, 'b--')  
     plt.plot(x11, y11, 'b--')
+    plt.plot(x12, y12, 'b--')
+    plt.plot(x13, y13, 'b--')
+    plt.plot(x14, y14, 'b--')
+    plt.plot(x15, y15, 'b--')
+    plt.plot(x16, y16, 'b--')
+    plt.plot(x17, y17, 'b--')
+    plt.plot(x18, y18, 'b--')
+    plt.plot(x19, y19, 'b--')
+    plt.plot(x20, y20, 'b--')
 
     plt.show()
