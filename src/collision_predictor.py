@@ -80,7 +80,7 @@ class Subscriber:
         # variables
         self.width = 2                                  # lane width
         self.interp_back_path = 15                      # interpolate back to path after this # of steps
-        self.plan_t_m = 1                               # planning horizon
+        self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
 
@@ -282,37 +282,37 @@ class Subscriber:
 
     def main(self):
         while not rospy.is_shutdown():
-            # if not self.lineIntersection(self.future_waypoints_x_1, self.future_waypoints_y_1, self.future_waypoints_x_2, self.future_waypoints_y_2):
+            if not self.lineIntersection(self.future_waypoints_x_1, self.future_waypoints_y_1, self.future_waypoints_x_2, self.future_waypoints_y_2):
             # self.car_2.register_vehicle(self.car_1, self.car_2)
-            self.future_waypoints_x_1, self.future_waypoints_y_1, d_car_1 = self.get_future_trajectory(x_car_1, y_car_1, [self.car_1_position.x, self.car_1_position.y], past_vel_1, ang_vel_1, past_d_1, pub1)
-            self.future_waypoints_x_2, self.future_waypoints_y_2, d_car_2 = self.get_future_trajectory(x_car_2, y_car_2, [self.car_2_position.x, self.car_2_position.y], past_vel_2, ang_vel_2, past_d_2, pub2) 
-            
-            # self.car_1_pose = Pose(self.car_1_pose, quaternion_from_euler(0, 0, self.yaw_car_1))
-            self.car_1_twist = Twist(np.mean(past_vel_1), ang_vel_1)
-            # self.car_2_pose = Pose(self.car_2_pose, quaternion_from_euler(0, 0, self.yaw_car_2))
-            self.car_2_twist = Twist(np.mean(past_vel_2), ang_vel_2)
-            # self.car_1 = Vehicle(self.car_1_pose, self.car_1_twist, self.s_car_1, self.d_car_1, self.past_vel_1, self.past_d_1, self.future_waypoints_x_1, self.future_waypoints_y_1, "car1")
-            # self.car_2 = Vehicle(self.car_2_pose, self.car_2_twist, self.s_car_2, self.d_car_2, self.past_vel_2, self.past_d_2, self.future_waypoints_x_2, self.future_waypoints_y_2, "car2")
+                self.future_waypoints_x_1, self.future_waypoints_y_1, d_car_1 = self.get_future_trajectory(x_car_1, y_car_1, [self.car_1_position.x, self.car_1_position.y], past_vel_1, ang_vel_1, past_d_1, pub1)
+                self.future_waypoints_x_2, self.future_waypoints_y_2, d_car_2 = self.get_future_trajectory(x_car_2, y_car_2, [self.car_2_position.x, self.car_2_position.y], past_vel_2, ang_vel_2, past_d_2, pub2) 
+                
+                # self.car_1_pose = Pose(self.car_1_pose, quaternion_from_euler(0, 0, self.yaw_car_1))
+                self.car_1_twist = Twist(np.mean(past_vel_1), ang_vel_1)
+                # self.car_2_pose = Pose(self.car_2_pose, quaternion_from_euler(0, 0, self.yaw_car_2))
+                self.car_2_twist = Twist(np.mean(past_vel_2), ang_vel_2)
+                # self.car_1 = Vehicle(self.car_1_pose, self.car_1_twist, self.s_car_1, self.d_car_1, self.past_vel_1, self.past_d_1, self.future_waypoints_x_1, self.future_waypoints_y_1, "car1")
+                # self.car_2 = Vehicle(self.car_2_pose, self.car_2_twist, self.s_car_2, self.d_car_2, self.past_vel_2, self.past_d_2, self.future_waypoints_x_2, self.future_waypoints_y_2, "car2")
 
-            move1 = Twist()
-            move1.linear.x = self.car_1_twist.linear
-            move1.angular.z = ang_vel_1
-            pub1.publish(move1)
+                move1 = Twist()
+                move1.linear.x = self.car_1_twist.linear
+                move1.angular.z = ang_vel_1
+                pub1.publish(move1)
 
-            move2 = Twist()
-            move2.linear.x = self.car_2_twist.linear
-            move2.angular.z = ang_vel_2
-            pub2.publish(move2)
+                move2 = Twist()
+                move2.linear.x = self.car_2_twist.linear
+                move2.angular.z = ang_vel_2
+                pub2.publish(move2)
 
-            # plt.plot(self.future_waypoints_x_1, self.future_waypoints_y_1, 'r--')
-            # plt.plot(self.car_1_pose.position.x, self.car_1_pose.position.y, 'b')
-            # plt.plot(self.future_waypoints_x_2, self.future_waypoints_y_2, 'g--')
-            # plt.plot(self.car_2_pose.position.x, self.car_2_pose.position.y, 'b')
-            # plt.pause(0.1)
-            
-            print(self.future_waypoints_x_1, self.future_waypoints_y_1)
-            print(self.future_waypoints_x_2, self.future_waypoints_y_2)
-            print()
+                # plt.plot(self.future_waypoints_x_1, self.future_waypoints_y_1, 'r--')
+                # plt.plot(self.car_1_pose.position.x, self.car_1_pose.position.y, 'b')
+                # plt.plot(self.future_waypoints_x_2, self.future_waypoints_y_2, 'g--')
+                # plt.plot(self.car_2_pose.position.x, self.car_2_pose.position.y, 'b')
+                # plt.pause(0.1)
+                
+                # print(self.future_waypoints_x_1[-1], self.future_waypoints_y_1)
+                # print(self.future_waypoints_x_2[-1], self.future_waypoints_y_2)
+                # print()
 
             # else:
             #     self.car_2.register_vehicle(self.car_1, self.car_2)
@@ -407,7 +407,7 @@ if __name__ == '__main__':
         # registering the vehicles
         pos_car_1 = Point(-4.0, 0.0, 0.0)
         yaw_car_1 = 0
-        lin_vel_1 = 0.2
+        lin_vel_1 = 0.4
         ang_vel_1 = 0.0
         car_1_pose = Pose(pos_car_1, quaternion_from_euler(0, 0, yaw_car_1))
         car_1_twist = Twist(lin_vel_1, ang_vel_1)
@@ -416,7 +416,7 @@ if __name__ == '__main__':
 
         pos_car_2 = Point(8.0, -2.0, 0.0)
         yaw_car_2 = 2.36
-        lin_vel_2 = 0.1
+        lin_vel_2 = 0.08
         ang_vel_2 = 0.0
         car_2_pose = Pose(pos_car_2, quaternion_from_euler(0, 0, yaw_car_2))
         car_2_twist = Twist(lin_vel_2, ang_vel_2)
