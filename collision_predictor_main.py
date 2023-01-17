@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from py_msgs.std_msgs import *
 from py_msgs.nav_msgs import *
 from py_msgs.geometry_msgs import *
 from py_msgs.tf import *
@@ -11,8 +12,8 @@ class Vehicle:
     ids = []
     vehicle_dynamics = {}        # [pose, twist, s, d, past, future]
     def __init__(self, pose, twist, s, d, past_vel, past_d, future_waypoints_x, future_waypoints_y, id):
-        self.pose = geometry_msgs.Pose(pose.position, pose.orientation)
-        self.twist = geometry_msgs.Twist(twist.linear, twist.angular)
+        self.pose = pose
+        self.twist = twist
         self.s = s
         self.d = d
         self.id = id
@@ -49,9 +50,16 @@ class Vehicle:
 
     # register the vehicle into dynamics
     def register_vehicle(self, ego, veh):
-        if ego_vicinity(ego, veh):
+        if self.ego_vicinity(ego, veh):
             # print("start registering")
             self.add_vehicle(veh)
+
+    # check for the vehicles which are in the vicinity of the ego vehicle
+    def ego_vicinity(self, ego, veh):
+        ego_pos = ego.pose.position
+        veh_pos = veh.pose.position
+        if distance(ego_pos.x, ego_pos.y, veh_pos.x, veh_pos.y) < vision_radius:
+            return True
 
 # average velocity from history
 def velocity(vel, factor):
@@ -77,13 +85,6 @@ def dist_from_center(d, factor):
 #     past_d.pop(0)
 #     past_d.append(Vehicle.vehicle_dynamics[id][3])
 #     return past_vel, past_d
-
-# check for the vehicles which are in the vicinity of the ego vehicle
-def ego_vicinity(ego, veh):
-    ego_pos = ego.pose.position
-    veh_pos = veh.pose.position
-    if distance(ego_pos.x, ego_pos.y, veh_pos.x, veh_pos.y) < vision_radius:
-        return True
 
 # collision check
 def lineIntersection(traj_1_x, traj_1_y, traj_2_x, traj_2_y):
@@ -232,10 +233,10 @@ def get_future_trajectory(x, y, current_waypoint, past_v, past_d, id):
     # yaw = np.pi/4
     out = quaternion_from_euler(0, 0, yaw)
     orientation = Quaternion(out[0], out[1], out[2], out[3])
-    pose = geometry_msgs.Pose(Point(curr[0], curr[1], 0), orientation)
+    pose = Pose(Point(curr[0], curr[1], 0), orientation)
     linear = Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
     angular = Vector3(0, 0, yaw)
-    twist = geometry_msgs.Twist(linear, angular)
+    twist = Twist(linear, angular)
 
     # future trajectory obtained from the current waypoint
     future_x.insert(0, current_waypoint[0])
@@ -258,11 +259,11 @@ def get_lane_and_s_map(x, y):
         yaw = math.atan2((lane_route[i+1][1]-lane_route[i][1]),(lane_route[i+1][0]-lane_route[i][0]))
         out = quaternion_from_euler(0,0,yaw)
         quat = Quaternion(out[0], out[1], out[2], out[3])
-        poses = PoseStamped(std_msgs.Header(), Pose(point, quat))
+        poses = PoseStamped(Header(), Pose(point, quat))
         pose_arr.append(poses)
     # adding the last point
-    pose_arr.append(PoseStamped(std_msgs.Header(), Pose(Point(lane_route[-1][0], lane_route[-1][1]), Quaternion(out[0], out[1], out[2], out[3]))))
-    path_route = Path(std_msgs.Header(), pose_arr)
+    pose_arr.append(PoseStamped(Header(), Pose(Point(lane_route[-1][0], lane_route[-1][1]), Quaternion(out[0], out[1], out[2], out[3]))))
+    path_route = Path(Header(), pose_arr)
     lane_line_list, lane_s_map = path_to_list(path_route)
 
     return lane_line_list, lane_s_map
@@ -348,8 +349,8 @@ if __name__ == '__main__':
     v_ego = 0.45                                         # obtain from perception || vehicles.twist.twist.linear
     linear = Vector3(v_ego*math.cos(yaw), v_ego*math.sin(yaw), 0)
     angular = Vector3(0, 0, yaw)
-    ego_pose = geometry_msgs.Pose(position_ego, orientation)
-    ego_twist = geometry_msgs.Twist(linear, angular)
+    ego_pose = Pose(position_ego, orientation)
+    ego_twist = Twist(linear, angular)
     s = 0
     d_ego = 0.2
 
@@ -361,8 +362,8 @@ if __name__ == '__main__':
     v_veh = 0.25                                         # obtain from perception || vehicles.twist.twist.linear
     linear_ = Vector3(v_veh*math.cos(yaw), v_veh*math.sin(yaw), 0)
     angular_ = Vector3(0, 0, yaw)
-    veh_pose = geometry_msgs.Pose(position_veh, orientation)
-    veh_twist = geometry_msgs.Twist(linear_, angular_)
+    veh_pose = Pose(position_veh, orientation)
+    veh_twist = Twist(linear_, angular_)
     s = 0
     d_veh = -0.1
    
