@@ -60,6 +60,14 @@ class Vehicle:
             # print("start registering")
             self.add_vehicle(veh)
 
+class Subscriber:
+    def __init__(self) -> None:
+        self.sub = rospy.Subscriber("/odom", Odometry, self.callback)
+
+    def callback(self, twist):
+        rospy.loginfo(twist)
+
+
 
 # check for the vehicles which are in the vicinity of the ego vehicle
 def ego_vicinity(ego, veh):
@@ -209,7 +217,7 @@ def get_frenet_with_theta(x, y, path, s_map):
         return 0.0, 0.0, 0.0, False
 
     return p_s, p_d, theta, True
-# cvwfe
+
 # future waypoints
 def PredictTrajectoryVehicles(init_x, init_y, path, s_map, v, d):    # msg_vehicles -> traffic_msg/PredictionArray
     s, d_curr, yaw, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
@@ -290,6 +298,11 @@ def callback2(msg):
     pos_car_2.x = msg.pose.pose.position.x
     pos_car_2.y = msg.pose.pose.position.y
     pos_car_2.z = msg.pose.pose.position.z
+
+def main():
+    sub = Subscriber()
+    rospy.init_node('positions', anonymous=True)
+    rospy.spin()
 
 # main function
 if __name__ == '__main__':
@@ -501,3 +514,8 @@ if __name__ == '__main__':
 
         rate.sleep()
         rospy.spin()
+    
+    try:
+        main()
+    except rospy.ROSInterruptException:
+        pass
