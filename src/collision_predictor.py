@@ -190,35 +190,6 @@ class Subscriber:
         self.s_car_5 = 0 
         self.d_car_5 = 0.0
         
-        # past information storage initialization, later record it from the camera
-        self.past_vel_1 = self.velocity(self.lin_vel_1, self.factor)
-        self.past_d_1 = self.dist_from_center(self.d_car_1, self.factor)
-        self.past_vel_2 = self.velocity(self.lin_vel_2, self.factor)
-        self.past_d_2 = self.dist_from_center(self.d_car_2, self.factor)
-        self.past_vel_3 = self.velocity(self.lin_vel_3, self.factor)
-        self.past_d_3 = self.dist_from_center(self.d_car_3, self.factor)
-        self.past_vel_4 = self.velocity(self.lin_vel_4, self.factor)
-        self.past_d_4 = self.dist_from_center(self.d_car_4, self.factor)
-        self.past_vel_5 = self.velocity(self.lin_vel_5, self.factor)
-        self.past_d_5 = self.dist_from_center(self.d_car_5, self.factor)
-        
-        # future waypoints from current point
-        self.future_waypoints_x_1, self.future_waypoints_y_1, _  = self.get_future_trajectory(self.x_car_1, self.y_car_1, [self.pos_car_1.x, self.pos_car_1.y], self.past_vel_1, self.ang_vel_1, self.past_d_1, self.pub1)
-        self.future_waypoints_x_2, self.future_waypoints_y_2, _  = self.get_future_trajectory(self.x_car_2, self.y_car_2, [self.pos_car_2.x, self.pos_car_2.y], self.past_vel_2, self.ang_vel_2, self.past_d_2, self.pub2)
-        self.future_waypoints_x_3, self.future_waypoints_y_3, _  = self.get_future_trajectory(self.x_car_3, self.y_car_3, [self.pos_car_3.x, self.pos_car_3.y], self.past_vel_3, self.ang_vel_3, self.past_d_3, self.pub3)
-        self.future_waypoints_x_4, self.future_waypoints_y_4, _  = self.get_future_trajectory(self.x_car_4, self.y_car_4, [self.pos_car_4.x, self.pos_car_4.y], self.past_vel_4, self.ang_vel_4, self.past_d_4, self.pub4)
-        self.future_waypoints_x_5, self.future_waypoints_y_5, _  = self.get_future_trajectory(self.x_car_5, self.y_car_5, [self.pos_car_5.x, self.pos_car_5.y], self.past_vel_5, self.ang_vel_5, self.past_d_5, self.pub5)
-
-        # defining the vehicles
-        self.car_1 = Vehicle(self.car_1_pose, self.car_1_twist, self.s_car_1, self.d_car_1, self.past_vel_1, self.past_d_1, self.future_waypoints_x_1, self.future_waypoints_y_1, "car1")
-        self.car_2 = Vehicle(self.car_2_pose, self.car_2_twist, self.s_car_2, self.d_car_2, self.past_vel_2, self.past_d_2, self.future_waypoints_x_2, self.future_waypoints_y_2, "car2")
-        self.car_3 = Vehicle(self.car_3_pose, self.car_3_twist, self.s_car_3, self.d_car_3, self.past_vel_3, self.past_d_3, self.future_waypoints_x_3, self.future_waypoints_y_3, "car3")
-        self.car_4 = Vehicle(self.car_4_pose, self.car_4_twist, self.s_car_4, self.d_car_4, self.past_vel_4, self.past_d_4, self.future_waypoints_x_4, self.future_waypoints_y_4, "car4")
-        self.car_5 = Vehicle(self.car_5_pose, self.car_5_twist, self.s_car_5, self.d_car_5, self.past_vel_5, self.past_d_5, self.future_waypoints_x_5, self.future_waypoints_y_5, "car5")
-
-        # define car 1 as ego vehicle
-        self.car_1.register_ego(self.car_1)
-
     # average velocity from history
     def velocity(self, vel, factor):
         vel_profile = []
@@ -347,7 +318,6 @@ class Subscriber:
         # pub.publish(move)
         # update these waypoints as ros messages -> geometry_msgs.pose.position
         # later provide this information on ros traffic messages
-        
 
         # yaw = np.pi/4
         # orientation = tf.quaternion_from_euler(0, 0, yaw)      # add yaw parameter to function
@@ -361,7 +331,6 @@ class Subscriber:
         future_x.insert(0, current_waypoint[0])
         future_y.insert(0, current_waypoint[1])
 
-        # Vehicle.vehicle_dynamics[id] = [pose, twist, s, d, past_v, past_d, [future_x, future_y]]  # update in vehicle class
         return future_x, future_y, d #pose, twist, d
 
     # get the s map and lane info
@@ -388,6 +357,35 @@ class Subscriber:
         return lane_line_list, lane_s_map
 
     def callback(self, pos):
+        # past information storage initialization, later record it from the camera
+        self.past_vel_1 = self.velocity(self.lin_vel_1, self.factor)
+        self.past_d_1 = self.dist_from_center(self.d_car_1, self.factor)
+        self.past_vel_2 = self.velocity(self.lin_vel_2, self.factor)
+        self.past_d_2 = self.dist_from_center(self.d_car_2, self.factor)
+        self.past_vel_3 = self.velocity(self.lin_vel_3, self.factor)
+        self.past_d_3 = self.dist_from_center(self.d_car_3, self.factor)
+        self.past_vel_4 = self.velocity(self.lin_vel_4, self.factor)
+        self.past_d_4 = self.dist_from_center(self.d_car_4, self.factor)
+        self.past_vel_5 = self.velocity(self.lin_vel_5, self.factor)
+        self.past_d_5 = self.dist_from_center(self.d_car_5, self.factor)
+        
+        # future waypoints from current point
+        self.future_waypoints_x_1, self.future_waypoints_y_1, _  = self.get_future_trajectory(self.x_car_1, self.y_car_1, [self.pos_car_1.x, self.pos_car_1.y], self.past_vel_1, self.ang_vel_1, self.past_d_1, self.pub1)
+        self.future_waypoints_x_2, self.future_waypoints_y_2, _  = self.get_future_trajectory(self.x_car_2, self.y_car_2, [self.pos_car_2.x, self.pos_car_2.y], self.past_vel_2, self.ang_vel_2, self.past_d_2, self.pub2)
+        self.future_waypoints_x_3, self.future_waypoints_y_3, _  = self.get_future_trajectory(self.x_car_3, self.y_car_3, [self.pos_car_3.x, self.pos_car_3.y], self.past_vel_3, self.ang_vel_3, self.past_d_3, self.pub3)
+        self.future_waypoints_x_4, self.future_waypoints_y_4, _  = self.get_future_trajectory(self.x_car_4, self.y_car_4, [self.pos_car_4.x, self.pos_car_4.y], self.past_vel_4, self.ang_vel_4, self.past_d_4, self.pub4)
+        self.future_waypoints_x_5, self.future_waypoints_y_5, _  = self.get_future_trajectory(self.x_car_5, self.y_car_5, [self.pos_car_5.x, self.pos_car_5.y], self.past_vel_5, self.ang_vel_5, self.past_d_5, self.pub5)
+
+        # defining the vehicles
+        self.car_1 = Vehicle(self.car_1_pose, self.car_1_twist, self.s_car_1, self.d_car_1, self.past_vel_1, self.past_d_1, self.future_waypoints_x_1, self.future_waypoints_y_1, "car1")
+        self.car_2 = Vehicle(self.car_2_pose, self.car_2_twist, self.s_car_2, self.d_car_2, self.past_vel_2, self.past_d_2, self.future_waypoints_x_2, self.future_waypoints_y_2, "car2")
+        self.car_3 = Vehicle(self.car_3_pose, self.car_3_twist, self.s_car_3, self.d_car_3, self.past_vel_3, self.past_d_3, self.future_waypoints_x_3, self.future_waypoints_y_3, "car3")
+        self.car_4 = Vehicle(self.car_4_pose, self.car_4_twist, self.s_car_4, self.d_car_4, self.past_vel_4, self.past_d_4, self.future_waypoints_x_4, self.future_waypoints_y_4, "car4")
+        self.car_5 = Vehicle(self.car_5_pose, self.car_5_twist, self.s_car_5, self.d_car_5, self.past_vel_5, self.past_d_5, self.future_waypoints_x_5, self.future_waypoints_y_5, "car5")
+
+        # define car 1 as ego vehicle
+        self.car_1.register_ego(self.car_1)
+
         while not rospy.is_shutdown():
             # update1 = Twist()
             # update1.linear.x = np.mean(self.past_vel_1)
@@ -410,6 +408,10 @@ class Subscriber:
                 self.car_2_twist = Twist(np.mean(self.past_vel_2), self.ang_vel_2)
                 self.car_1 = Vehicle(self.car_1_pose, self.car_1_twist, self.s_car_1, self.d_car_1, self.past_vel_1, self.past_d_1, self.future_waypoints_x_1, self.future_waypoints_y_1, "car1")
                 self.car_2 = Vehicle(self.car_2_pose, self.car_2_twist, self.s_car_2, self.d_car_2, self.past_vel_2, self.past_d_2, self.future_waypoints_x_2, self.future_waypoints_y_2, "car2")
+                move1 = Twist()
+                move1.linear.x = self.car_1_twist.linear
+                move1.angular.z = self.ang_vel_1
+                self.pub1.publish(move1)
                 # plt.plot(future_waypoints_x_1, future_waypoints_y_1, 'r--')
                 # plt.plot(car_1_pose.position.x, car_1_pose.position.y, 'b')
                 # plt.plot(future_waypoints_x_2, future_waypoints_y_2, 'g--')
