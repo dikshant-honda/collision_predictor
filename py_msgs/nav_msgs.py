@@ -1,19 +1,19 @@
-import std_msgs
-import geometry_msgs
+from py_msgs.std_msgs import *
+from py_msgs.geometry_msgs import *
 
 class Path:
     def __init__(self, header, poses):
-        self.header = std_msgs.Header(header.seq, header.stamp, header.frame_id)
+        self.header = Header(header.seq, header.stamp, header.frame_id)
         pose_arr = []
         for i in range(len(poses)):
-            pose_arr.append(geometry_msgs.PoseStamped(self.header, poses[i].pose))
+            pose_arr.append(PoseStamped(self.header, poses[i].pose))
         self.poses = pose_arr
 
 class Odometry:
     def __init__(self, header, pose, twist):
-        self.header = std_msgs.Header(header.seq, header.stamp, header.frame_id)
-        self.pose = geometry_msgs.PoseWithCovariance(pose.pose, pose.covariance)
-        self.twist = geometry_msgs.TwistWithCovariance(twist.twist, twist.covariance)
+        self.header = Header(header.seq, header.stamp, header.frame_id)
+        self.pose = PoseWithCovariance(pose.pose, pose.covariance)
+        self.twist = TwistWithCovariance(twist.twist, twist.covariance)
 
 # TEST
 # pt = geometry_msgs.Point()
