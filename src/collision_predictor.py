@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
-from geometry_msgs.msg import Point, Twist, Pose, PoseStamped
+from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3
 from tf.transformations import quaternion_from_euler
 from frenet import *
 from geometry_utils import *
@@ -137,6 +137,12 @@ class Subscriber:
             intersect.y = p0_y + (t * s1_y)
             print("!!COLLISION AHEAD!!")
             print("Wait for the other vehicle to pass")
+
+            move1 = Twist()
+            move1.linear.x = 0
+            move1.angular.z = 0
+            pub1.publish(move1)
+
             return True
         
         return False  # no collision
@@ -247,7 +253,9 @@ class Subscriber:
         # pose = geometry_msgs.Pose(car_1_pose, orientation)
         # linear = geometry_msgs.Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
         # angular = geometry_msgs.Vector3(0, 0, yaw)
-        # twist = geometry_msgs.Twist(linear, angular)
+        # twist = geomelinear = geometry_msgs.Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
+        # angular = geometry_msgs.Vector3(0, 0, yaw)
+        # twist = geometry_msgs.Twist(linear, angular)try_msgs.Twist(linear, angular)
 
         # future trajectory obtained from the current waypoint
         future_x.insert(0, current_waypoint[0])
@@ -280,6 +288,48 @@ class Subscriber:
         self.car_5_position = msg.pose.pose.position
         self.car_5_orientation = msg.pose.pose.orientation
 
+    def update(self, lane_x, lane_y, x, y, vel):
+        path, _ = self.get_lane_and_s_map(lane_x, lane_y)
+        ind_closest = closest_point_ind(path, x, y)
+        if ind_closest < len(path):
+            if ind_closest == len(path) - 1:
+                use_previous = True
+            elif ind_closest == 0:
+                use_previous = False
+            else:
+                dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, x, y)
+                dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, x, y)
+
+                if dist_prev <= dist_next:
+                    use_previous = True
+                else:
+                    use_previous = False
+
+            if use_previous:
+                p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
+                p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
+                p3 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
+            else:
+                p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
+                p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
+                p3 = Point2D(path[ind_closest + 2].x, path[ind_closest + 2].y)
+
+            yaw = math.atan2(p2.y - p1.y, p2.x - p1.x)
+            next_yaw = math.atan2(p3.y - p2.y, p3.x - p2.x)
+
+        linear = Vector3(vel*math.cos(yaw), vel*math.sin(yaw), 0)
+        # test
+        print(next_yaw-yaw)
+        # if next_yaw - yaw < 0.001:
+        #     angular = Vector3(0, 0, 0)
+        # else:
+        angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
+        move = Twist(linear, angular)
+        pub1.publish(move)
+        # pub2.publish(move)
+        return yaw
+
+
     def main(self):
         while not rospy.is_shutdown():
             if not self.lineIntersection(self.future_waypoints_x_1, self.future_waypoints_y_1, self.future_waypoints_x_2, self.future_waypoints_y_2):
@@ -294,15 +344,17 @@ class Subscriber:
                 # self.car_1 = Vehicle(self.car_1_pose, self.car_1_twist, self.s_car_1, self.d_car_1, self.past_vel_1, self.past_d_1, self.future_waypoints_x_1, self.future_waypoints_y_1, "car1")
                 # self.car_2 = Vehicle(self.car_2_pose, self.car_2_twist, self.s_car_2, self.d_car_2, self.past_vel_2, self.past_d_2, self.future_waypoints_x_2, self.future_waypoints_y_2, "car2")
 
-                move1 = Twist()
-                move1.linear.x = self.car_1_twist.linear
-                move1.angular.z = ang_vel_1
-                pub1.publish(move1)
+                # move1 = Twist()
+                # move1.linear.x = self.car_1_twist.linear
+                # move1.angular.z = ang_vel_1
+                # pub1.publish(move1)
+                self.update(x_car_1, y_car_1, self.car_1_position.x, self.car_1_position.y, lin_vel_1)
+                # self.update(x_car_2, y_car_2, self.car_2_position.x, self.car_2_position.y, lin_vel_2)
 
-                move2 = Twist()
-                move2.linear.x = self.car_2_twist.linear
-                move2.angular.z = ang_vel_2
-                pub2.publish(move2)
+                # move2 = Twist()
+                # move2.linear.x = self.car_2_twist.linear
+                # move2.angular.z = ang_vel_2
+                # pub2.publish(move2)
 
                 # plt.plot(self.future_waypoints_x_1, self.future_waypoints_y_1, 'r--')
                 # plt.plot(self.car_1_pose.position.x, self.car_1_pose.position.y, 'b')
@@ -384,8 +436,8 @@ if __name__ == '__main__':
 
         # vehicle trajectories
         # car 1 path
-        x_car_1 = np.hstack((x3, x14, x6, x19, x7))
-        y_car_1 = np.hstack((y3, y14, y6, y19, y7))   
+        x_car_1 = np.hstack((x3, x14, x6, x18, x8))
+        y_car_1 = np.hstack((y3, y14, y6, y18, y8))   
 
         # car 2 path 
         x_car_2 = np.hstack((x7[::-1], x19[::-1], x6[::-1], x14[::-1], x3[::-1]))
@@ -416,7 +468,7 @@ if __name__ == '__main__':
 
         pos_car_2 = Point(8.0, -2.0, 0.0)
         yaw_car_2 = 2.36
-        lin_vel_2 = 0.08
+        lin_vel_2 = 0.1
         ang_vel_2 = 0.0
         car_2_pose = Pose(pos_car_2, quaternion_from_euler(0, 0, yaw_car_2))
         car_2_twist = Twist(lin_vel_2, ang_vel_2)
