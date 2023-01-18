@@ -52,9 +52,14 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate messages in the 'msg' folder
 add_message_files(
+  DIRECTORY msg
   FILES
   waypoint.msg
+  collision.msg
+  VehicleState.msg
+  env.msg
 )
+
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -110,6 +115,11 @@ catkin_package(
 #  LIBRARIES collision-predictor
 #  CATKIN_DEPENDS rospy
 #  DEPENDS system_lib
+  CATKIN_DEPENDS
+  message_runtime
+  std_msgs
+  geometry_msgs
+  nav_msgs
 )
 
 ###########
