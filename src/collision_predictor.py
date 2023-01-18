@@ -315,28 +315,23 @@ class Subscriber:
                 p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
                 p3 = Point2D(path[ind_closest + 2].x, path[ind_closest + 2].y)
 
-            yaw = math.atan2(p2.y - p1.y, p2.x - p1.x)
-            next_yaw = math.atan2(p3.y - p2.y, p3.x - p2.x)
+            # yaw = math.atan2(p2.y - p1.y, p2.x - p1.x)
+            # next_yaw = math.atan2(p3.y - p2.y, p3.x - p2.x)
 
-        linear = Vector3(vel*math.cos(yaw), vel*math.sin(yaw), 0)
-        # test
+            yaw = math.atan((p2.y - p1.y)/(p2.x - p1.x))
+            next_yaw = math.atan((p3.y - p2.y)/ (p3.x - p2.x))
+
         # print(next_yaw-yaw)
-        angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
-        move = Twist(linear, angular)
-        pub1.publish(move)
-        # pub2.publish(move)
         if ind_closest == len(path) - 2:
             linear = Vector3(0, 0, 0)
             angular = Vector3(0, 0, 0)
             move = Twist(linear, angular)
-            pub1.publish(move)
             stop = True
         else:
             linear = Vector3(vel*math.cos(yaw), vel*math.sin(yaw), 0)
             angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
             move = Twist(linear, angular)
-            pub1.publish(move)
-        return yaw, stop
+        return move, stop
 
 
     def main(self):
@@ -357,11 +352,17 @@ class Subscriber:
                 # move1.linear.x = self.car_1_twist.linear
                 # move1.angular.z = ang_vel_1
                 # pub1.publish(move1)
-                yaw, stop = self.update(x_car_1, y_car_1, self.car_1_position.x, self.car_1_position.y, lin_vel_1)
+                move, stop = self.update(x_car_1, y_car_1, self.car_1_position.x, self.car_1_position.y, lin_vel_1)
                 if stop:
+                    pub1.publish(move)
                     break
-                # self.update(x_car_2, y_car_2, self.car_2_position.x, self.car_2_position.y, lin_vel_2)
-
+                else:
+                    pub1.publish(move)
+                move2, stop2 = self.update(x_car_2, y_car_2, self.car_2_position.x, self.car_2_position.y, lin_vel_2)
+                # if stop2:
+                #     pub2.publish(move2)
+                # else:
+                #     pub2.publish(move2)
                 # move2 = Twist()
                 # move2.linear.x = self.car_2_twist.linear
                 # move2.angular.z = ang_vel_2
