@@ -289,6 +289,7 @@ class Subscriber:
         self.car_5_orientation = msg.pose.pose.orientation
 
     def update(self, lane_x, lane_y, x, y, vel):
+        stop = False
         path, _ = self.get_lane_and_s_map(lane_x, lane_y)
         ind_closest = closest_point_ind(path, x, y)
         if ind_closest < len(path):
@@ -319,15 +320,23 @@ class Subscriber:
 
         linear = Vector3(vel*math.cos(yaw), vel*math.sin(yaw), 0)
         # test
-        print(next_yaw-yaw)
-        # if next_yaw - yaw < 0.001:
-        #     angular = Vector3(0, 0, 0)
-        # else:
+        # print(next_yaw-yaw)
         angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
         move = Twist(linear, angular)
         pub1.publish(move)
         # pub2.publish(move)
-        return yaw
+        if ind_closest == len(path) - 2:
+            linear = Vector3(0, 0, 0)
+            angular = Vector3(0, 0, 0)
+            move = Twist(linear, angular)
+            pub1.publish(move)
+            stop = True
+        else:
+            linear = Vector3(vel*math.cos(yaw), vel*math.sin(yaw), 0)
+            angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
+            move = Twist(linear, angular)
+            pub1.publish(move)
+        return yaw, stop
 
 
     def main(self):
@@ -348,7 +357,9 @@ class Subscriber:
                 # move1.linear.x = self.car_1_twist.linear
                 # move1.angular.z = ang_vel_1
                 # pub1.publish(move1)
-                self.update(x_car_1, y_car_1, self.car_1_position.x, self.car_1_position.y, lin_vel_1)
+                yaw, stop = self.update(x_car_1, y_car_1, self.car_1_position.x, self.car_1_position.y, lin_vel_1)
+                if stop:
+                    break
                 # self.update(x_car_2, y_car_2, self.car_2_position.x, self.car_2_position.y, lin_vel_2)
 
                 # move2 = Twist()
