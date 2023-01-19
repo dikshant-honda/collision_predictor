@@ -57,7 +57,7 @@ add_message_files(
   waypoint.msg
   collision.msg
   VehicleState.msg
-  env.msg
+  Environment.msg
 )
 
 
