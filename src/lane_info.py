@@ -1,5 +1,6 @@
 import numpy as np 
 import matplotlib.pyplot as plt
+from geometry_msgs.msg import Point
 
 def get_lanes(start, end, steps=100):
     x = np.linspace(start[0], end[0], steps)
@@ -88,6 +89,15 @@ if __name__ == '__main__':
     # car 5 path
     x_car_5 = np.hstack((x5[::-1], x13[::-1], x3[::-1], x11[::-1], x2[::-1]))
     y_car_5 = np.hstack((y5[::-1], y13[::-1], y3[::-1], y11[::-1], y2[::-1]))
+
+    # converting car path into geometry_msgs/Point
+    car_1_route = []
+    for i in range(len(x_car_1)):
+        car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
+
+    car_2_route = []
+    for i in range(len(x_car_2)):
+        car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
 
     # plotting
     plt.plot(x1, y1, 'k')
