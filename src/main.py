@@ -17,22 +17,22 @@ class Subscriber:
     def __init__(self):
         # position subcribers
         self.sub1 = rospy.Subscriber('/tb3_1/odom', Odometry, self.callback1)
-        self.sub2 = rospy.Subscriber('/tb3_2/odom', Odometry, self.callback2)
+        self.sub2 = rospy.Subscriber('/tb3_2/odrosom', Odometry, self.callback2)
         self.sub3 = rospy.Subscriber('/tb3_3/odom', Odometry, self.callback3)
         self.sub4 = rospy.Subscriber('/tb3_4/odom', Odometry, self.callback4)
         self.sub5 = rospy.Subscriber('/tb3_5/odom', Odometry, self.callback5)
 
     # collision check
-    def lineIntersection(self, traj_1_x, traj_1_y, traj_2_x, traj_2_y):
-        intersect = Point2D(0,0)
-        p0_x = traj_1_x[0]
-        p0_y = traj_1_y[0]
-        p1_x = traj_1_x[-1]
-        p1_y = traj_1_y[-1]
-        p2_x = traj_2_x[0]
-        p2_y = traj_2_y[0]
-        p3_x = traj_2_x[-1]
-        p3_y = traj_2_y[-1]
+    def lineIntersection(self, future_waypoints_1, future_waypoints_2):
+        intersect = Point()
+        p0_x = future_waypoints_1[0].x
+        p0_y = future_waypoints_1[0].y
+        p1_x = future_waypoints_1[-1].x
+        p1_y = future_waypoints_1[-1].y
+        p2_x = future_waypoints_2[0].x
+        p2_y = future_waypoints_2[0].y
+        p3_x = future_waypoints_2[-1].x
+        p3_y = future_waypoints_1[-1].y
 
         s1_x = p1_x - p0_x
         s1_y = p1_y - p0_y
@@ -46,6 +46,7 @@ class Subscriber:
             # collision detected
             intersect.x = p0_x + (t * s1_x)
             intersect.y = p0_y + (t * s1_y)
+            intersect.z = 0.0
             print("!!COLLISION AHEAD!!")
             return True
         
@@ -69,7 +70,8 @@ class Subscriber:
         return path_list, s_map
 
     # get the s_map and lane info
-    def get_lane_and_s_map(self, x, y):
+    def get_lane_and_s_map(self, x, y):\
+        # update
         pose_arr = []
         lane_route = []
         for i in range(len(x)):
@@ -172,32 +174,32 @@ class Subscriber:
     def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
         s, d_curr, _ = self.get_frenet_with_theta(init_x, init_y, path, s_map)
         d = (d_curr + d) / 2                    # average of all the deviations from center
-        future_x = []
-        future_y = []
+        future_waypoints = []
         for t in range(self.np_m):
             if t < self.interp_back_path:
                 d_val = d - ((t*d) / self.interp_back_path)
                 new_x, new_y = self.get_xy(s+v*self.dt_m*t, d_val, path, s_map)
             else:
                 new_x, new_y = self.get_xy(s+v*self.dt_m*t, 0, path, s_map)
-            future_x.append(new_x)
-            future_y.append(new_y)
-        return future_x, future_y, d
+            future_waypoints.append(Point(new_x, new_y, 0,0))
+            # returned future waypoints of geometry_msgs/Point[]
+        return future_waypoints, d
 
     # getting the future trajectory
-    def get_future_trajectory(self, x, y, current_waypoint, past_v, w, past_d, pub):
-        v = np.mean(past_v)
-        d = np.mean(past_d)
-        lane_line_list, lane_s_map = self.get_lane_and_s_map(x, y)
-        future_x, future_y, d = self.PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v, d)
-        # future trajectory starting from the current waypoint
-        future_x.insert(0, current_waypoint[0])
-        future_y.insert(0, current_waypoint[1])
+    def get_future_trajectory(self, car):
+    
+        v = np.mean(car.past_vel)
+        d = np.mean(car.past_d)
+        lane_line_list, lane_s_map = self.get_lane_and_s_map(car.car_route)
+        future_waypoints, d = self.PredictTrajectoryVehicles(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y, lane_line_list, lane_s_map, car.twist.linear, d)
 
-        return future_x, future_y, d
+        return future_waypoints, d
 
     def callback1(self, msg):
         self.car_1_pose = msg.pose.pose
+
+    def callback2(self, msg):
+        self.car_2_pose = msg.pose.pose
 
     # moving the car along the route
     def update(self, path, x, y, vel):
@@ -225,17 +227,59 @@ class Subscriber:
 
     def main(self):
         while not rospy.is_shutdown():
-            pass
+            if not car_1.future_waypoints and not car_2.future_waypoints:
+                print("there's no future trajectory, vehicle has just started interacting with the environment")
+            else:
+                if not self.lineIntersection(car_1.future_waypoints, car_2.future_waypoints):
+                    # start checking for intersection
+                    car_1.future_waypoints, car_1.d = self.get_future_trajectory(car_1)
+                    car_2.future_waypoints, car_2.d = self.get_future_trajectory(car_2)
 
 if __name__ == '__main__':
     try:
-        # initialize the trajectories
+        # registering the vehicles
+        pos_car_1 = Point(-4.0, 0.0, 0.0)
+        yaw_car_1 = 0
+        lin_vel_1 = 0.4
+        ang_vel_1 = 0.0
+        car_1_pose = Pose(pos_car_1, quaternion_from_euler(0, 0, yaw_car_1))
+        car_1_twist = Twist(lin_vel_1, ang_vel_1)
+        s_car_1 = 0 
+        d_car_1 = 0.0
+        past_vel_1 = [lin_vel_1]*10
+        past_d_1 = [d_car_1]*10
+        car_1_odom = Odometry(Header, car_1_pose, car_1_twist) 
+        stop_1 = False  
+        future_waypoints_1 = [] 
+
+        pos_car_2 = Point(8.0, -2.0, 0.0)
+        yaw_car_2 = 2.36
+        lin_vel_2 = 0.1
+        ang_vel_2 = 0.0
+        car_2_pose = Pose(pos_car_2, quaternion_from_euler(0, 0, yaw_car_2))
+        car_2_twist = Twist(lin_vel_2, ang_vel_2)
+        s_car_2 = 0 
+        d_car_2 = 0.0
+        past_vel_2 = [lin_vel_2]*10
+        past_d_2 = [d_car_2]*10
+        car_2_odom = Odometry(Header, car_2_pose, car_2_twist) 
+        stop_2 = False  
+        future_waypoints_2 = []
+
         # initialize the vehicles
-        car_1 = VehicleState()
-        car_2 = VehicleState()
+        car_1 = VehicleState("car1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route)
+        car_2 = VehicleState("car2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route)
         car_3 = VehicleState()
         car_4 = VehicleState()
         car_5 = VehicleState()
+
+        # environment setup
+        no_of_vehicles = 2
+        environment = env(no_of_vehicles, [car_1, car_2])
+        at_junction = False
+        register = False
+        remove = False 
+        interaction = False
 
         rospy.init_node('predictor', anonymous=True)
         pub1 = rospy.Publisher('/tb3_1/cmd_vel', Twist, queue_size=10)
@@ -245,5 +289,6 @@ if __name__ == '__main__':
         pub5 = rospy.Publisher('/tb3_5/cmd_vel', Twist, queue_size=10)
         sub = Subscriber()
         rospy.spin()
+
     except rospy.ROSInterruptException:
         pass
