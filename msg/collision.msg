@@ -1,1 +1,1 @@
-bool collision
+std_msgs/Bool collision

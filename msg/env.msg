@@ -1,6 +1,6 @@
 uint32 vehicles
 VehicleState[] vehicle_states
-bool at_junction
-bool register
-bool remove
-bool interaction
+std_msgs/Bool at_junction
+std_msgs/Bool register
+std_msgs/Bool remove
+std_msgs/Bool interaction

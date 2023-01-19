@@ -4,5 +4,5 @@ geometry_msgs/Twist twist
 float32[] past_vel
 float32 d
 float32[] past_d
-bool stop
+std_msgs/Bool stop
 geometry_msgs/Point[] future_waypoints
