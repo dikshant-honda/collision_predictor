@@ -6,3 +6,4 @@ float32 d
 float32[] past_d
 std_msgs/Bool stop
 geometry_msgs/Point[] future_waypoints
+geometry_msgs/Point[] car_route
