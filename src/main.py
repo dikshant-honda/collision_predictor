@@ -11,7 +11,7 @@ from tf.transformations import quaternion_from_euler
 from frenet import *
 from geometry_utils import *
 from lane_info import *
-from collision_predictor.msg import *
+from collision_predictor.msg import Environment, VehicleState
 
 class Subscriber:
     def __init__(self):
