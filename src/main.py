@@ -284,10 +284,7 @@ class Subscriber:
 
             yaw = math.atan2((p2.y - p1.y),(p2.x - p1.x))
             next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
-            v = np.mean(car.past_vel)
-            if math.pi/2 < yaw and yaw < 3*math.pi/2:
-                yaw = yaw + math.pi
-                next_yaw = next_yaw + math.pi
+            v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
             angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
             move = Twist(linear, angular)
@@ -331,9 +328,9 @@ class Subscriber:
             
             # self.update(car_1)
             # self.update(car_2)
-            # self.update(car_3)
+            self.update(car_3)
             self.update(car_4)
-            # self.update(car_5)
+            self.update(car_5)
 
             if car_1.stop:
                 self.removal(car_1)
