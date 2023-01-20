@@ -228,7 +228,7 @@ class Subscriber:
         # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
         car_3.past_vel.append(v)
         car_3.past_d.pop(0)
-        car_3.past_d.append(car_3.d) 
+        car_3.past_d.append(car_3.d)
 
     def callback4(self, msg):
         car_4.pose = msg
@@ -288,7 +288,7 @@ class Subscriber:
             if math.pi/2 < yaw and yaw < 3*math.pi/2:
                 yaw = yaw + math.pi
                 next_yaw = next_yaw + math.pi
-            linear = Vector3(v*math.cos(yaw), v*math.sin(yaw), 0)
+            linear = Vector3(v, 0, 0)
             angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
             move = Twist(linear, angular)
             car.stop = False
@@ -329,11 +329,11 @@ class Subscriber:
             car_4.future_waypoints = self.get_future_trajectory(car_4)
             car_5.future_waypoints = self.get_future_trajectory(car_5)
             
-            self.update(car_1)
-            self.update(car_2)
-            self.update(car_3)
+            # self.update(car_1)
+            # self.update(car_2)
+            # self.update(car_3)
             self.update(car_4)
-            self.update(car_5)
+            # self.update(car_5)
 
             if car_1.stop:
                 self.removal(car_1)
@@ -392,7 +392,7 @@ if __name__ == '__main__':
         pos_car_2 = Point(8.0, -2.0, 0.0)
         yaw_car_2 = 2.36
         v_2 = 0.1
-        lin_vel_2 = Vector3(v_2*math.cos(yaw_car_2), v_2*math.sin(yaw_car_2), 0.0)
+        lin_vel_2 = Vector3(v_2, 0.0, 0.0)
         ang_vel_2 = Vector3(0.0, 0.0, 0.0)
         car_2_pose = Pose(pos_car_2, quaternion_from_euler(0, 0, yaw_car_2))
         car_2_twist = Twist(lin_vel_2, ang_vel_2)
@@ -409,7 +409,7 @@ if __name__ == '__main__':
         pos_car_3 = Point(0.5, 3.0, 0.0)
         yaw_car_3 = -1.57
         v_3 = 0.2
-        lin_vel_3 = Vector3(v_3*math.cos(yaw_car_3), v_3*math.sin(yaw_car_3), 0.0)
+        lin_vel_3 = Vector3(v_3, 0.0, 0.0)
         ang_vel_3 = Vector3(0.0, 0.0, 0.0)
         car_3_pose = Pose(pos_car_3, quaternion_from_euler(0, 0, yaw_car_3))
         car_3_twist = Twist(lin_vel_3, ang_vel_3)
@@ -426,7 +426,7 @@ if __name__ == '__main__':
         pos_car_4 = Point(0.5, -3.0, 0.0)
         yaw_car_4 = 1.57
         v_4 = 0.2
-        lin_vel_4 = Vector3(v_4*math.cos(yaw_car_4), v_4*math.sin(yaw_car_4), 0.0)
+        lin_vel_4 = Vector3(v_4, 0.0, 0.0)
         ang_vel_4 = Vector3(0.0, 0.0, 0.0)
         car_4_pose = Pose(pos_car_4, quaternion_from_euler(0, 0, yaw_car_4))
         car_4_twist = Twist(lin_vel_4, ang_vel_4)
@@ -443,7 +443,7 @@ if __name__ == '__main__':
         pos_car_5 = Point(-6.0, -8.0, 0.0)
         yaw_car_5 = 1.57
         v_5 = 0.2
-        lin_vel_5 = Vector3(v_5*math.cos(yaw_car_5), v_5*math.sin(yaw_car_5), 0.0)
+        lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
         car_5_pose = Pose(pos_car_5, quaternion_from_euler(0, 0, yaw_car_5))
         car_5_twist = Twist(lin_vel_5, ang_vel_5)
