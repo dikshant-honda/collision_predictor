@@ -46,7 +46,7 @@ x2, y2 = get_lanes([-6,8], [-6,1])      # down left
 x3, y3 = get_lanes([-5,0], [-1,0])      # down center
 x4, y4 = get_lanes([0,5], [0,1])        # center left
 x5, y5 = get_lanes([0,-1], [0,-5])       # center right
-x6, y6 = get_lanes([1,0], [5.5,0])      # up center
+x6, y6 = get_lanes([1,0], [5.3,0])      # up center
 x7, y7 = get_lanes([6.5,-0.5], [10,-4]) # up right
 x8, y8 = get_lanes([6.5,0.5], [10,4])   # up left
 
@@ -65,8 +65,8 @@ x16, y16 = get_spline([0,1], [0,-1], -np.pi/2, -np.pi/2)
 x17, y17 = get_spline([0,1], [1,0], -np.pi/2, 0)
 
 # Y intersection
-x18, y18 = get_spline([5.5,0], [6.5, 0.5], 0, np.pi/4)
-x19, y19 = get_spline([5.5,0], [6.5,-0.5], 0, -np.pi/4)
+x18, y18 = get_spline([5.3,0], [6.5, 0.5], 0, np.pi/4)
+x19, y19 = get_spline([6.5,-0.5], [5.3,0], 0, np.pi/4+np.pi/2)
 x20, y20 = get_spline([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
 
 # vehicle trajectories
@@ -75,8 +75,8 @@ x_car_1 = np.hstack((x3, x14, x6, x18, x8))
 y_car_1 = np.hstack((y3, y14, y6, y18, y8))   
 
 # car 2 path 
-x_car_2 = np.hstack((x7[::-1], x19[::-1], x6[::-1], x14[::-1], x3[::-1]))
-y_car_2 = np.hstack((y7[::-1], y19[::-1], y6[::-1], y14[::-1], y3[::-1]))
+x_car_2 = np.hstack((x7[::-1], x19, x6[::-1], x14[::-1], x3[::-1]))
+y_car_2 = np.hstack((y7[::-1], y19, y6[::-1], y14[::-1], y3[::-1]))
 
 # car 3 path
 x_car_3 = np.hstack((x4, x17, x6, x18, x8))
@@ -98,6 +98,18 @@ for i in range(len(x_car_1)):
 car_2_route = []
 for i in range(len(x_car_2)):
     car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
+
+car_3_route = []
+for i in range(len(x_car_3)):
+    car_3_route.append(Point(x_car_3[i], y_car_3[i], 0))
+
+car_4_route = []
+for i in range(len(x_car_4)):
+    car_4_route.append(Point(x_car_4[i], y_car_4[i], 0))
+
+car_5_route = []
+for i in range(len(x_car_5)):
+    car_5_route.append(Point(x_car_5[i], y_car_5[i], 0))
 
 # plotting
 # plt.plot(x1, y1, 'k')
