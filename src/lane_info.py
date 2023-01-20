@@ -71,8 +71,8 @@ x20, y20 = get_spline([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
 
 # vehicle trajectories
 # car 1 path
-x_car_1 = np.hstack((x3, x14, x6, x19, x7))
-y_car_1 = np.hstack((y3, y14, y6, y19, y7))   
+x_car_1 = np.hstack((x3, x14, x6, x18, x8))
+y_car_1 = np.hstack((y3, y14, y6, y18, y8))   
 
 # car 2 path 
 x_car_2 = np.hstack((x7[::-1], x19[::-1], x6[::-1], x14[::-1], x3[::-1]))
