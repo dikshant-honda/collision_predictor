@@ -16,11 +16,12 @@ from collision_predictor.msg import *
 class Subscriber:
     def __init__(self):
         # position subcribers
-        self.sub1 = rospy.Subscriber('/tb3_1/odom', Odometry, self.callback1)
-        self.sub2 = rospy.Subscriber('/tb3_2/odom', Odometry, self.callback2)
-        self.sub3 = rospy.Subscriber('/tb3_3/odom', Odometry, self.callback3)
-        self.sub4 = rospy.Subscriber('/tb3_4/odom', Odometry, self.callback4)
-        self.sub5 = rospy.Subscriber('/tb3_5/odom', Odometry, self.callback5)
+        # self.sub1 = rospy.Subscriber('/tb3_1/odom', Odometry, self.callback1)
+        # self.sub2 = rospy.Subscriber('/tb3_2/odom', Odometry, self.callback2)
+        # self.sub3 = rospy.Subscriber('/tb3_3/odom', Odometry, self.callback3)
+        # self.sub4 = rospy.Subscriber('/tb3_4/odom', Odometry, self.callback4)
+        # self.sub5 = rospy.Subscriber('/tb3_5/odom', Odometry, self.callback5)
+        self.main()
 
     # collision check
     def lineIntersection(self, future_waypoints_1, future_waypoints_2):
@@ -198,13 +199,22 @@ class Subscriber:
         return future_waypoints, d
 
     def callback1(self, msg):
-        self.car_1_pose = msg.pose.pose
+        car_1.pose = msg
 
     def callback2(self, msg):
-        self.car_2_pose = msg.pose.pose
+        car_2.pose = msg
 
-    def callback(self, msg):
-        self.car_pose = msg
+    def callbacks(self, car):
+        if car.id == "car_1":
+            rospy.Subscriber('/tb3_1/odom', Odometry, self.callback1)
+        if car.id == "car_2":
+            rospy.Subscriber('/tb3_2/odom', Odometry, self.callback2)
+
+    def publishers(self, car, move):
+        if car.id == "car_1":
+            pub1.publish(move)
+        if car.id == "car_2":
+            pub2.publish(move)
 
     def update(self, car):
         path, _  = self.get_lane_and_s_map(car.car_route)
@@ -228,13 +238,14 @@ class Subscriber:
             move = Twist(linear, angular)
             car.stop = True
 
-        car.pose = self.callback()  # think about this tomorrow, how to callback smartly
+        # publish the move message
+        self.publishers(car, move)
+        car.pose = self.callbacks(car)  # think about this tomorrow, how to callback smartly
         car.twist = car.pose.twist
         car.past_vel.pop(0)
         car.past_vel.append(v)
         car.past_d.pop(0)
         car.past_d.append(car.d)   
-        return move
 
     def add(self, car):
         env.register = True
@@ -258,16 +269,18 @@ class Subscriber:
                     # start checking for intersection
                     car_1.future_waypoints, car_1.d = self.get_future_trajectory(car_1)
                     car_2.future_waypoints, car_2.d = self.get_future_trajectory(car_2)
-                    move1 = self.update(car_1)
-                    move2 = self.update(car_2)
-                    pub1.publish(move1)
-                    pub2.publish(move2)
+                    self.update(car_1)
+                    self.update(car_2)
                     if car_1.stop:
                         self.removal(car_1)
                     if car_2.stop:
                         self.removal(car_2)
                 # add more functionalities
         rospy.sleep(1.0)
+
+    def print_info(env):
+        print("current number of vehicles:", env.vehicles)
+        print("**************************************")
 
 if __name__ == '__main__':
     try:
@@ -301,8 +314,8 @@ if __name__ == '__main__':
         future_waypoints_2 = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route)
-        car_2 = VehicleState("car2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route)
         car_3 = VehicleState()
         car_4 = VehicleState()
         car_5 = VehicleState()
