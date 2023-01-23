@@ -26,7 +26,7 @@
   <arg name="agent_4_z_pos" default=" 0.0"/>
   <arg name="agent_4_yaw"   default=" 1.57"/>
 
-  <arg name="agent_5_x_pos" default="-6.0"/>
+  <arg name="agent_5_x_pos" default="-6.3"/>
   <arg name="agent_5_y_pos" default="-8.0"/>
   <arg name="agent_5_z_pos" default=" 0.0"/>
   <arg name="agent_5_yaw"   default=" 1.57"/>
