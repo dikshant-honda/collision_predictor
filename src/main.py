@@ -16,7 +16,7 @@ class Subscriber:
     def __init__(self):
         # variables
         self.width = 2                                  # lane width
-        self.interp_back_path = 15                      # interpolate back to path after this # of steps
+        self.interp_back_path = 0                       # interpolate back to path after this # of steps
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
@@ -196,7 +196,8 @@ class Subscriber:
         lane_line_list, lane_s_map = self.get_lane_and_s_map(car.car_route)
         future_waypoints, d = self.PredictTrajectoryVehicles(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
         car.d = d
-
+        # if car.id == 'car_3':
+        #     print(car.id, car.d)
         return future_waypoints
 
     # Vehicle state subcribers
@@ -286,7 +287,7 @@ class Subscriber:
             next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
             v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
-            angular = Vector3(0, 0, 3*(next_yaw - yaw)/self.dt_m)
+            angular = Vector3(0, 0, 4*(next_yaw - yaw)/self.dt_m)
             move = Twist(linear, angular)
             car.stop = False
         # stop after reaching the end of lane
@@ -311,6 +312,22 @@ class Subscriber:
         env.vehicles -= 1
         env.vehicle_states.remove(car)
 
+    def plotter(self):
+        file = open("/home/dikshant/catkin_ws/future_waypoints_car_3.txt", "r+")
+
+        lines = file.read().split(',')
+
+        x, y = [], []
+        for line in lines:
+            x.append(float(line[5:15]))
+            y.append(float(line[30:32]))
+
+        x.pop()
+        y.pop()
+
+        plt.plot(x,y)
+        plt.pause(0.1)
+
     # joint functions
     # def update(self, car):
     #     self.update(car)
@@ -319,6 +336,8 @@ class Subscriber:
     #     self.removal(car)
 
     def main(self):
+        self.add(car_1)
+        self.add(car_5)
         while not rospy.is_shutdown():
             car_1.future_waypoints = self.get_future_trajectory(car_1)
             car_2.future_waypoints = self.get_future_trajectory(car_2)
@@ -329,8 +348,14 @@ class Subscriber:
             # self.update(car_1)
             # self.update(car_2)
             self.update(car_3)
-            self.update(car_4)
+            # self.update(car_4)
             self.update(car_5)
+
+            file3 = open("future_waypoints_car_3.txt", "w")
+            file3.write(str(car_3.future_waypoints))
+            file3.close()
+
+            self.plotter()
 
             if car_1.stop:
                 self.removal(car_1)
@@ -405,7 +430,7 @@ if __name__ == '__main__':
 
         pos_car_3 = Point(0.5, 3.0, 0.0)
         yaw_car_3 = -1.57
-        v_3 = 0.2
+        v_3 = 0.3
         lin_vel_3 = Vector3(v_3, 0.0, 0.0)
         ang_vel_3 = Vector3(0.0, 0.0, 0.0)
         car_3_pose = Pose(pos_car_3, quaternion_from_euler(0, 0, yaw_car_3))
@@ -439,7 +464,7 @@ if __name__ == '__main__':
 
         pos_car_5 = Point(-6.0, -8.0, 0.0)
         yaw_car_5 = 1.57
-        v_5 = 0.2
+        v_5 = 0.3
         lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
         car_5_pose = Pose(pos_car_5, quaternion_from_euler(0, 0, yaw_car_5))
@@ -469,6 +494,9 @@ if __name__ == '__main__':
         deregister = False 
         interaction = False
         env = Environment(no_of_vehicles, vehicle_list, at_junction, register, deregister, interaction)
+
+        # text files for plotting the future trajectories of the vehicles
+        file3 = open("future_waypoints_car_3.txt", "w")
 
         rospy.init_node('predictor', anonymous=True)
         pub1 = rospy.Publisher('/tb3_1/cmd_vel', Twist, queue_size=10)
