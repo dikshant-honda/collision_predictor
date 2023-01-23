@@ -195,8 +195,6 @@ class Subscriber:
         lane_line_list, lane_s_map = self.get_lane_and_s_map(car.car_route)
         future_waypoints, d = self.PredictTrajectoryVehicles(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
         car.d = d
-        # if car.id == 'car_3':
-        #     print(car.id, car.d)
         return future_waypoints
 
     # Vehicle state subcribers
@@ -291,11 +289,12 @@ class Subscriber:
                 factor = 0
             # yaw = math.atan2((p2.y - p1.y),(p2.x - p1.x))
             # next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
-            # deviation = distance(x, y, path[ind_closest].x, path[ind_closest].y)
+            deviation = distance(x, y, path[ind_closest].x, path[ind_closest].y)
             # print(deviation)
             v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
-            angular = Vector3(0, 0, factor*car.d)
+            angular = Vector3(0, 0, 2*factor*deviation)
+            print(angular.z)
             move = Twist(linear, angular)
             car.stop = False
         # stop after reaching the end of lane
@@ -338,25 +337,21 @@ class Subscriber:
             car_5.future_waypoints = self.get_future_trajectory(car_5)
             
             # self.update(car_1)
-            # self.update(car_2)
-            self.update(car_3)
-            # self.update(car_4)
+            self.update(car_2)
+            # self.update(car_3)
+            self.update(car_4)
             # self.update(car_5)
 
-            file3 = open("future_waypoints_car_3.txt", "w")
-            file3.write(str(car_3.future_waypoints))
-            file3.close()
-
-            if car_1.stop:
-                self.removal(car_1)
-            if car_2.stop:
-                self.removal(car_2)
-            if car_3.stop:
-                self.removal(car_3)
-            if car_4.stop:
-                self.removal(car_4)
-            if car_5.stop:
-                self.removal(car_5)
+            # if car_1.stop:
+            #     self.removal(car_1)
+            # if car_2.stop:
+            #     self.removal(car_2)
+            # if car_3.stop:
+            #     self.removal(car_3)
+            # if car_4.stop:
+            #     self.removal(car_4)
+            # if car_5.stop:
+            #     self.removal(car_5)
             # if not car_1.future_waypoints and not car_2.future_waypoints:
             #     print("there's no future trajectory, vehicle has just started interacting with the environment")
             #     print("time to register the vehicle into the environment")
@@ -403,7 +398,7 @@ if __name__ == '__main__':
 
         pos_car_2 = Point(8.0, -2.0, 0.0)
         yaw_car_2 = 2.36
-        v_2 = 0.1
+        v_2 = 0.3
         lin_vel_2 = Vector3(v_2, 0.0, 0.0)
         ang_vel_2 = Vector3(0.0, 0.0, 0.0)
         car_2_pose = Pose(pos_car_2, quaternion_from_euler(0, 0, yaw_car_2))
@@ -418,7 +413,7 @@ if __name__ == '__main__':
         stop_2 = False  
         future_waypoints_2 = []
 
-        pos_car_3 = Point(0.5, 3.0, 0.0)
+        pos_car_3 = Point(0.0, 3.0, 0.0)
         yaw_car_3 = -1.57
         v_3 = 0.3
         lin_vel_3 = Vector3(v_3, 0.0, 0.0)
@@ -435,9 +430,9 @@ if __name__ == '__main__':
         stop_3 = False  
         future_waypoints_3 = []
 
-        pos_car_4 = Point(0.5, -3.0, 0.0)
+        pos_car_4 = Point(0.0, -3.0, 0.0)
         yaw_car_4 = 1.57
-        v_4 = 0.2
+        v_4 = 0.3
         lin_vel_4 = Vector3(v_4, 0.0, 0.0)
         ang_vel_4 = Vector3(0.0, 0.0, 0.0)
         car_4_pose = Pose(pos_car_4, quaternion_from_euler(0, 0, yaw_car_4))
@@ -452,9 +447,9 @@ if __name__ == '__main__':
         stop_4 = False  
         future_waypoints_4 = []
 
-        pos_car_5 = Point(-6.0, -8.0, 0.0)
+        pos_car_5 = Point(-6.3, -8.0, 0.0)
         yaw_car_5 = 1.57
-        v_5 = 0.3
+        v_5 = 0.45
         lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
         car_5_pose = Pose(pos_car_5, quaternion_from_euler(0, 0, yaw_car_5))

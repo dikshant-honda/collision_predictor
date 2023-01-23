@@ -16,12 +16,12 @@
   <arg name="agent_2_z_pos" default=" 0.0"/>
   <arg name="agent_2_yaw"   default=" 2.36"/>
 
-  <arg name="agent_3_x_pos" default=" 0.5"/>
+  <arg name="agent_3_x_pos" default=" 0.0"/>
   <arg name="agent_3_y_pos" default=" 3.0"/>
   <arg name="agent_3_z_pos" default=" 0.0"/>
   <arg name="agent_3_yaw"   default="-1.57"/>
 
-  <arg name="agent_4_x_pos" default=" 0.5"/>
+  <arg name="agent_4_x_pos" default=" 0.0"/>
   <arg name="agent_4_y_pos" default="-3.0"/>
   <arg name="agent_4_z_pos" default=" 0.0"/>
   <arg name="agent_4_yaw"   default=" 1.57"/>
