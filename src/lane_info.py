@@ -1,10 +1,10 @@
-#! /usr/bin/env python3
+# ! /usr/bin/env python3
 
 import numpy as np 
 import matplotlib.pyplot as plt
-from Bezier import Bezier
+# from Bezier import Bezier
 from scipy.interpolate import CubicSpline
-# from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point
 
 def get_lanes(start, end, steps=100):
     x = np.linspace(start[0], end[0], steps)
@@ -45,7 +45,7 @@ def get_spline(start, end, theta0, theta1, steps=100):
 
 # if __name__ == '__main__':
 #  straight lanes
-x1, y1 = get_lanes([-6,-1],[-6,-8])     # down right
+x1, y1 = get_lanes([-6.3,-1.0],[-6.3,-8])     # down right
 x2, y2 = get_lanes([-6,8], [-6,1])      # down left
 x3, y3 = get_lanes([-5,0], [-1,0])      # down center
 x4, y4 = get_lanes([0,5], [0,1])        # center left
@@ -56,16 +56,12 @@ x8, y8 = get_lanes([6.5,0.5], [10,4])   # up left
 
 # splines
 # # T intersection
-# xp = [-6,-5.9,-5.8,-5.7,-5.4,-5.2,-5.0]
-# yp = [-1,-0.8,-0.7,-0.5,-0.08,-0.05,-0.0]
-# spl = CubicSpline(xp, yp)
-# x9 = np.linspace(-6, -5, 100)
-# y9 = spl(x9)
-x9_1, y9_1 = get_spline([-6,-2], [-5.5,-0.1], np.pi/2,np.pi/6)
-x9_2, y9_2 = get_spline([-5.5,-0.1], [-5,0], np.pi/6,0)
-x9, y9 = np.hstack((x9_1, x9_2)), np.hstack((y9_1, y9_2))
-x10, y10 = get_spline([-6,-1], [-6,1], np.pi/2, -np.pi/2)
-x11, y11 = get_spline([-6,1], [-5,0], -np.pi/2, 0)
+# x9_1, y9_1 = get_spline([-6.3,-1.0], [-5.5,-0.1], np.pi/2,np.pi/6)
+# x9_2, y9_2 = get_spline([-5.5,-0.1], [-5,0], np.pi/6,0)
+# x9, y9 = np.hstack((x9_1, x9_2)), np.hstack((y9_1, y9_2))
+x9, y9 = get_spline([-6.3,-1.0], [-5,0], np.pi/2,np.pi/6)
+x10, y10 = get_spline([-6.3,-1], [-6.3,1], np.pi/2, -np.pi/2)
+x11, y11 = get_spline([-6.3,1], [-5,0], -np.pi/2, np.pi/6)
 
 # X intersection
 x12, y12 = get_spline([-1,0], [0,1], 0, np.pi/2)
@@ -102,25 +98,25 @@ x_car_5 = np.hstack((x1[::-1], x9, x3, x12, x4[::-1]))
 y_car_5 = np.hstack((y1[::-1], y9, y3, y12, y4[::-1]))
 
 # # converting car path into geometry_msgs/Point
-# car_1_route = []
-# for i in range(len(x_car_1)):
-#     car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
+car_1_route = []
+for i in range(len(x_car_1)):
+    car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
 
-# car_2_route = []
-# for i in range(len(x_car_2)):
-#     car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
+car_2_route = []
+for i in range(len(x_car_2)):
+    car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
 
-# car_3_route = []
-# for i in range(len(x_car_3)):
-#     car_3_route.append(Point(x_car_3[i], y_car_3[i], 0))
+car_3_route = []
+for i in range(len(x_car_3)):
+    car_3_route.append(Point(x_car_3[i], y_car_3[i], 0))
 
-# car_4_route = []
-# for i in range(len(x_car_4)):
-#     car_4_route.append(Point(x_car_4[i], y_car_4[i], 0))
+car_4_route = []
+for i in range(len(x_car_4)):
+    car_4_route.append(Point(x_car_4[i], y_car_4[i], 0))
 
-# car_5_route = []
-# for i in range(len(x_car_5)):
-#     car_5_route.append(Point(x_car_5[i], y_car_5[i], 0))
+car_5_route = []
+for i in range(len(x_car_5)):
+    car_5_route.append(Point(x_car_5[i], y_car_5[i], 0))
 
 # plotting
 # plt.plot(x1, y1, 'k')
@@ -149,6 +145,6 @@ y_car_5 = np.hstack((y1[::-1], y9, y3, y12, y4[::-1]))
 # plt.plot(x_car_2, y_car_2)
 # plt.plot(x_car_3, y_car_3)
 # plt.plot(x_car_4, y_car_4)
-plt.plot(x_car_5, y_car_5)
+# plt.plot(x_car_5, y_car_5)
 
-plt.show()
+# plt.show()
