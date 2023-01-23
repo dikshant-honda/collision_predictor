@@ -312,22 +312,6 @@ class Subscriber:
         env.vehicles -= 1
         env.vehicle_states.remove(car)
 
-    def plotter(self):
-        file = open("/home/dikshant/catkin_ws/future_waypoints_car_3.txt", "r+")
-
-        lines = file.read().split(',')
-
-        x, y = [], []
-        for line in lines:
-            x.append(float(line[5:15]))
-            y.append(float(line[30:32]))
-
-        x.pop()
-        y.pop()
-
-        plt.plot(x,y)
-        plt.pause(0.1)
-
     # joint functions
     # def update(self, car):
     #     self.update(car)
