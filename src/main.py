@@ -16,7 +16,7 @@ class Subscriber:
     def __init__(self):
         # variables
         self.width = 2                                  # lane width
-        self.interp_back_path = 0                       # interpolate back to path after this # of steps
+        self.interp_back_path = 10                      # interpolate back to path after this # of steps
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
@@ -113,15 +113,13 @@ class Subscriber:
         if use_previous:
             p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
             p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
-            p3 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
             prev_idx = ind_closest - 1
         else:
             p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
             p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
-            p3 = Point2D(path[ind_closest + 2].x, path[ind_closest + 2].y)
             prev_idx = ind_closest
         
-        return p1, p2, p3, prev_idx
+        return p1, p2, prev_idx
 
     # adding on theta to get the yaw of the vehicle
     def get_frenet_with_theta(self, x, y, path, s_map):
@@ -133,7 +131,7 @@ class Subscriber:
 
         # Determine the indices of the 2 closest points
         if ind_closest < len(path):
-            p1, p2, _, prev_idx = self.closest_points(ind_closest, path, x, y)
+            p1, p2, prev_idx = self.closest_points(ind_closest, path, x, y)
             # Get the point in the local coordinate with center p1
             theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
             local_p = global_to_local(p1, theta, Point2D(x,y))
@@ -178,7 +176,8 @@ class Subscriber:
     # future waypoints
     def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
         s, d_curr, _ = self.get_frenet_with_theta(init_x, init_y, path, s_map)
-        d = (d_curr + d) / 2                    # average of all the deviations from center
+        # d = (d_curr + d) / 2                    # average of all the deviations from center
+        d = d_curr
         future_waypoints = []
         for t in range(self.np_m):
             if t < self.interp_back_path:
@@ -279,15 +278,24 @@ class Subscriber:
         path, _  = self.get_lane_and_s_map(car.car_route)
         x, y = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
         ind_closest = closest_point_ind(path, x, y)
-        # still on the lane
-        if ind_closest < len(path)-2:
-            p1, p2, p3, _ = self.closest_points(ind_closest, path, x, y)
 
-            yaw = math.atan2((p2.y - p1.y),(p2.x - p1.x))
-            next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
+        # still on the lane
+        if ind_closest < len(path)-1:
+            p1, p2, _ = self.closest_points(ind_closest, path, x, y)
+            d = (x - p1.x)*(p2.y - p1.y) - (y - p1.y)*(p2.x - p1.x)
+            if d < 0:
+                factor = -1
+            elif d > 0:
+                factor = 1
+            else:
+                factor = 0
+            # yaw = math.atan2((p2.y - p1.y),(p2.x - p1.x))
+            # next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
+            # deviation = distance(x, y, path[ind_closest].x, path[ind_closest].y)
+            # print(deviation)
             v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
-            angular = Vector3(0, 0, 4*(next_yaw - yaw)/self.dt_m)
+            angular = Vector3(0, 0, factor*car.d)
             move = Twist(linear, angular)
             car.stop = False
         # stop after reaching the end of lane
@@ -333,13 +341,11 @@ class Subscriber:
             # self.update(car_2)
             self.update(car_3)
             # self.update(car_4)
-            self.update(car_5)
+            # self.update(car_5)
 
             file3 = open("future_waypoints_car_3.txt", "w")
             file3.write(str(car_3.future_waypoints))
             file3.close()
-
-            self.plotter()
 
             if car_1.stop:
                 self.removal(car_1)
