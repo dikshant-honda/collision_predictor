@@ -202,67 +202,67 @@ class Subscriber:
         return future_waypoints
 
     # Vehicle state subcribers
-    # def callback1(self, msg):
-    #     car_1.pose = msg
-    #     car_1.twist = msg.twist.twist
-    #     car_1.past_vel.pop(0)
-    #     # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-    #     v = v_1
-    #     car_1.past_vel.append(v)
-    #     car_1.past_d.pop(0)
-    #     car_1.past_d.append(car_1.d)
+    def callback1(self, msg):
+        car_1.pose = msg
+        car_1.twist = msg.twist.twist
+        car_1.past_vel.pop(0)
+        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
+        v = v_1
+        car_1.past_vel.append(v)
+        car_1.past_d.pop(0)
+        car_1.past_d.append(car_1.d)
 
-    # def callback2(self, msg):
-    #     car_2.pose = msg
-    #     car_2.twist = msg.twist.twist
-    #     car_2.past_vel.pop(0)
-    #     v = v_2
-    #     # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-    #     car_2.past_vel.append(v)
-    #     car_2.past_d.pop(0)
-    #     car_2.past_d.append(car_2.d) 
+    def callback2(self, msg):
+        car_2.pose = msg
+        car_2.twist = msg.twist.twist
+        car_2.past_vel.pop(0)
+        v = v_2
+        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
+        car_2.past_vel.append(v)
+        car_2.past_d.pop(0)
+        car_2.past_d.append(car_2.d) 
 
-    # def callback3(self, msg):
-    #     car_3.pose = msg
-    #     car_3.twist = msg.twist.twist
-    #     car_3.past_vel.pop(0)
-    #     v = v_3
-    #     # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-    #     car_3.past_vel.append(v)
-    #     car_3.past_d.pop(0)
-    #     car_3.past_d.append(car_3.d)
+    def callback3(self, msg):
+        car_3.pose = msg
+        car_3.twist = msg.twist.twist
+        car_3.past_vel.pop(0)
+        v = v_3
+        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
+        car_3.past_vel.append(v)
+        car_3.past_d.pop(0)
+        car_3.past_d.append(car_3.d)
 
-    # def callback4(self, msg):
-    #     car_4.pose = msg
-    #     car_4.twist = msg.twist.twist
-    #     car_4.past_vel.pop(0)
-    #     v = v_4
-    #     # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-    #     car_4.past_vel.append(v)
-    #     car_4.past_d.pop(0)
-    #     car_4.past_d.append(car_4.d) 
+    def callback4(self, msg):
+        car_4.pose = msg
+        car_4.twist = msg.twist.twist
+        car_4.past_vel.pop(0)
+        v = v_4
+        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
+        car_4.past_vel.append(v)
+        car_4.past_d.pop(0)
+        car_4.past_d.append(car_4.d) 
 
-    # def callback5(self, msg):
-    #     car_5.pose = msg
-    #     car_5.twist = msg.twist.twist
-    #     car_5.past_vel.pop(0)
-    #     v = v_5
-    #     # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-    #     car_5.past_vel.append(v)
-    #     car_5.past_d.pop(0)
-    #     car_5.past_d.append(car_5.d) 
+    def callback5(self, msg):
+        car_5.pose = msg
+        car_5.twist = msg.twist.twist
+        car_5.past_vel.pop(0)
+        v = v_5
+        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
+        car_5.past_vel.append(v)
+        car_5.past_d.pop(0)
+        car_5.past_d.append(car_5.d) 
 
-    # def callbacks(self, car):
-    #     if car.id == "car_1":
-    #         rospy.Subscriber('/tb3_1/odom', Odometry, self.callback1)
-    #     if car.id == "car_2":
-    #         rospy.Subscriber('/tb3_2/odom', Odometry, self.callback2)
-    #     if car.id == "car_3":
-    #         rospy.Subscriber('/tb3_3/odom', Odometry, self.callback3)
-    #     if car.id == "car_4":
-    #         rospy.Subscriber('/tb3_4/odom', Odometry, self.callback4)
-    #     if car.id == "car_5":
-    #         rospy.Subscriber('/tb3_5/odom', Odometry, self.callback5)
+    def callbacks(self, car):
+        if car.id == "car_1":
+            rospy.Subscriber('/tb3_1/odom', Odometry, self.callback1)
+        if car.id == "car_2":
+            rospy.Subscriber('/tb3_2/odom', Odometry, self.callback2)
+        if car.id == "car_3":
+            rospy.Subscriber('/tb3_3/odom', Odometry, self.callback3)
+        if car.id == "car_4":
+            rospy.Subscriber('/tb3_4/odom', Odometry, self.callback4)
+        if car.id == "car_5":
+            rospy.Subscriber('/tb3_5/odom', Odometry, self.callback5)
 
     def publishers(self, car, move):
         if car.id == "car_1":
@@ -297,6 +297,7 @@ class Subscriber:
             # print(deviation)
             v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
+            # simple P controller -> change it to PI controller
             angular = Vector3(0, 0, 2*factor*deviation)
             # print(angular.z)
             move = Twist(linear, angular)
@@ -312,9 +313,53 @@ class Subscriber:
         self.publishers(car, move)
         # update car data
         # self.callbacks(car)
+
+        # ------------------------------- not working properly ----------------------
         # time synchronized callback
-        ts = message_filters.TimeSynchronizer([car_1_sub, car_2_sub, car_3_sub, car_4_sub, car_5_sub], 1)
-        ts.registerCallback(callback)
+        # def callback(veh_1, veh_2, veh_3, veh_4, veh_5):
+        #     print("callback function called")
+        #     # car 1 updates
+        #     car_1.pose = veh_1
+        #     car_1.twist = veh_1.twist.twist
+        #     car_1.past_vel.pop(0)
+        #     car_1.past_vel.append(v_1)
+        #     car_1.past_d.pop(0)
+        #     car_1.past_d.append(car_1.d)
+
+        #     # car 2 updates
+        #     car_2.pose = veh_2
+        #     car_2.twist = veh_2.twist.twist
+        #     car_2.past_vel.pop(0)
+        #     car_2.past_vel.append(v_2)
+        #     car_2.past_d.pop(0)
+        #     car_2.past_d.append(car_2.d)
+
+        #     # car 3 updates
+        #     car_3.pose = veh_3
+        #     car_3.twist = veh_3.twist.twist
+        #     car_3.past_vel.pop(0)
+        #     car_3.past_vel.append(v_3)
+        #     car_3.past_d.pop(0)
+        #     car_3.past_d.append(car_3.d)
+
+        #     # car 4 updates
+        #     car_4.pose = veh_4
+        #     car_4.twist = veh_4.twist.twist
+        #     car_4.past_vel.pop(0)
+        #     car_4.past_vel.append(v_4)
+        #     car_4.past_d.pop(0)
+        #     car_4.past_d.append(car_4.d)
+
+        #     # car 5 updates
+        #     car_5.pose = veh_5
+        #     car_5.twist = veh_5.twist.twist
+        #     car_5.past_vel.pop(0)
+        #     car_5.past_vel.append(v_5)
+        #     car_5.past_d.pop(0)
+        #     car_5.past_d.append(car_5.d)
+            
+        # ts = message_filters.TimeSynchronizer([car_1_sub, car_2_sub, car_3_sub, car_4_sub, car_5_sub], 1)
+        # ts.registerCallback(callback)
 
     def stop(self, car):
         print("trying to stop:", car.id)
@@ -358,7 +403,7 @@ class Subscriber:
             # self.update(car_5)
             if not self.lineIntersection(car_3.future_waypoints, car_4.future_waypoints):
                 # print(car_3.future_waypoints)
-                print("-------------")
+                # print("-------------")
                 # print(car_4.future_waypoints)
                 # print("*************")
                 self.update(car_3)
@@ -367,9 +412,9 @@ class Subscriber:
             #     print(car_3.future_waypoints)
             #     print("-------------")
             #     print(car_4.future_waypoints)
-                print("*************")
-            #     print("possibility of collision")
-                self.stop(car_3)
+                # print("*************")
+                print("possibility of collision")
+                # self.stop(car_3)
                 self.update(car_4)
             # if car_1.stop:
             #     self.removal(car_1)
@@ -403,49 +448,7 @@ class Subscriber:
 
     def print_info(env):
         print("current number of vehicles:", env.vehicles)
-        print("**************************************")
-
-def callback(veh_1, veh_2, veh_3, veh_4, veh_5):
-    print("callback function called")
-    # car 1 updates
-    car_1.pose = veh_1
-    car_1.twist = veh_1.twist.twist
-    car_1.past_vel.pop(0)
-    car_1.past_vel.append(v_1)
-    car_1.past_d.pop(0)
-    car_1.past_d.append(car_1.d)
-
-    # car 2 updates
-    car_2.pose = veh_2
-    car_2.twist = veh_2.twist.twist
-    car_2.past_vel.pop(0)
-    car_2.past_vel.append(v_2)
-    car_2.past_d.pop(0)
-    car_2.past_d.append(car_2.d)
-
-    # car 3 updates
-    car_3.pose = veh_3
-    car_3.twist = veh_3.twist.twist
-    car_3.past_vel.pop(0)
-    car_3.past_vel.append(v_3)
-    car_3.past_d.pop(0)
-    car_3.past_d.append(car_3.d)
-
-    # car 4 updates
-    car_4.pose = veh_4
-    car_4.twist = veh_4.twist.twist
-    car_4.past_vel.pop(0)
-    car_4.past_vel.append(v_4)
-    car_4.past_d.pop(0)
-    car_4.past_d.append(car_4.d)
-
-    # car 5 updates
-    car_5.pose = veh_5
-    car_5.twist = veh_5.twist.twist
-    car_5.past_vel.pop(0)
-    car_5.past_vel.append(v_5)
-    car_5.past_d.pop(0)
-    car_5.past_d.append(car_5.d)        
+        print("**************************************")        
 
 if __name__ == '__main__':
     try:
@@ -552,7 +555,7 @@ if __name__ == '__main__':
         env = Environment(no_of_vehicles, vehicle_list, at_junction, register, deregister, interaction)
 
         # text files for plotting the future trajectories of the vehicles
-        file3 = open("future_waypoints_car_3.txt", "w")
+        # file3 = open("future_waypoints_car_3.txt", "w")
 
         rospy.init_node('predictor', anonymous=True)
         pub1 = rospy.Publisher('/tb3_1/cmd_vel', Twist, queue_size=10)
@@ -561,12 +564,12 @@ if __name__ == '__main__':
         pub4 = rospy.Publisher('/tb3_4/cmd_vel', Twist, queue_size=10)
         pub5 = rospy.Publisher('/tb3_5/cmd_vel', Twist, queue_size=10)
         
-        # subscribers
-        car_1_sub = message_filters.Subscriber('/tb3_1/odom', Odometry)
-        car_2_sub = message_filters.Subscriber('/tb3_2/odom', Odometry)
-        car_3_sub = message_filters.Subscriber('/tb3_3/odom', Odometry)
-        car_4_sub = message_filters.Subscriber('/tb3_4/odom', Odometry)
-        car_5_sub = message_filters.Subscriber('/tb3_5/odom', Odometry)
+        # # subscribers
+        # car_1_sub = message_filters.Subscriber('/tb3_1/odom', Odometry)
+        # car_2_sub = message_filters.Subscriber('/tb3_2/odom', Odometry)
+        # car_3_sub = message_filters.Subscriber('/tb3_3/odom', Odometry)
+        # car_4_sub = message_filters.Subscriber('/tb3_4/odom', Odometry)
+        # car_5_sub = message_filters.Subscriber('/tb3_5/odom', Odometry)
 
         sub = Subscriber()
 
