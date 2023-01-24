@@ -17,7 +17,7 @@ class Subscriber:
         # variables
         self.width = 2                                  # lane width
         self.interp_back_path = 10                      # interpolate back to path after this # of steps
-        self.plan_t_m = 5                               # planning horizon
+        self.plan_t_m = 2                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
 
@@ -294,7 +294,7 @@ class Subscriber:
             v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
             angular = Vector3(0, 0, 2*factor*deviation)
-            print(angular.z)
+            # print(angular.z)
             move = Twist(linear, angular)
             car.stop = False
         # stop after reaching the end of lane
@@ -308,6 +308,14 @@ class Subscriber:
         self.publishers(car, move)
         # update car data
         self.callbacks(car)
+
+    def stop(self, car):
+        print("trying to stop:", car.id)
+        linear = Vector3(0, 0, 0)
+        angular = Vector3(0, 0, 0)
+        move = Twist(linear, angular)
+        car.stop = True
+        self.publishers(car, move)
 
     def add(self, car):
         env.register = True
@@ -337,11 +345,25 @@ class Subscriber:
             car_5.future_waypoints = self.get_future_trajectory(car_5)
             
             # self.update(car_1)
-            self.update(car_2)
+            # self.update(car_2)
             # self.update(car_3)
-            self.update(car_4)
+            # self.update(car_4)
             # self.update(car_5)
-
+            if not self.lineIntersection(car_3.future_waypoints, car_4.future_waypoints):
+                # print(car_3.future_waypoints)
+                print("-------------")
+                # print(car_4.future_waypoints)
+                # print("*************")
+                self.update(car_3)
+                self.update(car_4)
+            else:
+            #     print(car_3.future_waypoints)
+            #     print("-------------")
+            #     print(car_4.future_waypoints)
+                print("*************")
+            #     print("possibility of collision")
+                self.stop(car_3)
+                self.update(car_4)
             # if car_1.stop:
             #     self.removal(car_1)
             # if car_2.stop:
