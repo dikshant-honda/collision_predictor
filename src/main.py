@@ -15,7 +15,7 @@ from collision_predictor.msg import Environment, VehicleState
 import message_filters
 
 class PI:
-    def __init__(self, P=0.2, I=0.1, current_time=None):
+    def __init__(self, P = 2, I = 0.01, current_time = None):
         self.Kp = P
         self.Ki = I
 
@@ -333,8 +333,23 @@ class Subscriber:
             # print(deviation)
             v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
-            # simple P controller -> change it to PI controller
-            angular = Vector3(0, 0, 2*factor*deviation)
+
+            # PI controller 
+            pi = PI()
+            pi.SetPoint = 0.0
+            end = 100
+            feedback = 0
+            for i in range(1, end):
+                pi.update(feedback)
+                output = pi.output
+                if pi.SetPoint > 0:
+                    feedback += (output - (1/i))
+                if i > 0:
+                    pi.SetPoint = 1
+                time.sleep(0.02)
+
+            yaw = feedback
+            angular = Vector3(0, 0, yaw)
             # print(angular.z)
             move = Twist(linear, angular)
             car.stop = False
