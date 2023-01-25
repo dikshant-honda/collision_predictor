@@ -15,7 +15,7 @@ from collision_predictor.msg import Environment, VehicleState
 import message_filters
 
 class PI:
-    def __init__(self, P = 2, I = 0.01, current_time = None):
+    def __init__(self, P = 10, I = 0.1, current_time = None):
         self.Kp = P
         self.Ki = I
 
@@ -319,14 +319,14 @@ class Subscriber:
 
         # still on the lane
         if ind_closest < len(path)-1:
-            p1, p2, _ = self.closest_points(ind_closest, path, x, y)
-            d = (x - p1.x)*(p2.y - p1.y) - (y - p1.y)*(p2.x - p1.x)
-            if d < 0:
-                factor = -1
-            elif d > 0:
-                factor = 1
-            else:
-                factor = 0
+            # p1, p2, _ = self.closest_points(ind_closest, path, x, y)
+            # d = (x - p1.x)*(p2.y - p1.y) - (y - p1.y)*(p2.x - p1.x)
+            # if d < 0:
+            #     factor = -1
+            # elif d > 0:
+            #     factor = 1
+            # else:
+            #     factor = 0
             # yaw = math.atan2((p2.y - p1.y),(p2.x - p1.x))
             # next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
             deviation = distance(x, y, path[ind_closest].x, path[ind_closest].y)
@@ -336,19 +336,19 @@ class Subscriber:
 
             # PI controller 
             pi = PI()
-            pi.SetPoint = 0.0
+            # pi.SetPoint = deviation
             end = 100
-            feedback = 0
+            feedback = deviation
             for i in range(1, end):
                 pi.update(feedback)
                 output = pi.output
-                if pi.SetPoint > 0:
-                    feedback += (output - (1/i))
-                if i > 0:
-                    pi.SetPoint = 1
+                # if pi.SetPoint > 0:
+                #     feedback += (output - (1/i))
+                # if i > 0:
+                #     pi.SetPoint = 1
                 time.sleep(0.02)
 
-            yaw = feedback
+            yaw = output
             angular = Vector3(0, 0, yaw)
             # print(angular.z)
             move = Twist(linear, angular)
@@ -450,23 +450,23 @@ class Subscriber:
             # self.update(car_1)
             # self.update(car_2)
             # self.update(car_3)
-            # self.update(car_4)
-            # self.update(car_5)
-            if not self.lineIntersection(car_3.future_waypoints, car_4.future_waypoints):
-                # print(car_3.future_waypoints)
-                # print("-------------")
-                # print(car_4.future_waypoints)
-                # print("*************")
-                self.update(car_3)
-                self.update(car_4)
-            else:
-            #     print(car_3.future_waypoints)
-            #     print("-------------")
-            #     print(car_4.future_waypoints)
-                # print("*************")
-                print("possibility of collision")
-                # self.stop(car_3)
-                self.update(car_4)
+            self.update(car_4)
+            self.update(car_5)
+            # if not self.lineIntersection(car_3.future_waypoints, car_4.future_waypoints):
+            #     # print(car_3.future_waypoints)
+            #     # print("-------------")
+            #     # print(car_4.future_waypoints)
+            #     # print("*************")
+            #     self.update(car_3)
+            #     self.update(car_4)
+            # else:
+            # #     print(car_3.future_waypoints)
+            # #     print("-------------")
+            # #     print(car_4.future_waypoints)
+            #     # print("*************")
+            #     print("possibility of collision")
+            #     # self.stop(car_3)
+            #     self.update(car_4)
             # if car_1.stop:
             #     self.removal(car_1)
             # if car_2.stop:
