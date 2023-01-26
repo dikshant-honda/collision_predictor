@@ -53,12 +53,12 @@ class Subscriber:
     def __init__(self):
         # variables
         self.width = 2                                  # lane width
-        self.interp_back_path = 20                      # interpolate back to path after this # of steps
-        self.plan_t_m = 5                               # planning horizon
+        self.interp_back_path = 10                      # interpolate back to path after this # of steps
+        self.plan_t_m = 3                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.1                                  # tolerance value for proximity check
-        self.delta = 0.05
+        # self.delta = 0.05
 
         # # time synchronized callback
         # ts.registerCallback(self.callback)
@@ -430,9 +430,13 @@ class Subscriber:
         return False  # no collision
 
     # collision check by vicinity or point-wise check
-
     def collision(self, points1, points2):
-        pass
+        for i in range(len(points1)):
+            for j in range(len(points2)):
+                if distance(points1[i].x, points1[i].y, points2[j].x, points2[j].y) < self.tol:
+                    return True
+        return False
+
     '''
     # computationally better way to test
     def collision(self, points1, points2):
@@ -471,14 +475,14 @@ class Subscriber:
             # self.update(car_3)
             # self.update(car_4)
             # self.update(car_5)
-            if not self.collision(car_3.future_waypoints, car_2.future_waypoints):
+            if not self.collision(car_1.future_waypoints, car_2.future_waypoints):
                 # arr_x, arr_y = self.point_to_arr(car_3.future_waypoints)
                 # print(arr_x, arr_y)
-                self.update(car_2)
+                self.update(car_1)
                 # print("------------------------------")
                 # arr_x_, arr_y_ = self.point_to_arr(car_4.future_waypoints)
                 # print(arr_x_, arr_y_)
-                self.update(car_3)
+                self.update(car_2)
                 # print("******************************")
             else:
             # #     print(car_3.future_waypoints)
@@ -486,8 +490,9 @@ class Subscriber:
             # #     print(car_4.future_waypoints)
             #     # print("*************")
                 print("possibility of collision")
+                self.stop(car_1)
                 self.stop(car_2)
-                self.stop(car_3)
+                break
             # if car_1.stop:
             #     self.removal(car_1)
             # if car_2.stop:
