@@ -58,7 +58,7 @@ class Subscriber:
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.1                                  # tolerance value for proximity check
-        self.vision_radius = 2                          # check only nearby cars
+        self.vision_radius = 5                          # check only nearby cars
 
         # # time synchronized callback
         # ts.registerCallback(self.callback)
@@ -464,41 +464,52 @@ class Subscriber:
         car1_pos = car1.pose.pose.pose.position
         car2_pos = car2.pose.pose.pose.position
         if distance(car1_pos.x, car1_pos.y, car2_pos.x, car2_pos.y) < self.vision_radius:
+            print("start checking the future trajectories")
             return True
+        return False
 
     def main(self):
         self.add(car_1)
         self.add(car_5)
         while not rospy.is_shutdown():
+            start = time.time()
+
             car_1.future_waypoints = self.get_future_trajectory(car_1)
             car_2.future_waypoints = self.get_future_trajectory(car_2)
             car_3.future_waypoints = self.get_future_trajectory(car_3)
             car_4.future_waypoints = self.get_future_trajectory(car_4)
             car_5.future_waypoints = self.get_future_trajectory(car_5)
-            
-            # self.update(car_1)
+
+            self.update(car_1)
             # self.update(car_2)
             # self.update(car_3)
             # self.update(car_4)
             # self.update(car_5)
-            if not self.collision(car_1.future_waypoints, car_2.future_waypoints):
-                # arr_x, arr_y = self.point_to_arr(car_3.future_waypoints)
-                # print(arr_x, arr_y)
-                self.update(car_1)
-                # print("------------------------------")
-                # arr_x_, arr_y_ = self.point_to_arr(car_4.future_waypoints)
-                # print(arr_x_, arr_y_)
-                self.update(car_2)
-                # print("******************************")
-            else:
-            # #     print(car_3.future_waypoints)
-            # #     print("-------------")
-            # #     print(car_4.future_waypoints)
-            #     # print("*************")
-                print("possibility of collision")
-                self.stop(car_1)
-                self.stop(car_2)
-                break
+            if self.inVicinity(car_1, car_3):
+                # car_1.future_waypoints = self.get_future_trajectory(car_1)
+                # car_2.future_waypoints = self.get_future_trajectory(car_2)
+                # car_3.future_waypoints = self.get_future_trajectory(car_3)
+                # car_4.future_waypoints = self.get_future_trajectory(car_4)
+                # car_5.future_waypoints = self.get_future_trajectory(car_5)
+                if not self.collision(car_1.future_waypoints, car_3.future_waypoints):
+                    # arr_x, arr_y = self.point_to_arr(car_3.future_waypoints)
+                    # print(arr_x, arr_y)
+                    # self.update(car_1)
+                    # print("------------------------------")
+                    # arr_x_, arr_y_ = self.point_to_arr(car_4.future_waypoints)
+                    # print(arr_x_, arr_y_)
+                    # self.update(car_2)
+                    # print("******************************")
+                    print("keep moving")
+                else:
+                # #     print(car_3.future_waypoints)
+                # #     print("-------------")
+                # #     print(car_4.future_waypoints)
+                #     # print("*************")
+                    print("possibility of collision")
+                    self.stop(car_1)
+                    # self.stop(car_3)
+                    # break
             # if car_1.stop:
             #     self.removal(car_1)
             # if car_2.stop:
@@ -527,7 +538,9 @@ class Subscriber:
             #         if car_2.stop:
             #             self.removal(car_2)
                 # add more functionalities
-        rospy.sleep(1.0)
+            end = time.time()
+            print("time taken for computation of future trajectories", end-start)
+        # rospy.sleep(1.0)
 
     def print_info(env):
         print("current number of vehicles:", env.vehicles)
