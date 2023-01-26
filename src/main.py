@@ -15,11 +15,11 @@ from collision_predictor.msg import Environment, VehicleState
 import message_filters
 
 class PI:
-    def __init__(self, P = 0.90, I = 100000, current_time = None):
+    def __init__(self, P = 0.97, I = 100000, current_time = None):
         self.Kp = P
         self.Ki = I
 
-        self.sample_time = 0.01
+        self.sample_time = 0.1
         self.current_time = current_time if current_time is not None else time.time()
         self.last_time = self.current_time
 
@@ -49,8 +49,8 @@ class PI:
             self.last_time = self.current_time
             self.last_error = error
 
-            self.output = self.PTerm + self.Ki * self.ITerm 
-            print(self.PTerm, self.ITerm)
+        self.output = self.PTerm + self.Ki * self.ITerm 
+        print(self.PTerm, self.Ki * self.ITerm)
 
 class Subscriber:
     def __init__(self):
@@ -456,8 +456,8 @@ class Subscriber:
             # self.update(car_1)
             # self.update(car_2)
             # self.update(car_3)
-            # self.update(car_4)
-            self.update(car_5)
+            self.update(car_4)
+            # self.update(car_5)
             # if not self.lineIntersection(car_3.future_waypoints, car_4.future_waypoints):
             #     # print(car_3.future_waypoints)
             #     # print("-------------")
