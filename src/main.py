@@ -15,7 +15,7 @@ from collision_predictor.msg import Environment, VehicleState
 import message_filters
 
 class PI:
-    def __init__(self, P = 10, I = 0.1, current_time = None):
+    def __init__(self, P = 0.90, I = 100000, current_time = None):
         self.Kp = P
         self.Ki = I
 
@@ -26,7 +26,7 @@ class PI:
         self.clear()
 
     def clear(self):
-        self.SetPoint = 0.0
+        self.SetPoint = [0.0, 0.0]
         self.PTerm = 0.0
         self.ITerm = 0.0
         self.last_error = 0.0
@@ -34,13 +34,15 @@ class PI:
         self.output = 0.0
 
     def update(self, feedback_value, current_time=None):
-        error = self.SetPoint - feedback_value
-
+        error =  distance(feedback_value[0], feedback_value[1], self.SetPoint[0], self.SetPoint[1])
+        
         self.current_time = current_time if current_time is not None else time.time()
         delta_time = self.current_time - self.last_time
         delta_error = error - self.last_error
+        # print("delta error", delta_error)
+        # print("delta time", delta_time)
 
-        if delta_time >= self.sample_time:
+        if delta_time <= self.sample_time:
             self.PTerm = self.Kp*delta_error
             self.ITerm += error*delta_time
 
@@ -48,6 +50,7 @@ class PI:
             self.last_error = error
 
             self.output = self.PTerm + self.Ki * self.ITerm 
+            print(self.PTerm, self.ITerm)
 
 class Subscriber:
     def __init__(self):
@@ -319,37 +322,40 @@ class Subscriber:
 
         # still on the lane
         if ind_closest < len(path)-1:
-            # p1, p2, _ = self.closest_points(ind_closest, path, x, y)
-            # d = (x - p1.x)*(p2.y - p1.y) - (y - p1.y)*(p2.x - p1.x)
-            # if d < 0:
-            #     factor = -1
-            # elif d > 0:
-            #     factor = 1
-            # else:
-            #     factor = 0
+            p1, p2, _ = self.closest_points(ind_closest, path, x, y)
+            d = (x - p1.x)*(p2.y - p1.y) - (y - p1.y)*(p2.x - p1.x)
+            if d < 0:
+                factor = -1
+            elif d > 0:
+                factor = 1
+            else:
+                factor = 0
             # yaw = math.atan2((p2.y - p1.y),(p2.x - p1.x))
             # next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
-            deviation = distance(x, y, path[ind_closest].x, path[ind_closest].y)
+            # deviation = distance(x, y, path[ind_closest].x, path[ind_closest].y)
             # print(deviation)
             v = np.mean(car.past_vel)            
             linear = Vector3(v, 0, 0)
 
             # PI controller 
             pi = PI()
-            # pi.SetPoint = deviation
-            end = 100
-            feedback = deviation
-            for i in range(1, end):
-                pi.update(feedback)
-                output = pi.output
-                # if pi.SetPoint > 0:
-                #     feedback += (output - (1/i))
-                # if i > 0:
-                #     pi.SetPoint = 1
-                time.sleep(0.02)
+            pi.SetPoint = [path[ind_closest].x, path[ind_closest].y]
+            # end = 100
+            feedback = [x, y]
+            # for i in range(1, end):
+            #     pi.update(feedback)
+            #     output = pi.output
+            #     # if pi.SetPoint > 0:
+            #     #     feedback += (output - (1/i))
+            #     # if i > 0:
+            #     #     pi.SetPoint = 1
+            #     time.sleep(0.02)
+            pi.update(feedback)
+            yaw = pi.output
+            print(yaw)
+            print("********")
 
-            yaw = output
-            angular = Vector3(0, 0, yaw)
+            angular = Vector3(0, 0, yaw*factor)
             # print(angular.z)
             move = Twist(linear, angular)
             car.stop = False
@@ -363,7 +369,7 @@ class Subscriber:
         # publish the move message
         self.publishers(car, move)
         # update car data
-        # self.callbacks(car)
+        self.callbacks(car)
 
         # ------------------------------- not working properly ----------------------
         # time synchronized callback
@@ -450,7 +456,7 @@ class Subscriber:
             # self.update(car_1)
             # self.update(car_2)
             # self.update(car_3)
-            self.update(car_4)
+            # self.update(car_4)
             self.update(car_5)
             # if not self.lineIntersection(car_3.future_waypoints, car_4.future_waypoints):
             #     # print(car_3.future_waypoints)
