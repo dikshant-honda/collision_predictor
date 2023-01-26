@@ -57,6 +57,8 @@ class Subscriber:
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
+        self.tol = 0.1                                  # tolerance value for proximity check
+        self.delta = 0.05
 
         # # time synchronized callback
         # ts.registerCallback(self.callback)
@@ -397,7 +399,7 @@ class Subscriber:
     # def EOL(self, car):
     #     self.removal(car)
 
-    # collision check
+    # collision check using line intersection technique
     def lineIntersection(self, future_waypoints_1, future_waypoints_2):
         intersect = Point()
         p0_x = future_waypoints_1[0].x
@@ -427,6 +429,25 @@ class Subscriber:
         
         return False  # no collision
 
+    # collision check by vicinity or point-wise check
+
+    def collision(self, points1, points2):
+        pass
+    '''
+    # computationally better way to test
+    def collision(self, points1, points2):
+        points2.sort()
+        for point in points1:
+            contenders = points2[bisect(points2, (point.x-self.tol-self.delta, 0)):bisect(points2,(point.x+self.tol+self.delta, 0))]
+            contenders = list(map(lambda p:(p.y,p.x), contenders))
+            contenders.sort()
+            contenders = contenders[bisect(contenders,(point.y-self.tol-self.delta, 0)) : bisect(contenders,(point.y+self.tol+self.delta, 0))]
+            matches = [(point, p2) for p2 in contenders if (point.x - p2.y)**2 + (point.y - p2.x)**2 <= self.tol**2]
+            if len(matches) > 0:
+                return True
+        return False    
+    '''
+
     def point_to_arr(self, points_arr):
         arr_x = []
         arr_y = []
@@ -450,7 +471,7 @@ class Subscriber:
             # self.update(car_3)
             # self.update(car_4)
             # self.update(car_5)
-            if not self.lineIntersection(car_3.future_waypoints, car_2.future_waypoints):
+            if not self.collision(car_3.future_waypoints, car_2.future_waypoints):
                 # arr_x, arr_y = self.point_to_arr(car_3.future_waypoints)
                 # print(arr_x, arr_y)
                 self.update(car_2)
