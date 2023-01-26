@@ -58,7 +58,7 @@ class Subscriber:
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.1                                  # tolerance value for proximity check
-        # self.delta = 0.05
+        self.vision_radius = 2                          # check only nearby cars
 
         # # time synchronized callback
         # ts.registerCallback(self.callback)
@@ -459,6 +459,12 @@ class Subscriber:
             arr_x.append(points_arr[i].x)
             arr_y.append(points_arr[i].y)
         return arr_x, arr_y
+
+    def inVicinity(self, car1, car2):
+        car1_pos = car1.pose.pose.pose.position
+        car2_pos = car2.pose.pose.pose.position
+        if distance(car1_pos.x, car1_pos.y, car2_pos.x, car2_pos.y) < self.vision_radius:
+            return True
 
     def main(self):
         self.add(car_1)
