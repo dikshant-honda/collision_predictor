@@ -39,8 +39,6 @@ class PI:
         self.current_time = current_time if current_time is not None else time.time()
         delta_time = self.current_time - self.last_time
         delta_error = error - self.last_error
-        # print("delta error", delta_error)
-        # print("delta time", delta_time)
 
         if delta_time <= self.sample_time:
             self.PTerm = self.Kp*delta_error
@@ -50,14 +48,13 @@ class PI:
             self.last_error = error
 
         self.output = self.PTerm + self.Ki * self.ITerm 
-        print(self.PTerm, self.Ki * self.ITerm)
 
 class Subscriber:
     def __init__(self):
         # variables
         self.width = 2                                  # lane width
-        self.interp_back_path = 10                      # interpolate back to path after this # of steps
-        self.plan_t_m = 2                               # planning horizon
+        self.interp_back_path = 20                      # interpolate back to path after this # of steps
+        self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
 
@@ -65,36 +62,6 @@ class Subscriber:
         # ts.registerCallback(self.callback)
         
         self.main()
-
-    # collision check
-    def lineIntersection(self, future_waypoints_1, future_waypoints_2):
-        intersect = Point()
-        p0_x = future_waypoints_1[0].x
-        p0_y = future_waypoints_1[0].y
-        p1_x = future_waypoints_1[-1].x
-        p1_y = future_waypoints_1[-1].y
-        p2_x = future_waypoints_2[0].x
-        p2_y = future_waypoints_2[0].y
-        p3_x = future_waypoints_2[-1].x
-        p3_y = future_waypoints_1[-1].y
-
-        s1_x = p1_x - p0_x
-        s1_y = p1_y - p0_y
-        s2_x = p3_x - p2_x
-        s2_y = p3_y - p2_y
-
-        s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y))/(-s2_x * s1_y + s1_x * s2_y)
-        t = (s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x))/(-s2_x * s1_y + s1_x * s2_y)
-
-        if s >= 0 and s <= 1 and t >=0 and t <= 1:
-            # collision detected
-            intersect.x = p0_x + (t * s1_x)
-            intersect.y = p0_y + (t * s1_y)
-            intersect.z = 0.0
-            print("!!COLLISION AHEAD!!")
-            return True
-        
-        return False  # no collision
 
     # converting ther nav_path message type to list for ease in accessibility
     # generating s_map from the start point till end point for transforms
@@ -330,35 +297,22 @@ class Subscriber:
                 factor = 1
             else:
                 factor = 0
-            # yaw = math.atan2((p2.y - p1.y),(p2.x - p1.x))
-            # next_yaw = math.atan2((p3.y - p2.y), (p3.x - p2.x))
-            # deviation = distance(x, y, path[ind_closest].x, path[ind_closest].y)
-            # print(deviation)
-            v = np.mean(car.past_vel)            
-            linear = Vector3(v, 0, 0)
 
             # PI controller 
             pi = PI()
             pi.SetPoint = [path[ind_closest].x, path[ind_closest].y]
-            # end = 100
             feedback = [x, y]
-            # for i in range(1, end):
-            #     pi.update(feedback)
-            #     output = pi.output
-            #     # if pi.SetPoint > 0:
-            #     #     feedback += (output - (1/i))
-            #     # if i > 0:
-            #     #     pi.SetPoint = 1
-            #     time.sleep(0.02)
             pi.update(feedback)
             yaw = pi.output
-            print(yaw)
-            print("********")
 
+            v = np.mean(car.past_vel) 
+
+            # twist message to be published
+            linear = Vector3(v, 0, 0)
             angular = Vector3(0, 0, yaw*factor)
-            # print(angular.z)
             move = Twist(linear, angular)
             car.stop = False
+
         # stop after reaching the end of lane
         else:
             linear = Vector3(0, 0, 0)
@@ -443,6 +397,44 @@ class Subscriber:
     # def EOL(self, car):
     #     self.removal(car)
 
+    # collision check
+    def lineIntersection(self, future_waypoints_1, future_waypoints_2):
+        intersect = Point()
+        p0_x = future_waypoints_1[0].x
+        p0_y = future_waypoints_1[0].y
+        p1_x = future_waypoints_1[-1].x
+        p1_y = future_waypoints_1[-1].y
+        p2_x = future_waypoints_2[0].x
+        p2_y = future_waypoints_2[0].y
+        p3_x = future_waypoints_2[-1].x
+        p3_y = future_waypoints_2[-1].y
+
+        s1_x = p1_x - p0_x
+        s1_y = p1_y - p0_y
+        s2_x = p3_x - p2_x
+        s2_y = p3_y - p2_y
+
+        s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y))/(-s2_x * s1_y + s1_x * s2_y)
+        t = (s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x))/(-s2_x * s1_y + s1_x * s2_y)
+
+        if s >= 0 and s <= 1 and t >=0 and t <= 1:
+            # collision detected
+            intersect.x = p0_x + (t * s1_x)
+            intersect.y = p0_y + (t * s1_y)
+            intersect.z = 0.0
+            print("!!COLLISION AHEAD!!")
+            return True
+        
+        return False  # no collision
+
+    def point_to_arr(self, points_arr):
+        arr_x = []
+        arr_y = []
+        for i in range(len(points_arr)):
+            arr_x.append(points_arr[i].x)
+            arr_y.append(points_arr[i].y)
+        return arr_x, arr_y
+
     def main(self):
         self.add(car_1)
         self.add(car_5)
@@ -456,23 +448,25 @@ class Subscriber:
             # self.update(car_1)
             # self.update(car_2)
             # self.update(car_3)
-            self.update(car_4)
+            # self.update(car_4)
             # self.update(car_5)
-            # if not self.lineIntersection(car_3.future_waypoints, car_4.future_waypoints):
-            #     # print(car_3.future_waypoints)
-            #     # print("-------------")
-            #     # print(car_4.future_waypoints)
-            #     # print("*************")
-            #     self.update(car_3)
-            #     self.update(car_4)
-            # else:
+            if not self.lineIntersection(car_3.future_waypoints, car_2.future_waypoints):
+                # arr_x, arr_y = self.point_to_arr(car_3.future_waypoints)
+                # print(arr_x, arr_y)
+                self.update(car_2)
+                # print("------------------------------")
+                # arr_x_, arr_y_ = self.point_to_arr(car_4.future_waypoints)
+                # print(arr_x_, arr_y_)
+                self.update(car_3)
+                # print("******************************")
+            else:
             # #     print(car_3.future_waypoints)
             # #     print("-------------")
             # #     print(car_4.future_waypoints)
             #     # print("*************")
-            #     print("possibility of collision")
-            #     # self.stop(car_3)
-            #     self.update(car_4)
+                print("possibility of collision")
+                self.stop(car_2)
+                self.stop(car_3)
             # if car_1.stop:
             #     self.removal(car_1)
             # if car_2.stop:
