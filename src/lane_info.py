@@ -3,8 +3,9 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 # from Bezier import Bezier
-from scipy.interpolate import CubicSpline
+# from scipy.interpolate import CubicSpline
 from geometry_msgs.msg import Point
+import dubins
 
 def get_lanes(start, end, steps=100):
     x = np.linspace(start[0], end[0], steps)
@@ -43,10 +44,25 @@ def get_spline(start, end, theta0, theta1, steps=100):
 
 	return x, y
 
-# if __name__ == '__main__':
+def get_dubins(start, end, theta0, theta1, step_size = 0.02):
+	q0 = (start[0], start[1], theta0)
+	q1 = (end[0], end[1], theta1)
+
+	turning_radius = 0.9
+
+	path = dubins.shortest_path(q0, q1, turning_radius)
+	configurations, _ = path.sample_many(step_size)
+
+	x, y = [], []
+	for i in range(len(configurations)):
+		x.append(configurations[i][0])
+		y.append(configurations[i][1])
+
+	return x, y
+
 #  straight lanes
 x1, y1 = get_lanes([-6.3,-1.0],[-6.3,-8])     # down right
-x2, y2 = get_lanes([-6,8], [-6,1])      # down left
+x2, y2 = get_lanes([-6.3,8], [-6.3,1])      # down left
 x3, y3 = get_lanes([-5,0], [-1,0])      # down center
 x4, y4 = get_lanes([0,5], [0,1])        # center left
 x5, y5 = get_lanes([0,-1], [0,-5])       # center right
@@ -56,25 +72,40 @@ x8, y8 = get_lanes([6.5,0.5], [10,4])   # up left
 
 # splines
 # # T intersection
-# x9_1, y9_1 = get_spline([-6.3,-1.0], [-5.5,-0.1], np.pi/2,np.pi/6)
-# x9_2, y9_2 = get_spline([-5.5,-0.1], [-5,0], np.pi/6,0)
-# x9, y9 = np.hstack((x9_1, x9_2)), np.hstack((y9_1, y9_2))
-x9, y9 = get_spline([-6.3,-1.0], [-5,0], np.pi/2,np.pi/6)
-x10, y10 = get_spline([-6.3,-1], [-6.3,1], np.pi/2, -np.pi/2)
-x11, y11 = get_spline([-6.3,1], [-5,0], -np.pi/2, np.pi/6)
+# x9, y9 = get_spline([-6.3,-1.0], [-5,0], np.pi/2,np.pi/6)
+# x10, y10 = get_spline([-6.3,-1], [-6.3,1], np.pi/2, -np.pi/2)
+# x11, y11 = get_spline([-6.3,1], [-5,0], -np.pi/2, np.pi/6)
+
+# # X intersection
+# x12, y12 = get_spline([-1,0], [0,1], 0, np.pi/2)
+# x13, y13 = get_spline([-1,0], [0,-1], 0, -np.pi/2)
+# x14, y14 = get_spline([-1,0], [1,0], 0, 0)
+# x15, y15 = get_spline([0,-1], [1,0], np.pi/2, 0)
+# x16, y16 = get_spline([0,1], [0,-1], -np.pi/2, -np.pi/2)
+# x17, y17 = get_spline([0,1], [1,0], -np.pi/2, 0)
+
+# # Y intersection
+# x18, y18 = get_spline([5.3,0], [6.5, 0.5], 0, np.pi/4)
+# x19, y19 = get_spline([6.5,-0.5], [5.3,0], 0, np.pi/4+np.pi/2)
+# x20, y20 = get_spline([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
+
+# dubins
+x9, y9 = get_dubins([-6.3,-1.0], [-5,0], np.pi/2, 0)
+x10, y10 = get_dubins([-6.3,-1], [-6.3,1], np.pi/2, np.pi/2)
+x11, y11 = get_dubins([-6.3,1], [-5,0], -np.pi/2, 0)
 
 # X intersection
-x12, y12 = get_spline([-1,0], [0,1], 0, np.pi/2)
-x13, y13 = get_spline([-1,0], [0,-1], 0, -np.pi/2)
-x14, y14 = get_spline([-1,0], [1,0], 0, 0)
-x15, y15 = get_spline([0,-1], [1,0], np.pi/2, 0)
-x16, y16 = get_spline([0,1], [0,-1], -np.pi/2, -np.pi/2)
-x17, y17 = get_spline([0,1], [1,0], -np.pi/2, 0)
+x12, y12 = get_dubins([-1,0], [0,1], 0, np.pi/2)
+x13, y13 = get_dubins([-1,0], [0,-1], 0, -np.pi/2)
+x14, y14 = get_dubins([-1,0], [1,0], 0, 0)
+x15, y15 = get_dubins([0,-1], [1,0], np.pi/2, 0)
+x16, y16 = get_dubins([0,1], [0,-1], -np.pi/2, -np.pi/2)
+x17, y17 = get_dubins([0,1], [1,0], -np.pi/2, 0)
 
 # Y intersection
-x18, y18 = get_spline([5.3,0], [6.5, 0.5], 0, np.pi/4)
-x19, y19 = get_spline([6.5,-0.5], [5.3,0], 0, np.pi/4+np.pi/2)
-x20, y20 = get_spline([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
+x18, y18 = get_dubins([5.3,0], [6.5, 0.5], 0, np.pi/4)
+x19, y19 = get_dubins([5.3,0], [6.5,-0.5], 0, -np.pi/4)
+x20, y20 = get_dubins([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
 
 # vehicle trajectories
 # car 1 path
@@ -82,8 +113,8 @@ x_car_1 = np.hstack((x3, x14, x6, x18, x8))
 y_car_1 = np.hstack((y3, y14, y6, y18, y8))   
 
 # car 2 path 
-x_car_2 = np.hstack((x7[::-1], x19, x6[::-1], x14[::-1], x3[::-1]))
-y_car_2 = np.hstack((y7[::-1], y19, y6[::-1], y14[::-1], y3[::-1]))
+x_car_2 = np.hstack((x7[::-1], x19[::-1], x6[::-1], x14[::-1], x3[::-1]))
+y_car_2 = np.hstack((y7[::-1], y19[::-1], y6[::-1], y14[::-1], y3[::-1]))
 
 # car 3 path
 x_car_3 = np.hstack((x4, x17, x6, x18, x8))
@@ -97,7 +128,7 @@ y_car_4 = np.hstack((y5[::-1], y13[::-1], y3[::-1], y11[::-1], y2[::-1]))
 x_car_5 = np.hstack((x1[::-1], x9, x3, x12, x4[::-1]))
 y_car_5 = np.hstack((y1[::-1], y9, y3, y12, y4[::-1]))
 
-# # converting car path into geometry_msgs/Point
+# converting car path into geometry_msgs/Point
 car_1_route = []
 for i in range(len(x_car_1)):
     car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
