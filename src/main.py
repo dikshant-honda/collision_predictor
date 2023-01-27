@@ -14,6 +14,7 @@ from geometry_utils import *
 from lane_info import *
 from collision_predictor.msg import Environment, VehicleState
 import message_filters
+from plotter import plotter
 
 class PI:
     def __init__(self, P = 0.97, I = 100000, current_time = None):
@@ -461,6 +462,7 @@ class Subscriber:
             file.write("\t")
             file.write(str(points_arr[i].y))
             file.write("\n")
+        # print("trajectory for", car, "added to file:", file_name)
         file.close()
 
     def inVicinity(self, car1, car2):
@@ -500,12 +502,19 @@ class Subscriber:
 
                 self.point_to_arr(car_1.id, car_1.future_waypoints)
                 self.point_to_arr(car_4.id, car_4.future_waypoints)
+                if os.path.exists("traj_car_1.txt") and os.path.exists("traj_car_4.txt"):
+                    x_1, y_1 = plotter(car_1.id)
+                    x_4, y_4 = plotter(car_4.id)
 
                 if self.collision(car_1.future_waypoints, car_4.future_waypoints):
                     print("possibility of collision")
                     # self.stop(car_1)
                     self.stop(car_4)
                     # break
+
+                    # plt.plot(x_1, y_1)
+                    # plt.plot(x_4, y_4)
+
             if self.inVicinity(car_4, car_5):
                 # car_1.future_waypoints = self.get_future_trajectory(car_1)
                 # car_2.future_waypoints = self.get_future_trajectory(car_2)
@@ -515,12 +524,17 @@ class Subscriber:
 
                 self.point_to_arr(car_4.id, car_4.future_waypoints)
                 self.point_to_arr(car_5.id, car_5.future_waypoints)
+                x_5, y_5 = plotter(car_5.id)
+                x_4, y_4 = plotter(car_4.id)
 
                 if self.collision(car_4.future_waypoints, car_5.future_waypoints):
                     print("possibility of collision")
                     # self.stop(car_4)
                     self.stop(car_5)
                     # break
+
+                plt.plot(x_5, y_5)
+                plt.plot(x_4, y_4)
 
             # if car_1.stop:
             #     self.removal(car_1)
@@ -552,6 +566,7 @@ class Subscriber:
                 # add more functionalities
             end = time.time()
             time_taken += end-start
+            plt.show()
             # print("time taken for computation of future trajectories", end-start)
         # rospy.sleep(1.0)
 
