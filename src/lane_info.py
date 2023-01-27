@@ -48,7 +48,23 @@ def get_dubins(start, end, theta0, theta1, step_size = 0.02):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
-	turning_radius = 0.9
+	turning_radius = 0.7
+
+	path = dubins.shortest_path(q0, q1, turning_radius)
+	configurations, _ = path.sample_many(step_size)
+
+	x, y = [], []
+	for i in range(len(configurations)):
+		x.append(configurations[i][0])
+		y.append(configurations[i][1])
+
+	return x, y
+
+def get_straight_dubins(start, end, theta0 = 0, theta1 = 0, step_size = 0.02):
+	q0 = (start[0], start[1], theta0)
+	q1 = (end[0], end[1], theta1)
+
+	turning_radius = 0.0001
 
 	path = dubins.shortest_path(q0, q1, turning_radius)
 	configurations, _ = path.sample_many(step_size)
@@ -61,14 +77,23 @@ def get_dubins(start, end, theta0, theta1, step_size = 0.02):
 	return x, y
 
 #  straight lanes
-x1, y1 = get_lanes([-6.3,-1.0],[-6.3,-8])     # down right
-x2, y2 = get_lanes([-6.3,8], [-6.3,1])      # down left
-x3, y3 = get_lanes([-5,0], [-1,0])      # down center
-x4, y4 = get_lanes([0,5], [0,1])        # center left
-x5, y5 = get_lanes([0,-1], [0,-5])       # center right
-x6, y6 = get_lanes([1,0], [5.3,0])      # up center
-x7, y7 = get_lanes([6.5,-0.5], [10,-4]) # up right
-x8, y8 = get_lanes([6.5,0.5], [10,4])   # up left
+# x1, y1 = get_lanes([-6.3,-1.0],[-6.3,-8])     # down right
+# x2, y2 = get_lanes([-6.3,8], [-6.3,1])      # down left
+# x3, y3 = get_lanes([-5,0], [-1,0])      # down center
+# x4, y4 = get_lanes([0,5], [0,1])        # center left
+# x5, y5 = get_lanes([0,-1], [0,-5])       # center right
+# x6, y6 = get_lanes([1,0], [5.3,0])      # up center
+# x7, y7 = get_lanes([6.5,-0.5], [10,-4]) # up right
+# x8, y8 = get_lanes([6.5,0.5], [10,4])   # up left
+
+x1, y1 = get_straight_dubins([-6.3,-1.0],[-6.3,-8])     # down right
+x2, y2 = get_straight_dubins([-6.3,8], [-6.3,1])      # down left
+x3, y3 = get_straight_dubins([-5,0], [-1,0])      # down center
+x4, y4 = get_straight_dubins([0,5], [0,1])        # center left
+x5, y5 = get_straight_dubins([0,-1], [0,-5])       # center right
+x6, y6 = get_straight_dubins([1,0], [5.3,0])      # up center
+x7, y7 = get_straight_dubins([6.5,-0.5], [10,-4]) # up right
+x8, y8 = get_straight_dubins([6.5,0.5], [10,4])   # up left
 
 # splines
 # # T intersection
