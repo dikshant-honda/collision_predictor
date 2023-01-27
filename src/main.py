@@ -9,48 +9,15 @@ import matplotlib.pyplot as plt
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance
-from tf.transformations import quaternion_from_euler
+from collision_predictor.msg import Environment, VehicleState
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
 from geometry_utils import *
 from lane_info import *
-from collision_predictor.msg import Environment, VehicleState
+from pid_planner import PI
+from dubins_path_planner import plan_dubins_path
 import message_filters
 from plotter import plotter
-
-class PI:
-    def __init__(self, P = 0.90, I = 100000, current_time = None):
-        self.Kp = P
-        self.Ki = I
-
-        self.sample_time = 0.1
-        self.current_time = current_time if current_time is not None else time.time()
-        self.last_time = self.current_time
-
-        self.clear()
-
-    def clear(self):
-        self.SetPoint = [0.0, 0.0]
-        self.PTerm = 0.0
-        self.ITerm = 0.0
-        self.last_error = 0.0
-
-        self.output = 0.0
-
-    def update(self, feedback_value, current_time=None):
-        error =  distance(feedback_value[0], feedback_value[1], self.SetPoint[0], self.SetPoint[1])
-        
-        self.current_time = current_time if current_time is not None else time.time()
-        delta_time = self.current_time - self.last_time
-        delta_error = error - self.last_error
-
-        if delta_time <= self.sample_time:
-            self.PTerm = self.Kp*delta_error
-            self.ITerm += error*delta_time
-
-            self.last_time = self.current_time
-            self.last_error = error
-
-        self.output = self.PTerm + self.Ki * self.ITerm 
 
 class Subscriber:
     def __init__(self):
@@ -287,6 +254,39 @@ class Subscriber:
         if car.id == "car_5":
             pub5.publish(move)
 
+    def dubins_update(self, car):
+        path, _  = self.get_lane_and_s_map(car.car_route)
+        x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
+        ind_closest = closest_point_ind(path, x_pos, y_pos)
+        
+        yaw_path = car.car_yaw
+        # still on the lane
+        if ind_closest < len(path)-2:
+            v = np.mean(car.past_vel) 
+            # twist message to be published
+            linear = Vector3(v, 0, 0)
+            x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
+            _, _, init_yaw = euler_from_quaternion([x, y, z, w])
+            print(init_yaw)
+            print(yaw_path[ind_closest])
+            angular = Vector3(0, 0, init_yaw-yaw_path[ind_closest])
+            print(angular.z)
+            print("**************************")
+            move = Twist(linear, angular)
+            car.stop = False
+
+        # stop after reaching the end of lane
+        else:
+            linear = Vector3(0, 0, 0)
+            angular = Vector3(0, 0, 0)
+            move = Twist(linear, angular)
+            car.stop = True
+
+        # publish the move message
+        self.publishers(car, move)
+        # update car data
+        self.callbacks(car)
+
     def update(self, car):
         path, _  = self.get_lane_and_s_map(car.car_route)
         x, y = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
@@ -475,7 +475,7 @@ class Subscriber:
         return False
 
     def main(self):
-        global count
+        # global count
         time_taken = 0
         self.add(car_1)
         self.add(car_4)
@@ -500,7 +500,7 @@ class Subscriber:
             # self.update(car_2)
             # self.update(car_3)
             # self.update(car_4)
-            self.update(car_5)
+            self.dubins_update(car_5)
 
             # remove later
             self.point_to_arr(car_5.id, car_5.future_waypoints)
@@ -581,7 +581,7 @@ class Subscriber:
             #             self.removal(car_2)
                 # add more functionalities
             end = time.time()
-            # time_taken += end-start
+            time_taken += end-start
 
             # if time_taken > 10:
             #     count += 1
@@ -589,9 +589,9 @@ class Subscriber:
             #         plt.clf()
 
             # plotting tools
-            plt.xlabel("X")
-            plt.ylabel("Y")
-            plt.title("Future trajectories of the moving vehicles")
+            # plt.xlabel("X")
+            # plt.ylabel("Y")
+            # plt.title("Future trajectories of the moving vehicles")
             # plt.grid()
             plt.pause(0.000000001)
             # print("time taken for computation of future trajectories", end-start)
@@ -690,11 +690,11 @@ if __name__ == '__main__':
         future_waypoints_5 = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route)
-        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route)
-        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route)
-        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2)
+        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3)
+        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4)
+        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5)
 
         # environment setup
         no_of_vehicles = 0
