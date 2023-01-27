@@ -57,8 +57,8 @@ class Subscriber:
         self.plan_t_m = 3                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
-        self.tol = 0.1                                  # tolerance value for proximity check
-        self.vision_radius = 5                          # check only nearby cars
+        self.tol = 0.5                                  # tolerance value for proximity check
+        self.vision_radius = 3                          # check only nearby cars
 
         # # time synchronized callback
         # ts.registerCallback(self.callback)
@@ -464,52 +464,61 @@ class Subscriber:
         car1_pos = car1.pose.pose.pose.position
         car2_pos = car2.pose.pose.pose.position
         if distance(car1_pos.x, car1_pos.y, car2_pos.x, car2_pos.y) < self.vision_radius:
-            print("start checking the future trajectories")
+            print("start checking the future trajectories between", car1.id, "and", car2.id)
             return True
         return False
 
     def main(self):
+        time_taken = 0
         self.add(car_1)
-        self.add(car_5)
+        self.add(car_4)
         while not rospy.is_shutdown():
             start = time.time()
 
-            car_1.future_waypoints = self.get_future_trajectory(car_1)
-            car_2.future_waypoints = self.get_future_trajectory(car_2)
-            car_3.future_waypoints = self.get_future_trajectory(car_3)
-            car_4.future_waypoints = self.get_future_trajectory(car_4)
-            car_5.future_waypoints = self.get_future_trajectory(car_5)
+            # car_1.future_waypoints = self.get_future_trajectory(car_1)
+            # car_2.future_waypoints = self.get_future_trajectory(car_2)
+            # car_3.future_waypoints = self.get_future_trajectory(car_3)
+            # car_4.future_waypoints = self.get_future_trajectory(car_4)
+            # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
             self.update(car_1)
             # self.update(car_2)
             # self.update(car_3)
             # self.update(car_4)
-            # self.update(car_5)
-            if self.inVicinity(car_1, car_3):
+            self.update(car_5)
+            if time_taken > 4:
+                self.update(car_4)
+            if self.inVicinity(car_1, car_4):
+                car_1.future_waypoints = self.get_future_trajectory(car_1)
+                # car_2.future_waypoints = self.get_future_trajectory(car_2)
+                # car_3.future_waypoints = self.get_future_trajectory(car_3)
+                car_4.future_waypoints = self.get_future_trajectory(car_4)
+                # car_5.future_waypoints = self.get_future_trajectory(car_5)
+
+                arr_x_1, arr_y_1 = self.point_to_arr(car_1.future_waypoints)
+                arr_x_4, arr_y_4 = self.point_to_arr(car_4.future_waypoints)
+
+                if self.collision(car_1.future_waypoints, car_4.future_waypoints):
+                    print("possibility of collision")
+                    # self.stop(car_1)
+                    self.stop(car_4)
+                    # break
+            if self.inVicinity(car_4, car_5):
                 # car_1.future_waypoints = self.get_future_trajectory(car_1)
                 # car_2.future_waypoints = self.get_future_trajectory(car_2)
                 # car_3.future_waypoints = self.get_future_trajectory(car_3)
-                # car_4.future_waypoints = self.get_future_trajectory(car_4)
-                # car_5.future_waypoints = self.get_future_trajectory(car_5)
-                if not self.collision(car_1.future_waypoints, car_3.future_waypoints):
-                    # arr_x, arr_y = self.point_to_arr(car_3.future_waypoints)
-                    # print(arr_x, arr_y)
-                    # self.update(car_1)
-                    # print("------------------------------")
-                    # arr_x_, arr_y_ = self.point_to_arr(car_4.future_waypoints)
-                    # print(arr_x_, arr_y_)
-                    # self.update(car_2)
-                    # print("******************************")
-                    print("keep moving")
-                else:
-                # #     print(car_3.future_waypoints)
-                # #     print("-------------")
-                # #     print(car_4.future_waypoints)
-                #     # print("*************")
+                car_4.future_waypoints = self.get_future_trajectory(car_4)
+                car_5.future_waypoints = self.get_future_trajectory(car_5)
+
+                arr_x_4, arr_y_4 = self.point_to_arr(car_4.future_waypoints)
+                arr_x_5, arr_y_5 = self.point_to_arr(car_5.future_waypoints)
+
+                if self.collision(car_4.future_waypoints, car_5.future_waypoints):
                     print("possibility of collision")
-                    self.stop(car_1)
-                    # self.stop(car_3)
+                    # self.stop(car_4)
+                    self.stop(car_5)
                     # break
+
             # if car_1.stop:
             #     self.removal(car_1)
             # if car_2.stop:
@@ -539,7 +548,8 @@ class Subscriber:
             #             self.removal(car_2)
                 # add more functionalities
             end = time.time()
-            print("time taken for computation of future trajectories", end-start)
+            time_taken += end-start
+            # print("time taken for computation of future trajectories", end-start)
         # rospy.sleep(1.0)
 
     def print_info(env):
@@ -551,7 +561,7 @@ if __name__ == '__main__':
         # registering the vehicles
         pos_car_1 = Point(-4.0, 0.0, 0.0)
         yaw_car_1 = 0
-        v_1 = 0.4
+        v_1 = 0.35
         lin_vel_1 = Vector3(v_1, 0.0, 0.0)
         ang_vel_1 = Vector3(0.0, 0.0, 0.0)
         car_1_pose = Pose(pos_car_1, quaternion_from_euler(0, 0, yaw_car_1))
@@ -619,7 +629,7 @@ if __name__ == '__main__':
 
         pos_car_5 = Point(-6.3, -8.0, 0.0)
         yaw_car_5 = 1.57
-        v_5 = 0.45
+        v_5 = 0.25
         lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
         car_5_pose = Pose(pos_car_5, quaternion_from_euler(0, 0, yaw_car_5))
