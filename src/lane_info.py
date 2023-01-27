@@ -144,27 +144,27 @@ x20, y20, yaw20 = get_dubins([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4
 # car 1 path
 x_car_1 = np.hstack((x3, x14, x6, x18, x8))
 y_car_1 = np.hstack((y3, y14, y6, y18, y8))  
-yaw_car_1 =  np.hstack((yaw3, yaw14, yaw6, yaw18, yaw8))
+car_yaw_1 =  np.hstack((yaw3, yaw14, yaw6, yaw18, yaw8))
 
 # car 2 path 
 x_car_2 = np.hstack((x7[::-1], x19[::-1], x6[::-1], x14[::-1], x3[::-1]))
 y_car_2 = np.hstack((y7[::-1], y19[::-1], y6[::-1], y14[::-1], y3[::-1]))
-yaw_car_2 = np.hstack((yaw7[::-1], yaw19[::-1], yaw6[::-1], yaw14[::-1], yaw3[::-1]))
+car_yaw_2 = np.hstack((yaw7[::-1], yaw19[::-1], yaw6[::-1], yaw14[::-1], yaw3[::-1]))
 
 # car 3 path
 x_car_3 = np.hstack((x4, x17, x6, x18, x8))
 y_car_3 = np.hstack((y4, y17, y6, y18, y8))
-yaw_car_3 = np.hstack((yaw4, yaw17, yaw6, yaw18, yaw8))
+car_yaw_3 = np.hstack((yaw4, yaw17, yaw6, yaw18, yaw8))
 
 # car 4 path
 x_car_4 = np.hstack((x5[::-1], x13[::-1], x3[::-1], x11[::-1], x2[::-1]))
 y_car_4 = np.hstack((y5[::-1], y13[::-1], y3[::-1], y11[::-1], y2[::-1]))
-yaw_car_4 = np.hstack((yaw5[::-1], yaw13[::-1], yaw3[::-1], yaw11[::-1], yaw2[::-1]))
+car_yaw_4 = np.hstack((yaw5[::-1], yaw13[::-1], yaw3[::-1], yaw11[::-1], yaw2[::-1]))
 
 # car 5 path
 x_car_5 = np.hstack((x1, x9, x3, x12, x4[::-1]))
 y_car_5 = np.hstack((y1, y9, y3, y12, y4[::-1]))
-yaw_car_5 = np.hstack((yaw1, yaw9, yaw3, yaw12, yaw4[::-1]))
+car_yaw_5 = np.hstack((yaw1, yaw9, yaw3, yaw12, yaw4[::-1]))
 
 # converting car path into geometry_msgs/Point
 car_1_route = []
