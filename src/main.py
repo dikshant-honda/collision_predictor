@@ -3,6 +3,7 @@
 import rospy
 import math
 import time
+import os
 import numpy as np
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
@@ -452,13 +453,15 @@ class Subscriber:
         return False    
     '''
 
-    def point_to_arr(self, points_arr):
-        arr_x = []
-        arr_y = []
+    def point_to_arr(self, car, points_arr):
+        file_name = "traj_"+car+".txt"
+        file = open(os.path.join(save_path, file_name), "w")
         for i in range(len(points_arr)):
-            arr_x.append(points_arr[i].x)
-            arr_y.append(points_arr[i].y)
-        return arr_x, arr_y
+            file.write(str(points_arr[i].x))
+            file.write("\t")
+            file.write(str(points_arr[i].y))
+            file.write("\n")
+        file.close()
 
     def inVicinity(self, car1, car2):
         car1_pos = car1.pose.pose.pose.position
@@ -495,8 +498,8 @@ class Subscriber:
                 car_4.future_waypoints = self.get_future_trajectory(car_4)
                 # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
-                arr_x_1, arr_y_1 = self.point_to_arr(car_1.future_waypoints)
-                arr_x_4, arr_y_4 = self.point_to_arr(car_4.future_waypoints)
+                self.point_to_arr(car_1.id, car_1.future_waypoints)
+                self.point_to_arr(car_4.id, car_4.future_waypoints)
 
                 if self.collision(car_1.future_waypoints, car_4.future_waypoints):
                     print("possibility of collision")
@@ -510,8 +513,8 @@ class Subscriber:
                 car_4.future_waypoints = self.get_future_trajectory(car_4)
                 car_5.future_waypoints = self.get_future_trajectory(car_5)
 
-                arr_x_4, arr_y_4 = self.point_to_arr(car_4.future_waypoints)
-                arr_x_5, arr_y_5 = self.point_to_arr(car_5.future_waypoints)
+                self.point_to_arr(car_4.id, car_4.future_waypoints)
+                self.point_to_arr(car_5.id, car_5.future_waypoints)
 
                 if self.collision(car_4.future_waypoints, car_5.future_waypoints):
                     print("possibility of collision")
@@ -660,8 +663,8 @@ if __name__ == '__main__':
         interaction = False
         env = Environment(no_of_vehicles, vehicle_list, at_junction, register, deregister, interaction)
 
-        # text files for plotting the future trajectories of the vehicles
-        # file3 = open("future_waypoints_car_3.txt", "w")
+        # directory for plotting the future trajectories of the vehicles
+        save_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
 
         rospy.init_node('predictor', anonymous=True)
         pub1 = rospy.Publisher('/tb3_1/cmd_vel', Twist, queue_size=10)
