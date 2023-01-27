@@ -5,6 +5,7 @@ import math
 import time
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance
@@ -469,11 +470,12 @@ class Subscriber:
         car1_pos = car1.pose.pose.pose.position
         car2_pos = car2.pose.pose.pose.position
         if distance(car1_pos.x, car1_pos.y, car2_pos.x, car2_pos.y) < self.vision_radius:
-            print("start checking the future trajectories between", car1.id, "and", car2.id)
+            # print("start checking the future trajectories between", car1.id, "and", car2.id)
             return True
         return False
 
     def main(self):
+        global count
         time_taken = 0
         self.add(car_1)
         self.add(car_4)
@@ -486,12 +488,20 @@ class Subscriber:
             # car_4.future_waypoints = self.get_future_trajectory(car_4)
             # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
+            car_1_pos = car_1.pose.pose.pose.position
+            car_4_pos = car_4.pose.pose.pose.position
+            car_5_pos = car_5.pose.pose.pose.position
+
+            plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
+            plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
+            plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
+
             self.update(car_1)
             # self.update(car_2)
             # self.update(car_3)
             # self.update(car_4)
             self.update(car_5)
-            if time_taken > 4:
+            if time_taken > 1:
                 self.update(car_4)
             if self.inVicinity(car_1, car_4):
                 car_1.future_waypoints = self.get_future_trajectory(car_1)
@@ -502,18 +512,18 @@ class Subscriber:
 
                 self.point_to_arr(car_1.id, car_1.future_waypoints)
                 self.point_to_arr(car_4.id, car_4.future_waypoints)
-                if os.path.exists("traj_car_1.txt") and os.path.exists("traj_car_4.txt"):
-                    x_1, y_1 = plotter(car_1.id)
-                    x_4, y_4 = plotter(car_4.id)
+                x_1, y_1 = plotter(car_1.id)
+                x_4, y_4 = plotter(car_4.id)
+
+                # plot trajectories
+                plt.plot(x_1, y_1, '-')
+                plt.plot(x_4, y_4, '-')
 
                 if self.collision(car_1.future_waypoints, car_4.future_waypoints):
                     print("possibility of collision")
                     # self.stop(car_1)
                     self.stop(car_4)
                     # break
-
-                    # plt.plot(x_1, y_1)
-                    # plt.plot(x_4, y_4)
 
             if self.inVicinity(car_4, car_5):
                 # car_1.future_waypoints = self.get_future_trajectory(car_1)
@@ -527,14 +537,14 @@ class Subscriber:
                 x_5, y_5 = plotter(car_5.id)
                 x_4, y_4 = plotter(car_4.id)
 
+                plt.plot(x_5, y_5, '-')
+                plt.plot(x_4, y_4, '-')
+
                 if self.collision(car_4.future_waypoints, car_5.future_waypoints):
                     print("possibility of collision")
                     # self.stop(car_4)
                     self.stop(car_5)
                     # break
-
-                plt.plot(x_5, y_5)
-                plt.plot(x_4, y_4)
 
             # if car_1.stop:
             #     self.removal(car_1)
@@ -566,7 +576,18 @@ class Subscriber:
                 # add more functionalities
             end = time.time()
             time_taken += end-start
-            plt.show()
+
+            if time_taken > 5:
+                count += 1
+                if count == 1 or count == 100 or count == 200:
+                    plt.clf()
+
+            # plotting tools
+            plt.xlabel("X")
+            plt.ylabel("Y")
+            plt.title("Future trajectories of the moving vehicles")
+            # plt.grid()
+            plt.pause(0.000000001)
             # print("time taken for computation of future trajectories", end-start)
         # rospy.sleep(1.0)
 
@@ -579,7 +600,7 @@ if __name__ == '__main__':
         # registering the vehicles
         pos_car_1 = Point(-4.0, 0.0, 0.0)
         yaw_car_1 = 0
-        v_1 = 0.35
+        v_1 = 0.3
         lin_vel_1 = Vector3(v_1, 0.0, 0.0)
         ang_vel_1 = Vector3(0.0, 0.0, 0.0)
         car_1_pose = Pose(pos_car_1, quaternion_from_euler(0, 0, yaw_car_1))
@@ -647,7 +668,7 @@ if __name__ == '__main__':
 
         pos_car_5 = Point(-6.3, -8.0, 0.0)
         yaw_car_5 = 1.57
-        v_5 = 0.25
+        v_5 = 0.3
         lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
         car_5_pose = Pose(pos_car_5, quaternion_from_euler(0, 0, yaw_car_5))
@@ -694,6 +715,8 @@ if __name__ == '__main__':
         # car_3_sub = message_filters.Subscriber('/tb3_3/odom', Odometry)
         # car_4_sub = message_filters.Subscriber('/tb3_4/odom', Odometry)
         # car_5_sub = message_filters.Subscriber('/tb3_5/odom', Odometry)
+
+        count = 0 # plot clear
 
         sub = Subscriber()
 
