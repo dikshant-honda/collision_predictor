@@ -15,7 +15,8 @@ from frenet import *
 from geometry_utils import *
 from lane_info import *
 from pid_planner import PI
-from dubins_path_planner import plan_dubins_path
+from dubins_path_planner import *
+from stanley_controller import *
 import message_filters
 from plotter import plotter
 
@@ -27,46 +28,6 @@ CHANGES:
 4. self.add(car) in update function
 5. add PI to dubin update to minimize the error between the actual yaw of the vehicle and the desired yaw from the dubin's curve
 '''
-
-class PI:
-    def __init__(self, P = 0.10, I = 100, current_time = None):
-        self.Kp = P
-        self.Ki = I
-
-        self.sample_time = 0.1
-        self.current_time = current_time if current_time is not None else time.time()
-        self.last_time = self.current_time
-
-        self.clear()
-
-    def clear(self):
-        # self.SetPoint = [0.0, 0.0]
-        self.SetPoint = 0.0
-        self.PTerm = 0.0
-        self.ITerm = 0.0
-        self.last_error = 0.0
-
-        self.output = 0.0
-
-    def update(self, feedback_value, current_time=None):
-        # for update functinon
-        # error =  distance(feedback_value[0], feedback_value[1], self.SetPoint[0], self.SetPoint[1])
-
-        #for dubins update
-        error = feedback_value - self.SetPoint
-        
-        self.current_time = current_time if current_time is not None else time.time()
-        delta_time = self.current_time - self.last_time
-        delta_error = error - self.last_error
-
-        if delta_time <= self.sample_time:
-            self.PTerm = self.Kp*delta_error
-            self.ITerm += error*delta_time
-
-            self.last_time = self.current_time
-            self.last_error = error
-
-        self.output = self.PTerm + self.Ki * self.ITerm 
 
 class Subscriber:
     def __init__(self):
@@ -303,6 +264,14 @@ class Subscriber:
         if car.id == "car_5":
             pub5.publish(move)
 
+    def correct_angle(self, angle):
+        if angle > np.pi:
+            angle = angle - 2*np.pi
+        elif angle < -np.pi:
+            angle = angle + 2*np.pi
+        
+        return angle
+
     def dubins_update(self, car):
         if car not in env.vehicle_states:
             self.add(car)
@@ -318,19 +287,16 @@ class Subscriber:
             linear = Vector3(v, 0, 0)
             x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
-            print(init_yaw)
-            print(yaw_path[ind_closest])
 
             # PI controller for yaw correction
             pi = PI()
-            pi.SetPoint = yaw_path[ind_closest]
-            feedback = init_yaw
-            pi.update(feedback)
-            yaw = pi.output
+            yaw_desired = self.correct_angle(yaw_path[ind_closest])
+            feedback = self.correct_angle(init_yaw)
+            ang_error = yaw_desired - feedback
+            pi.update(-ang_error)
+            omega = pi.output
 
-            angular = Vector3(0, 0, yaw)
-            print(angular.z)
-            print("**************************")
+            angular = Vector3(0, 0, omega)
             move = Twist(linear, angular)
             car.stop = False
 
@@ -346,6 +312,7 @@ class Subscriber:
         # update car data
         self.callbacks(car)
 
+    # doesn't work perfectly
     def update(self, car):
         self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
@@ -538,8 +505,6 @@ class Subscriber:
     def main(self):
         # global count
         time_taken = 0
-        self.add(car_1)
-        self.add(car_4)
         while not rospy.is_shutdown():
             start = time.time()
 
@@ -550,20 +515,36 @@ class Subscriber:
             car_5.future_waypoints = self.get_future_trajectory(car_5)
 
             # car_1_pos = car_1.pose.pose.pose.position
+            # car_2_pos = car_2.pose.pose.pose.position
+            # car_3_pos = car_3.pose.pose.pose.position
             # car_4_pos = car_4.pose.pose.pose.position
             car_5_pos = car_5.pose.pose.pose.position
 
             # plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
+            # plt.plot(car_2_pos.x, car_2_pos.y, 'r*')
+            # plt.plot(car_3_pos.x, car_3_pos.y, 'r*')
             # plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
             plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
 
-            # self.update(car_1)
-            # self.update(car_2)
-            # self.update(car_3)
-            # self.update(car_4)
+            # self.dubins_update(car_1)
+            # self.dubins_update(car_2)
+            # self.dubins_update(car_3)
+            # self.dubins_update(car_4)
             self.dubins_update(car_5)
 
             # remove later
+            # self.point_to_arr(car_2.id, car_2.future_waypoints)
+            # x_2, y_2 = plotter(car_2.id)
+            # plt.plot(x_2, y_2, '-')
+
+            # self.point_to_arr(car_3.id, car_3.future_waypoints)
+            # x_3, y_3 = plotter(car_3.id)
+            # plt.plot(x_3, y_3, '-')
+
+            # self.point_to_arr(car_4.id, car_4.future_waypoints)
+            # x_4, y_4 = plotter(car_4.id)
+            # plt.plot(x_4, y_4, '-')
+
             self.point_to_arr(car_5.id, car_5.future_waypoints)
             x_5, y_5 = plotter(car_5.id)
             plt.plot(x_5, y_5, '-')
@@ -656,7 +637,7 @@ class Subscriber:
             # plt.grid()
             plt.pause(0.000000001)
             # print("time taken for computation of future trajectories", end-start)
-            self.print_info(env)
+            # self.print_info(env)
         # rospy.sleep(1.0)      
 
 if __name__ == '__main__':
