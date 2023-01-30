@@ -268,7 +268,7 @@ class Subscriber:
             x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
             print(init_yaw)
-            print(yaw_path[ind_closest])
+            # print(yaw_path[ind_closest])
             angular = Vector3(0, 0, init_yaw-yaw_path[ind_closest])
             print(angular.z)
             print("**************************")
