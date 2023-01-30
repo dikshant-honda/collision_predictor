@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
-from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance
+from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance, Quaternion
 from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
@@ -609,7 +609,8 @@ if __name__ == '__main__':
         v_1 = 0.3
         lin_vel_1 = Vector3(v_1, 0.0, 0.0)
         ang_vel_1 = Vector3(0.0, 0.0, 0.0)
-        car_1_pose = Pose(pos_car_1, quaternion_from_euler(0, 0, yaw_car_1))
+        q_1 = quaternion_from_euler(0, 0, yaw_car_1)
+        car_1_pose = Pose(pos_car_1, Quaternion(q_1[0], q_1[1], q_1[2], q_1[3]))
         car_1_twist = Twist(lin_vel_1, ang_vel_1)
         s_car_1 = 0 
         d_car_1 = 0.0
@@ -626,7 +627,8 @@ if __name__ == '__main__':
         v_2 = 0.3
         lin_vel_2 = Vector3(v_2, 0.0, 0.0)
         ang_vel_2 = Vector3(0.0, 0.0, 0.0)
-        car_2_pose = Pose(pos_car_2, quaternion_from_euler(0, 0, yaw_car_2))
+        q_2 = quaternion_from_euler(0, 0, yaw_car_2)
+        car_2_pose = Pose(pos_car_2, Quaternion(q_2[0], q_2[1], q_2[2], q_2[3]))
         car_2_twist = Twist(lin_vel_2, ang_vel_2)
         s_car_2 = 0 
         d_car_2 = 0.0
@@ -643,7 +645,8 @@ if __name__ == '__main__':
         v_3 = 0.3
         lin_vel_3 = Vector3(v_3, 0.0, 0.0)
         ang_vel_3 = Vector3(0.0, 0.0, 0.0)
-        car_3_pose = Pose(pos_car_3, quaternion_from_euler(0, 0, yaw_car_3))
+        q_3 = quaternion_from_euler(0, 0, yaw_car_3)
+        car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
         car_3_twist = Twist(lin_vel_3, ang_vel_3)
         s_car_3 = 0 
         d_car_3 = 0.0
@@ -660,7 +663,8 @@ if __name__ == '__main__':
         v_4 = 0.3
         lin_vel_4 = Vector3(v_4, 0.0, 0.0)
         ang_vel_4 = Vector3(0.0, 0.0, 0.0)
-        car_4_pose = Pose(pos_car_4, quaternion_from_euler(0, 0, yaw_car_4))
+        q_4 = quaternion_from_euler(0, 0, yaw_car_4)
+        car_4_pose = Pose(pos_car_4, Quaternion(q_4[0], q_4[1], q_4[2], q_4[3]))
         car_4_twist = Twist(lin_vel_4, ang_vel_4)
         s_car_4 = 0 
         d_car_4 = 0.0
@@ -677,7 +681,8 @@ if __name__ == '__main__':
         v_5 = 0.3
         lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
-        car_5_pose = Pose(pos_car_5, quaternion_from_euler(0, 0, yaw_car_5))
+        q_5 = quaternion_from_euler(0, 0, yaw_car_5)
+        car_5_pose = Pose(pos_car_5, Quaternion(q_5[0], q_5[1], q_5[2], q_5[3]))
         car_5_twist = Twist(lin_vel_5, ang_vel_5)
         s_car_5 = 0 
         d_car_5 = 0.0
