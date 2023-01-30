@@ -289,13 +289,14 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI()
-            yaw_desired = self.correct_angle(yaw_path[ind_closest])
+            pi = PI(P=1.4)
+            yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
+            ang_error = self.correct_angle(ang_error)
             pi.update(-ang_error)
             omega = pi.output
-
+            print(omega)
             angular = Vector3(0, 0, omega)
             move = Twist(linear, angular)
             car.stop = False
@@ -509,33 +510,33 @@ class Subscriber:
             start = time.time()
 
             # car_1.future_waypoints = self.get_future_trajectory(car_1)
-            # car_2.future_waypoints = self.get_future_trajectory(car_2)
+            car_2.future_waypoints = self.get_future_trajectory(car_2)
             # car_3.future_waypoints = self.get_future_trajectory(car_3)
             # car_4.future_waypoints = self.get_future_trajectory(car_4)
-            car_5.future_waypoints = self.get_future_trajectory(car_5)
+            # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
             # car_1_pos = car_1.pose.pose.pose.position
-            # car_2_pos = car_2.pose.pose.pose.position
+            car_2_pos = car_2.pose.pose.pose.position
             # car_3_pos = car_3.pose.pose.pose.position
             # car_4_pos = car_4.pose.pose.pose.position
-            car_5_pos = car_5.pose.pose.pose.position
+            # car_5_pos = car_5.pose.pose.pose.position
 
             # plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
-            # plt.plot(car_2_pos.x, car_2_pos.y, 'r*')
+            plt.plot(car_2_pos.x, car_2_pos.y, 'r*')
             # plt.plot(car_3_pos.x, car_3_pos.y, 'r*')
             # plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
-            plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
+            # plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
 
             # self.dubins_update(car_1)
-            # self.dubins_update(car_2)
+            self.dubins_update(car_2)
             # self.dubins_update(car_3)
             # self.dubins_update(car_4)
-            self.dubins_update(car_5)
+            # self.dubins_update(car_5)
 
             # remove later
-            # self.point_to_arr(car_2.id, car_2.future_waypoints)
-            # x_2, y_2 = plotter(car_2.id)
-            # plt.plot(x_2, y_2, '-')
+            self.point_to_arr(car_2.id, car_2.future_waypoints)
+            x_2, y_2 = plotter(car_2.id)
+            plt.plot(x_2, y_2, '-')
 
             # self.point_to_arr(car_3.id, car_3.future_waypoints)
             # x_3, y_3 = plotter(car_3.id)
@@ -545,9 +546,9 @@ class Subscriber:
             # x_4, y_4 = plotter(car_4.id)
             # plt.plot(x_4, y_4, '-')
 
-            self.point_to_arr(car_5.id, car_5.future_waypoints)
-            x_5, y_5 = plotter(car_5.id)
-            plt.plot(x_5, y_5, '-')
+            # self.point_to_arr(car_5.id, car_5.future_waypoints)
+            # x_5, y_5 = plotter(car_5.id)
+            # plt.plot(x_5, y_5, '-')
 
             # if time_taken > 1:
             #     self.update(car_4)
