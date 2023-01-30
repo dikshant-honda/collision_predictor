@@ -13,7 +13,7 @@ class PI:
         self.clear()
 
     def clear(self):
-        self.SetPoint = [0.0, 0.0]
+        self.SetPoint = 0.0
         self.PTerm = 0.0
         self.ITerm = 0.0
         self.last_error = 0.0
@@ -21,7 +21,7 @@ class PI:
         self.output = 0.0
 
     def update(self, feedback_value, current_time=None):
-        error =  distance(feedback_value[0], feedback_value[1], self.SetPoint[0], self.SetPoint[1])
+        error =  self.SetPoint - feedback_value
         
         self.current_time = current_time if current_time is not None else time.time()
         delta_time = self.current_time - self.last_time
