@@ -20,15 +20,6 @@ from stanley_controller import *
 import message_filters
 from plotter import plotter
 
-'''
-CHANGES:
-1. euler from quat and quat from euler bug resolved
-2. added EOL 
-3. print_info() added
-4. self.add(car) in update function
-5. add PI to dubin update to minimize the error between the actual yaw of the vehicle and the desired yaw from the dubin's curve
-'''
-
 class Subscriber:
     def __init__(self):
         # variables
@@ -282,9 +273,6 @@ class Subscriber:
         yaw_path = car.car_yaw
         # still on the lane
         if ind_closest < len(path)-2:
-            v = np.mean(car.past_vel) 
-            # twist message to be published
-            linear = Vector3(v, 0, 0)
             x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
@@ -296,7 +284,11 @@ class Subscriber:
             ang_error = self.correct_angle(ang_error)
             pi.update(-ang_error)
             omega = pi.output
-            print(omega)
+            
+            v = np.mean(car.past_vel) 
+
+            # twist message to be published
+            linear = Vector3(v, 0, 0)
             angular = Vector3(0, 0, omega)
             move = Twist(linear, angular)
             car.stop = False
@@ -510,33 +502,37 @@ class Subscriber:
             start = time.time()
 
             # car_1.future_waypoints = self.get_future_trajectory(car_1)
-            car_2.future_waypoints = self.get_future_trajectory(car_2)
+            # car_2.future_waypoints = self.get_future_trajectory(car_2)
             # car_3.future_waypoints = self.get_future_trajectory(car_3)
             # car_4.future_waypoints = self.get_future_trajectory(car_4)
             # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
-            # car_1_pos = car_1.pose.pose.pose.position
-            car_2_pos = car_2.pose.pose.pose.position
+            car_1_pos = car_1.pose.pose.pose.position
+            # car_2_pos = car_2.pose.pose.pose.position
             # car_3_pos = car_3.pose.pose.pose.position
-            # car_4_pos = car_4.pose.pose.pose.position
-            # car_5_pos = car_5.pose.pose.pose.position
+            car_4_pos = car_4.pose.pose.pose.position
+            car_5_pos = car_5.pose.pose.pose.position
 
-            # plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
-            plt.plot(car_2_pos.x, car_2_pos.y, 'r*')
+            plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
+            # plt.plot(car_2_pos.x, car_2_pos.y, 'r*')
             # plt.plot(car_3_pos.x, car_3_pos.y, 'r*')
-            # plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
-            # plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
+            plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
+            plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
 
-            # self.dubins_update(car_1)
-            self.dubins_update(car_2)
+            self.dubins_update(car_1)
+            # self.dubins_update(car_2)
             # self.dubins_update(car_3)
             # self.dubins_update(car_4)
-            # self.dubins_update(car_5)
+            self.dubins_update(car_5)
 
             # remove later
-            self.point_to_arr(car_2.id, car_2.future_waypoints)
-            x_2, y_2 = plotter(car_2.id)
-            plt.plot(x_2, y_2, '-')
+            # self.point_to_arr(car_1.id, car_1.future_waypoints)
+            # x_1, y_1 = plotter(car_1.id)
+            # plt.plot(x_1, y_1, '-')
+
+            # self.point_to_arr(car_2.id, car_2.future_waypoints)
+            # x_2, y_2 = plotter(car_2.id)
+            # plt.plot(x_2, y_2, '-')
 
             # self.point_to_arr(car_3.id, car_3.future_waypoints)
             # x_3, y_3 = plotter(car_3.id)
@@ -550,61 +546,51 @@ class Subscriber:
             # x_5, y_5 = plotter(car_5.id)
             # plt.plot(x_5, y_5, '-')
 
-            # if time_taken > 1:
-            #     self.update(car_4)
-            # if self.inVicinity(car_1, car_4):
-            #     car_1.future_waypoints = self.get_future_trajectory(car_1)
-            #     # car_2.future_waypoints = self.get_future_trajectory(car_2)
-            #     # car_3.future_waypoints = self.get_future_trajectory(car_3)
-            #     car_4.future_waypoints = self.get_future_trajectory(car_4)
-            #     # car_5.future_waypoints = self.get_future_trajectory(car_5)
+            if time_taken > 1.4:
+                self.dubins_update(car_4)
+            if self.inVicinity(car_1, car_4):
+                car_1.future_waypoints = self.get_future_trajectory(car_1)
+                # car_2.future_waypoints = self.get_future_trajectory(car_2)
+                # car_3.future_waypoints = self.get_future_trajectory(car_3)
+                car_4.future_waypoints = self.get_future_trajectory(car_4)
+                # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
-            #     self.point_to_arr(car_1.id, car_1.future_waypoints)
-            #     self.point_to_arr(car_4.id, car_4.future_waypoints)
-            #     x_1, y_1 = plotter(car_1.id)
-            #     x_4, y_4 = plotter(car_4.id)
+                self.point_to_arr(car_1.id, car_1.future_waypoints)
+                self.point_to_arr(car_4.id, car_4.future_waypoints)
+                x_1, y_1 = plotter(car_1.id)
+                x_4, y_4 = plotter(car_4.id)
 
-            #     # plot trajectories
-            #     plt.plot(x_1, y_1, '-')
-            #     plt.plot(x_4, y_4, '-')
+                # plot trajectories
+                plt.plot(x_1, y_1, '-')
+                plt.plot(x_4, y_4, '-')
 
-            #     if self.collision(car_1.future_waypoints, car_4.future_waypoints):
-            #         print("possibility of collision")
-            #         # self.stop(car_1)
-            #         self.stop(car_4)
-            #         # break
-
-            # if self.inVicinity(car_4, car_5):
-            #     # car_1.future_waypoints = self.get_future_trajectory(car_1)
-            #     # car_2.future_waypoints = self.get_future_trajectory(car_2)
-            #     # car_3.future_waypoints = self.get_future_trajectory(car_3)
-            #     car_4.future_waypoints = self.get_future_trajectory(car_4)
-            #     car_5.future_waypoints = self.get_future_trajectory(car_5)
-
-            #     self.point_to_arr(car_4.id, car_4.future_waypoints)
-            #     self.point_to_arr(car_5.id, car_5.future_waypoints)
-            #     x_5, y_5 = plotter(car_5.id)
-            #     x_4, y_4 = plotter(car_4.id)
-
-            #     plt.plot(x_5, y_5, '-')
-            #     plt.plot(x_4, y_4, '-')
-
-            #     if self.collision(car_4.future_waypoints, car_5.future_waypoints):
-            #         print("possibility of collision")
-            #         # self.stop(car_4)
-            #         self.stop(car_5)
+                if self.collision(car_1.future_waypoints, car_4.future_waypoints):
+                    print("possibility of collision")
+                    # self.stop(car_1)
+                    self.stop(car_4)
                     # break
 
-            # if car_1.stop:
-            #     self.removal(car_1)
-            # if car_2.stop:
-            #     self.removal(car_2)
-            # if car_3.stop:
-            #     self.removal(car_3)
-            # if car_4.stop:
-            #     self.removal(car_4)
-            # if car_5.stop:
-            #     self.removal(car_5)
+            if self.inVicinity(car_4, car_5):
+                # car_1.future_waypoints = self.get_future_trajectory(car_1)
+                # car_2.future_waypoints = self.get_future_trajectory(car_2)
+                # car_3.future_waypoints = self.get_future_trajectory(car_3)
+                car_4.future_waypoints = self.get_future_trajectory(car_4)
+                car_5.future_waypoints = self.get_future_trajectory(car_5)
+
+                self.point_to_arr(car_4.id, car_4.future_waypoints)
+                self.point_to_arr(car_5.id, car_5.future_waypoints)
+                x_5, y_5 = plotter(car_5.id)
+                x_4, y_4 = plotter(car_4.id)
+
+                plt.plot(x_5, y_5, '-')
+                plt.plot(x_4, y_4, '-')
+
+                if self.collision(car_4.future_waypoints, car_5.future_waypoints):
+                    print("possibility of collision")
+                    # self.stop(car_4)
+                    self.stop(car_5)
+                    break
+
             # if not car_1.future_waypoints and not car_2.future_waypoints:
             #     print("there's no future trajectory, vehicle has just started interacting with the environment")
             #     print("time to register the vehicle into the environment")
@@ -718,7 +704,7 @@ if __name__ == '__main__':
 
         pos_car_5 = Point(-6.3, -8.0, 0.0)
         yaw_car_5 = 1.57
-        v_5 = 0.3
+        v_5 = 0.22
         lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
         q_5 = quaternion_from_euler(0, 0, yaw_car_5)
