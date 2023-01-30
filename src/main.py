@@ -19,6 +19,55 @@ from dubins_path_planner import plan_dubins_path
 import message_filters
 from plotter import plotter
 
+'''
+CHANGES:
+1. euler from quat and quat from euler bug resolved
+2. added EOL 
+3. print_info() added
+4. self.add(car) in update function
+5. add PI to dubin update to minimize the error between the actual yaw of the vehicle and the desired yaw from the dubin's curve
+'''
+
+class PI:
+    def __init__(self, P = 0.10, I = 100, current_time = None):
+        self.Kp = P
+        self.Ki = I
+
+        self.sample_time = 0.1
+        self.current_time = current_time if current_time is not None else time.time()
+        self.last_time = self.current_time
+
+        self.clear()
+
+    def clear(self):
+        # self.SetPoint = [0.0, 0.0]
+        self.SetPoint = 0.0
+        self.PTerm = 0.0
+        self.ITerm = 0.0
+        self.last_error = 0.0
+
+        self.output = 0.0
+
+    def update(self, feedback_value, current_time=None):
+        # for update functinon
+        # error =  distance(feedback_value[0], feedback_value[1], self.SetPoint[0], self.SetPoint[1])
+
+        #for dubins update
+        error = feedback_value - self.SetPoint
+        
+        self.current_time = current_time if current_time is not None else time.time()
+        delta_time = self.current_time - self.last_time
+        delta_error = error - self.last_error
+
+        if delta_time <= self.sample_time:
+            self.PTerm = self.Kp*delta_error
+            self.ITerm += error*delta_time
+
+            self.last_time = self.current_time
+            self.last_error = error
+
+        self.output = self.PTerm + self.Ki * self.ITerm 
+
 class Subscriber:
     def __init__(self):
         # variables
@@ -255,6 +304,8 @@ class Subscriber:
             pub5.publish(move)
 
     def dubins_update(self, car):
+        if car not in env.vehicle_states:
+            self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
         x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
         ind_closest = closest_point_ind(path, x_pos, y_pos)
@@ -268,8 +319,16 @@ class Subscriber:
             x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
             print(init_yaw)
-            # print(yaw_path[ind_closest])
-            angular = Vector3(0, 0, init_yaw-yaw_path[ind_closest])
+            print(yaw_path[ind_closest])
+
+            # PI controller for yaw correction
+            pi = PI()
+            pi.SetPoint = yaw_path[ind_closest]
+            feedback = init_yaw
+            pi.update(feedback)
+            yaw = pi.output
+
+            angular = Vector3(0, 0, yaw)
             print(angular.z)
             print("**************************")
             move = Twist(linear, angular)
@@ -288,6 +347,7 @@ class Subscriber:
         self.callbacks(car)
 
     def update(self, car):
+        self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
         x, y = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
         ind_closest = closest_point_ind(path, x, y)
@@ -324,6 +384,7 @@ class Subscriber:
             angular = Vector3(0, 0, 0)
             move = Twist(linear, angular)
             car.stop = True
+            self.EOL(car)
 
         # publish the move message
         self.publishers(car, move)
@@ -395,12 +456,8 @@ class Subscriber:
         env.vehicles -= 1
         env.vehicle_states.remove(car)
 
-    # joint functions
-    # def update(self, car):
-    #     self.update(car)
-
-    # def EOL(self, car):
-    #     self.removal(car)
+    def EOL(self, car):                         # vehicle has reached the goal point
+        self.removal(car)
 
     # collision check using line intersection technique
     def lineIntersection(self, future_waypoints_1, future_waypoints_2):
@@ -473,6 +530,10 @@ class Subscriber:
             # print("start checking the future trajectories between", car1.id, "and", car2.id)
             return True
         return False
+
+    def print_info(self, env):
+        print("current number of vehicles:", env.vehicles)
+        print("**************************************")  
 
     def main(self):
         # global count
@@ -595,11 +656,8 @@ class Subscriber:
             # plt.grid()
             plt.pause(0.000000001)
             # print("time taken for computation of future trajectories", end-start)
-        # rospy.sleep(1.0)
-
-    def print_info(env):
-        print("current number of vehicles:", env.vehicles)
-        print("**************************************")        
+            self.print_info(env)
+        # rospy.sleep(1.0)      
 
 if __name__ == '__main__':
     try:
@@ -703,12 +761,12 @@ if __name__ == '__main__':
 
         # environment setup
         no_of_vehicles = 0
-        vehicle_list = []
+        vehicle_states = []
         at_junction = False
         register = False
         deregister = False 
         interaction = False
-        env = Environment(no_of_vehicles, vehicle_list, at_junction, register, deregister, interaction)
+        env = Environment(no_of_vehicles, vehicle_states, at_junction, register, deregister, interaction)
 
         # directory for plotting the future trajectories of the vehicles
         save_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
