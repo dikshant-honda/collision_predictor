@@ -8,3 +8,4 @@ std_msgs/Bool stop
 geometry_msgs/Point[] future_waypoints
 geometry_msgs/Point[] car_route
 float32[] car_yaw
+std_msgs/Bool at_junction
