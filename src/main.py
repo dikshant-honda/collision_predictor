@@ -412,6 +412,7 @@ class Subscriber:
         env.vehicle_states.append(car)
 
     def removal(self, car):
+        print("trying to remove")
         env.deregister = True
         env.vehicles -= 1
         env.vehicle_states.remove(car)
@@ -589,7 +590,7 @@ class Subscriber:
                     print("possibility of collision")
                     # self.stop(car_4)
                     self.stop(car_5)
-                    break
+                    # break
 
             # if not car_1.future_waypoints and not car_2.future_waypoints:
             #     print("there's no future trajectory, vehicle has just started interacting with the environment")
@@ -623,8 +624,9 @@ class Subscriber:
             # plt.title("Future trajectories of the moving vehicles")
             # plt.grid()
             plt.pause(0.000000001)
-            # print("time taken for computation of future trajectories", end-start)
-            # self.print_info(env)
+            print("time taken for computation of future trajectories", end-start)
+            self.print_info(env)
+            print("------------------------------------------")
         # rospy.sleep(1.0)      
 
 if __name__ == '__main__':
