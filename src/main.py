@@ -30,6 +30,8 @@ class Subscriber:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.5                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
+        self.intesection_vision = 2                     # check card arriving near intersection
+        self.junctions = {"X":0, "Y":0, "T":0}          # dictionary for storing the number of vehicles at intersection
         
         # subscribers
         self.car_1_sub = message_filters.Subscriber('/tb3_1/odom', Odometry)
@@ -429,6 +431,29 @@ class Subscriber:
             return True
         return False
 
+    def near_intersection(self, car):
+        car_pos = car.pose.pose.pose.position
+        T_intersection_origin = Point(-5.5, 0, 0)
+        X_intersection_origin = Point(0, 0, 0)
+        Y_intersection_origin = Point(6, 0, 0)
+        if not car.at_junction and distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y) <= self.intesection_vision:
+            print("Vehicle arriving near the T-intersection")
+            self.junctions["T"] += 1
+            car.at_junction = True
+        if not car.at_junction and distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y) <= self.intesection_vision:
+            print("Vehicle arriving near the X-intersection")
+            self.junctions["X"] += 1
+            car.at_junction = True
+        if not car.at_junction and distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y) <= self.intesection_vision:
+            print("Vehicle arriving near the Y-intersection")
+            self.junctions["Y"] += 1
+            car.at_junction = True
+
+    def interaction(self):
+        for key, val in self.junctions.items():
+            if val > 1:
+                print("starting interaction at", key, "-intersection") 
+
     def print_info(self, env):
         print("current number of moving vehicles:", env.vehicles)
 
@@ -636,11 +661,11 @@ if __name__ == '__main__':
         future_waypoints_5 = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2)
-        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3)
-        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4)
-        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1)#, at_junction_1=False)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2)#, at_junction_2=False)
+        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3)#, at_junction_3=False)
+        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4)#, at_junction_4=False)
+        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5)#, at_junction_5=False)
 
         # environment setup
         no_of_vehicles = 0
