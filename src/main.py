@@ -6,6 +6,7 @@ import time
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import message_filters
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance, Quaternion
@@ -17,7 +18,6 @@ from lane_info import *
 from pid_planner import PI
 from dubins_path_planner import *
 from stanley_controller import *
-import message_filters
 from plotter import plotter
 
 class Subscriber:
@@ -166,8 +166,7 @@ class Subscriber:
     # future waypoints
     def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
         s, d_curr, _ = self.get_frenet_with_theta(init_x, init_y, path, s_map)
-        # d = (d_curr + d) / 2                    # average of all the deviations from center
-        d = d_curr
+        d = (d_curr + d) / 2                    # average of all the deviations from center
         future_waypoints = []
         for t in range(self.np_m):
             if t < self.interp_back_path:
@@ -216,7 +215,7 @@ class Subscriber:
         
         yaw_path = car.car_yaw
         # still on the lane
-        if ind_closest < len(path)-2:
+        if ind_closest < len(path)-1:
             x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
@@ -297,9 +296,6 @@ class Subscriber:
 
     # time synchronized callback
     def callback(self, veh_1, veh_2, veh_3, veh_4, veh_5):
-        print("callback function called")
-        print(veh_1, veh_2, veh_3, veh_4, veh_5)
-        print("-----------------------------------------------------------")
         # car 1 updates
         car_1.pose = veh_1
         car_1.twist = veh_1.twist.twist
@@ -341,7 +337,7 @@ class Subscriber:
         car_5.past_d.append(car_5.d)
 
     def stop(self, car):
-        print("trying to stop:", car.id)
+        print("Stop:", car.id)
         linear = Vector3(0, 0, 0)
         angular = Vector3(0, 0, 0)
         move = Twist(linear, angular)
@@ -434,19 +430,12 @@ class Subscriber:
         return False
 
     def print_info(self, env):
-        print("current number of vehicles:", env.vehicles)
+        print("current number of moving vehicles:", env.vehicles)
 
     def main(self):
-        # global count
         time_taken = 0
         while not rospy.is_shutdown():
             start = time.time()
-
-            # car_1.future_waypoints = self.get_future_trajectory(car_1)
-            # car_2.future_waypoints = self.get_future_trajectory(car_2)
-            # car_3.future_waypoints = self.get_future_trajectory(car_3)
-            # car_4.future_waypoints = self.get_future_trajectory(car_4)
-            # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
             car_1_pos = car_1.pose.pose.pose.position
             car_2_pos = car_2.pose.pose.pose.position
@@ -460,24 +449,19 @@ class Subscriber:
             plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
             plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
 
+            # scenario #1
             self.dubins_update(car_1)
-            # self.dubins_update(car_2)
-            # self.dubins_update(car_3)
-            # self.dubins_update(car_4)
             self.dubins_update(car_5)
-
             if time_taken > 1.4:
                 self.dubins_update(car_4)
             if time_taken > 16:
                 self.dubins_update(car_3)
             if time_taken > 21:
                 self.dubins_update(car_2)
+
             if self.inVicinity(car_1, car_4):
                 car_1.future_waypoints = self.get_future_trajectory(car_1)
-                # car_2.future_waypoints = self.get_future_trajectory(car_2)
-                # car_3.future_waypoints = self.get_future_trajectory(car_3)
                 car_4.future_waypoints = self.get_future_trajectory(car_4)
-                # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
                 self.point_to_arr(car_1.id, car_1.future_waypoints)
                 self.point_to_arr(car_4.id, car_4.future_waypoints)
@@ -490,14 +474,9 @@ class Subscriber:
 
                 if self.collision(car_1.future_waypoints, car_4.future_waypoints):
                     print("possibility of collision")
-                    # self.stop(car_1)
                     self.stop(car_4)
-                    # break
 
             if self.inVicinity(car_4, car_5):
-                # car_1.future_waypoints = self.get_future_trajectory(car_1)
-                # car_2.future_waypoints = self.get_future_trajectory(car_2)
-                # car_3.future_waypoints = self.get_future_trajectory(car_3)
                 car_4.future_waypoints = self.get_future_trajectory(car_4)
                 car_5.future_waypoints = self.get_future_trajectory(car_5)
 
@@ -511,15 +490,10 @@ class Subscriber:
 
                 if self.collision(car_4.future_waypoints, car_5.future_waypoints):
                     print("possibility of collision")
-                    # self.stop(car_4)
                     self.stop(car_5)
-                    # break
             
             if self.inVicinity(car_3, car_5):
-                # car_1.future_waypoints = self.get_future_trajectory(car_1)
-                # car_2.future_waypoints = self.get_future_trajectory(car_2)
                 car_3.future_waypoints = self.get_future_trajectory(car_3)
-                # car_4.future_waypoints = self.get_future_trajectory(car_4)
                 car_5.future_waypoints = self.get_future_trajectory(car_5)
 
                 self.point_to_arr(car_3.id, car_3.future_waypoints)
@@ -532,16 +506,11 @@ class Subscriber:
 
                 if self.collision(car_3.future_waypoints, car_5.future_waypoints):
                     print("possibility of collision")
-                    # self.stop(car_4)
                     self.stop(car_5)
-                    # break
 
             if self.inVicinity(car_3, car_2):
-                # car_1.future_waypoints = self.get_future_trajectory(car_1)
                 car_2.future_waypoints = self.get_future_trajectory(car_2)
                 car_3.future_waypoints = self.get_future_trajectory(car_3)
-                # car_4.future_waypoints = self.get_future_trajectory(car_4)
-                # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
                 self.point_to_arr(car_3.id, car_3.future_waypoints)
                 self.point_to_arr(car_2.id, car_2.future_waypoints)
@@ -553,33 +522,25 @@ class Subscriber:
 
                 if self.collision(car_3.future_waypoints, car_2.future_waypoints):
                     print("possibility of collision")
-                    # self.stop(car_4)
                     self.stop(car_2)
-                    # break
 
-                # add more functionalities
             end = time.time()
             time_taken += end-start
 
-            # if time_taken > 10:
-            #     count += 1
-            #     if count == 1 or count == 1000:
-            #         plt.clf()
-
             # plotting tools
-            # plt.xlabel("X")
-            # plt.ylabel("Y")
-            # plt.title("Future trajectories of the moving vehicles")
-            # plt.grid()
+            plt.xlabel("X")
+            plt.ylabel("Y")
+            plt.title("Future trajectories of the moving vehicles")
             plt.pause(0.000000001)
-            # print("time taken for executing one loop", end-start)
-            # print("time taken:", time_taken)
-            # self.print_info(env)
-            # print("------------------------------------------")
+
+            # printing environment information
+            print("Loop execution time", end-start)
+            print("time elapsed:", time_taken)
+            self.print_info(env)
+            print("------------------------------------------")
             if env.vehicles == 0:
-                "execution done"
-                break
-        # rospy.sleep(1.0)      
+                "Execution Done"
+                break   
 
 if __name__ == '__main__':
     try:
