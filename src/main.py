@@ -299,13 +299,14 @@ class Subscriber:
             angular = Vector3(0, 0, 0)
             move = Twist(linear, angular)
             car.stop = True
+            self.EOL(car)
 
         # publish the move message
         self.publishers(car, move)
         # update car data
         self.callbacks(car)
 
-    # doesn't work perfectly
+    '''
     def update(self, car):
         self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
@@ -350,6 +351,7 @@ class Subscriber:
         self.publishers(car, move)
         # update car data
         self.callbacks(car)
+    '''
 
         # ------------------------------- not working properly ----------------------
         # time synchronized callback
@@ -412,7 +414,6 @@ class Subscriber:
         env.vehicle_states.append(car)
 
     def removal(self, car):
-        print("trying to remove")
         env.deregister = True
         env.vehicles -= 1
         env.vehicle_states.remove(car)
@@ -494,7 +495,6 @@ class Subscriber:
 
     def print_info(self, env):
         print("current number of vehicles:", env.vehicles)
-        print("**************************************")  
 
     def main(self):
         # global count
@@ -509,14 +509,14 @@ class Subscriber:
             # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
             car_1_pos = car_1.pose.pose.pose.position
-            # car_2_pos = car_2.pose.pose.pose.position
-            # car_3_pos = car_3.pose.pose.pose.position
+            car_2_pos = car_2.pose.pose.pose.position
+            car_3_pos = car_3.pose.pose.pose.position
             car_4_pos = car_4.pose.pose.pose.position
             car_5_pos = car_5.pose.pose.pose.position
 
             plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
-            # plt.plot(car_2_pos.x, car_2_pos.y, 'r*')
-            # plt.plot(car_3_pos.x, car_3_pos.y, 'r*')
+            plt.plot(car_2_pos.x, car_2_pos.y, 'c*')
+            plt.plot(car_3_pos.x, car_3_pos.y, 'y*')
             plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
             plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
 
@@ -549,6 +549,10 @@ class Subscriber:
 
             if time_taken > 1.4:
                 self.dubins_update(car_4)
+            if time_taken > 16:
+                self.dubins_update(car_3)
+            if time_taken > 21:
+                self.dubins_update(car_2)
             if self.inVicinity(car_1, car_4):
                 car_1.future_waypoints = self.get_future_trajectory(car_1)
                 # car_2.future_waypoints = self.get_future_trajectory(car_2)
@@ -591,24 +595,49 @@ class Subscriber:
                     # self.stop(car_4)
                     self.stop(car_5)
                     # break
+            
+            if self.inVicinity(car_3, car_5):
+                # car_1.future_waypoints = self.get_future_trajectory(car_1)
+                # car_2.future_waypoints = self.get_future_trajectory(car_2)
+                car_3.future_waypoints = self.get_future_trajectory(car_3)
+                # car_4.future_waypoints = self.get_future_trajectory(car_4)
+                car_5.future_waypoints = self.get_future_trajectory(car_5)
 
-            # if not car_1.future_waypoints and not car_2.future_waypoints:
-            #     print("there's no future trajectory, vehicle has just started interacting with the environment")
-            #     print("time to register the vehicle into the environment")
-            #     # adding vehicles to the environment
-            #     self.add(car_1)
-            #     self.add(car_2)
-            # else:
-            #     if not self.lineIntersection(car_1.future_waypoints, car_2.future_waypoints):
-            #         # start checking for intersection
-            #         car_1.future_waypoints, car_1.d = self.get_future_trajectory(car_1)
-            #         car_2.future_waypoints, car_2.d = self.get_future_trajectory(car_2)
-            #         self.update(car_1)
-            #         self.update(car_2)
-            #         if car_1.stop:
-            #             self.removal(car_1)
-            #         if car_2.stop:
-            #             self.removal(car_2)
+                self.point_to_arr(car_3.id, car_3.future_waypoints)
+                self.point_to_arr(car_5.id, car_5.future_waypoints)
+                x_5, y_5 = plotter(car_5.id)
+                x_3, y_3 = plotter(car_3.id)
+
+                plt.plot(x_5, y_5, '-')
+                plt.plot(x_3, y_3, '-')
+
+                if self.collision(car_3.future_waypoints, car_5.future_waypoints):
+                    print("possibility of collision")
+                    # self.stop(car_4)
+                    self.stop(car_5)
+                    # break
+
+            if self.inVicinity(car_3, car_2):
+                # car_1.future_waypoints = self.get_future_trajectory(car_1)
+                car_2.future_waypoints = self.get_future_trajectory(car_2)
+                car_3.future_waypoints = self.get_future_trajectory(car_3)
+                # car_4.future_waypoints = self.get_future_trajectory(car_4)
+                # car_5.future_waypoints = self.get_future_trajectory(car_5)
+
+                self.point_to_arr(car_3.id, car_3.future_waypoints)
+                self.point_to_arr(car_2.id, car_2.future_waypoints)
+                x_2, y_2 = plotter(car_2.id)
+                x_3, y_3 = plotter(car_3.id)
+
+                plt.plot(x_2, y_2, '-')
+                plt.plot(x_3, y_3, '-')
+
+                if self.collision(car_3.future_waypoints, car_2.future_waypoints):
+                    print("possibility of collision")
+                    # self.stop(car_4)
+                    self.stop(car_2)
+                    # break
+
                 # add more functionalities
             end = time.time()
             time_taken += end-start
@@ -624,9 +653,13 @@ class Subscriber:
             # plt.title("Future trajectories of the moving vehicles")
             # plt.grid()
             plt.pause(0.000000001)
-            print("time taken for computation of future trajectories", end-start)
+            print("time taken for executing one loop", end-start)
+            print("time taken:", time_taken)
             self.print_info(env)
             print("------------------------------------------")
+            if env.vehicles == 0:
+                "execution done"
+                break
         # rospy.sleep(1.0)      
 
 if __name__ == '__main__':
