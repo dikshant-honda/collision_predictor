@@ -30,7 +30,7 @@ class Subscriber:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.5                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-        self.intesection_vision = 2                     # check card arriving near intersection
+        self.intersection_vision = 1                     # check card arriving near intersection
         self.junctions = {"X":0, "Y":0, "T":0}          # dictionary for storing the number of vehicles at intersection
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
         
@@ -437,31 +437,42 @@ class Subscriber:
         T_intersection_origin = Point(-5.5, 0, 0)
         X_intersection_origin = Point(0, 0, 0)
         Y_intersection_origin = Point(6, 0, 0)
-        if not car.at_junction and distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y) <= self.intesection_vision:
-            print("Vehicle arriving near the T-intersection")
-            self.junctions["T"] += 1
-            self.car_at_junction["T"].append(car.id)
-            car.at_junction = True
-            return
-        if not car.at_junction and distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y) <= self.intesection_vision:
-            print("Vehicle arriving near the X-intersection")
-            self.junctions["X"] += 1
-            self.car_at_junction["X"].append(car.id)
-            car.at_junction = True
-            return
-        if not car.at_junction and distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y) <= self.intesection_vision:
-            print("Vehicle arriving near the Y-intersection")
-            self.junctions["Y"] += 1
-            self.car_at_junction["Y"].append(car.id)
-            car.at_junction = True
-            return
-        car.at_junction = False
+        if not car.at_junction:
+            if distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y) <= self.intersection_vision:
+                print("Vehicle arriving near the T-intersection")
+                self.junctions["T"] += 1
+                self.car_at_junction["T"].append(car.id)
+                car.at_junction = True
+            else:
+                car.at_junction = False
+                if car.id in self.car_at_junction["T"]:
+                    self.car_at_junction["T"].remove(car.id)
+        if not car.at_junction:
+            if distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y) <= self.intersection_vision:
+                print("Vehicle arriving near the X-intersection")
+                self.junctions["X"] += 1
+                self.car_at_junction["X"].append(car.id)
+                car.at_junction = True
+            else:
+                car.at_junction = False
+                if car.id in self.car_at_junction["X"]:
+                    self.car_at_junction["X"].remove(car.id)
+        if not car.at_junction:
+            if distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y) <= self.intersection_vision:
+                print("Vehicle arriving near the Y-intersection")
+                self.junctions["Y"] += 1
+                self.car_at_junction["Y"].append(car.id)
+                car.at_junction = True
+            else:
+                car.at_junction = False
+                if car.id in self.car_at_junction["Y"]:
+                    self.car_at_junction["Y"].remove(car.id)
 
     def interaction(self):
         for key, val in self.junctions.items():
             if val > 1:
                 print("starting interaction at", key, "-intersection")
-                print(self.car_at_junction[val], "are at", val, "-intersection") 
+                print(self.car_at_junction[key], "are at", key, "-intersection") 
 
     def print_info(self, env):
         print("current number of moving vehicles:", env.vehicles)
@@ -574,7 +585,7 @@ class Subscriber:
             self.at_intersection(car_4)
             self.at_intersection(car_5)
             self.interaction()
-
+            print(self.car_at_junction)
             print("Loop execution time", end-start)
             # print("time elapsed:", time_taken)
             self.print_info(env)
@@ -602,7 +613,8 @@ if __name__ == '__main__':
         car_1_pose_with_covariance = PoseWithCovariance(car_1_pose, covariance_1)
         car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
         stop_1 = False  
-        future_waypoints_1 = [] 
+        future_waypoints_1 = []
+        at_junction_1 = False 
 
         pos_car_2 = Point(8.0, -2.0, 0.0)
         yaw_car_2 = 2.36
@@ -621,6 +633,7 @@ if __name__ == '__main__':
         car_2_odom = Odometry(Header, "base_footprint", car_2_pose_with_covariance, car_2_twist) 
         stop_2 = False  
         future_waypoints_2 = []
+        at_junction_2 = False 
 
         pos_car_3 = Point(0.0, 3.0, 0.0)
         yaw_car_3 = -1.57
@@ -639,6 +652,7 @@ if __name__ == '__main__':
         car_3_odom = Odometry(Header, "base_footprint", car_3_pose_with_covariance, car_3_twist) 
         stop_3 = False  
         future_waypoints_3 = []
+        at_junction_3 = False 
 
         pos_car_4 = Point(0.0, -3.0, 0.0)
         yaw_car_4 = 1.57
@@ -657,6 +671,7 @@ if __name__ == '__main__':
         car_4_odom = Odometry(Header, "base_footprint", car_4_pose_with_covariance, car_4_twist) 
         stop_4 = False  
         future_waypoints_4 = []
+        at_junction_4 = False 
 
         pos_car_5 = Point(-6.3, -8.0, 0.0)
         yaw_car_5 = 1.57
@@ -675,22 +690,23 @@ if __name__ == '__main__':
         car_5_odom = Odometry(Header, "base_footprint", car_5_pose_with_covariance, car_5_twist) 
         stop_5 = False  
         future_waypoints_5 = []
+        at_junction_5 = False 
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1)#, at_junction_1=False)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2)#, at_junction_2=False)
-        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3)#, at_junction_3=False)
-        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4)#, at_junction_4=False)
-        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5)#, at_junction_5=False)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1, at_junction_1)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2, at_junction_2)
+        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3, at_junction_3)
+        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4, at_junction_4)
+        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5, at_junction_5)
 
         # environment setup
         no_of_vehicles = 0
         vehicle_states = []
-        at_junction = False
+        # at_intersection = False
         register = False
         deregister = False 
         interaction = False
-        env = Environment(no_of_vehicles, vehicle_states, at_junction, register, deregister, interaction)
+        env = Environment(no_of_vehicles, vehicle_states, register, deregister, interaction)
 
         # directory for plotting the future trajectories of the vehicles
         save_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
