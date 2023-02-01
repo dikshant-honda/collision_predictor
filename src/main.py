@@ -32,6 +32,7 @@ class Subscriber:
         self.vision_radius = 3                          # check only nearby cars
         self.intesection_vision = 2                     # check card arriving near intersection
         self.junctions = {"X":0, "Y":0, "T":0}          # dictionary for storing the number of vehicles at intersection
+        self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
         
         # subscribers
         self.car_1_sub = message_filters.Subscriber('/tb3_1/odom', Odometry)
@@ -431,7 +432,7 @@ class Subscriber:
             return True
         return False
 
-    def near_intersection(self, car):
+    def at_intersection(self, car):
         car_pos = car.pose.pose.pose.position
         T_intersection_origin = Point(-5.5, 0, 0)
         X_intersection_origin = Point(0, 0, 0)
@@ -439,20 +440,28 @@ class Subscriber:
         if not car.at_junction and distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y) <= self.intesection_vision:
             print("Vehicle arriving near the T-intersection")
             self.junctions["T"] += 1
+            self.car_at_junction["T"].append(car.id)
             car.at_junction = True
+            return
         if not car.at_junction and distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y) <= self.intesection_vision:
             print("Vehicle arriving near the X-intersection")
             self.junctions["X"] += 1
+            self.car_at_junction["X"].append(car.id)
             car.at_junction = True
+            return
         if not car.at_junction and distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y) <= self.intesection_vision:
             print("Vehicle arriving near the Y-intersection")
             self.junctions["Y"] += 1
+            self.car_at_junction["Y"].append(car.id)
             car.at_junction = True
+            return
+        car.at_junction = False
 
     def interaction(self):
         for key, val in self.junctions.items():
             if val > 1:
-                print("starting interaction at", key, "-intersection") 
+                print("starting interaction at", key, "-intersection")
+                print(self.car_at_junction[val], "are at", val, "-intersection") 
 
     def print_info(self, env):
         print("current number of moving vehicles:", env.vehicles)
@@ -559,12 +568,19 @@ class Subscriber:
             plt.pause(0.000000001)
 
             # printing environment information
+            self.at_intersection(car_1)
+            self.at_intersection(car_2)
+            self.at_intersection(car_3)
+            self.at_intersection(car_4)
+            self.at_intersection(car_5)
+            self.interaction()
+
             print("Loop execution time", end-start)
-            print("time elapsed:", time_taken)
+            # print("time elapsed:", time_taken)
             self.print_info(env)
             print("------------------------------------------")
             if env.vehicles == 0:
-                "Execution Done"
+                print("Execution Done")
                 break   
 
 if __name__ == '__main__':
