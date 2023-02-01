@@ -347,19 +347,6 @@ class Subscriber:
         car.stop = True
         self.publishers(car, move)
 
-    def add(self, car):
-        env.register = True
-        env.vehicles += 1
-        env.vehicle_states.append(car)
-
-    def removal(self, car):
-        env.deregister = True
-        env.vehicles -= 1
-        env.vehicle_states.remove(car)
-
-    def EOL(self, car):                         # vehicle has reached the goal point
-        self.removal(car)
-
     # collision check using line intersection technique
     def lineIntersection(self, future_waypoints_1, future_waypoints_2):
         intersect = Point()
@@ -432,41 +419,80 @@ class Subscriber:
             return True
         return False
 
+    def add(self, car):
+        env.register = True
+        env.vehicles += 1
+        env.vehicle_states.append(car)
+
+    def removal(self, car):
+        env.deregister = True
+        env.vehicles -= 1
+        env.vehicle_states.remove(car)
+
+    def EOL(self, car):                         # vehicle has reached the goal point
+        self.removal(car)
+
+    def add_to_intersection(self, car, junction_type):
+        if car.id not in self.car_at_junction[junction_type]:
+            self.junctions[junction_type] += 1
+            self.car_at_junction[junction_type].append(car.id)
+
+    def remove_from_intersection(self, car, junction_type):
+        if car.id in self.car_at_junction[junction_type]:
+            self.junctions[junction_type] -= 1
+            self.car_at_junction[junction_type].remove(car.id)
+
     def at_intersection(self, car):
         car_pos = car.pose.pose.pose.position
         T_intersection_origin = Point(-5.5, 0, 0)
         X_intersection_origin = Point(0, 0, 0)
         Y_intersection_origin = Point(6, 0, 0)
-        if not car.at_junction:
-            if distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y) <= self.intersection_vision:
-                print("Vehicle arriving near the T-intersection")
-                self.junctions["T"] += 1
-                self.car_at_junction["T"].append(car.id)
-                car.at_junction = True
-            else:
+
+        d_T = distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y)
+        d_X = distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y)
+        d_Y = distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y)
+
+        if d_T <= self.intersection_vision and car.at_lanes:
+            print("Vehicle arriving near the T-intersection")
+            self.add_to_intersection(car, "T")
+            car.at_junction = True
+            car.at_lanes = False
+
+        if d_X <= self.intersection_vision and car.at_lanes:
+            print("Vehicle arriving near the X-intersection")
+            self.add_to_intersection(car, "X")
+            car.at_junction = True
+            car.at_lanes = False
+        
+        if d_Y <= self.intersection_vision and car.at_lanes:
+            print("Vehicle arriving near the Y-intersection")
+            self.add_to_intersection(car, "Y")
+            car.at_junction = True
+            car.at_lanes = False
+
+        # if  d_T >= self.intersection_vision:
+        #     car.at_lanes = True
+        #     if car.at_junction and car.at_lanes:
+        print(car.id, "leaving the T-intersection")
+        self.remove_from_intersection(car, "T")
+        car.at_junction = False
+        car.at_lanes = True
+            
+        if  d_X >= self.intersection_vision:
+            car.at_lanes = True
+            if car.at_junction and not car.at_lanes:
+                print(car.id, "leaving the X-intersection")
+                self.remove_from_intersection(car, "X")
                 car.at_junction = False
-                if car.id in self.car_at_junction["T"]:
-                    self.car_at_junction["T"].remove(car.id)
-        if not car.at_junction:
-            if distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y) <= self.intersection_vision:
-                print("Vehicle arriving near the X-intersection")
-                self.junctions["X"] += 1
-                self.car_at_junction["X"].append(car.id)
-                car.at_junction = True
-            else:
+                car.at_lanes = True
+
+        if  d_T >= self.intersection_vision:
+            car.at_lanes = True
+            if car.at_junction and not car.at_lanes:
+                print(car.id, "leaving the Y-intersection")
+                self.remove_from_intersection(car, "Y")
                 car.at_junction = False
-                if car.id in self.car_at_junction["X"]:
-                    self.car_at_junction["X"].remove(car.id)
-        if not car.at_junction:
-            if distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y) <= self.intersection_vision:
-                print("Vehicle arriving near the Y-intersection")
-                self.junctions["Y"] += 1
-                self.car_at_junction["Y"].append(car.id)
-                car.at_junction = True
-            else:
-                car.at_junction = False
-                if car.id in self.car_at_junction["Y"]:
-                    self.car_at_junction["Y"].remove(car.id)
+                car.at_lanes = True
 
     def interaction(self):
         for key, val in self.junctions.items():
@@ -614,6 +640,7 @@ if __name__ == '__main__':
         car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
         stop_1 = False  
         future_waypoints_1 = []
+        at_lane_1 = True
         at_junction_1 = False 
 
         pos_car_2 = Point(8.0, -2.0, 0.0)
@@ -633,6 +660,7 @@ if __name__ == '__main__':
         car_2_odom = Odometry(Header, "base_footprint", car_2_pose_with_covariance, car_2_twist) 
         stop_2 = False  
         future_waypoints_2 = []
+        at_lane_2 = True
         at_junction_2 = False 
 
         pos_car_3 = Point(0.0, 3.0, 0.0)
@@ -652,6 +680,7 @@ if __name__ == '__main__':
         car_3_odom = Odometry(Header, "base_footprint", car_3_pose_with_covariance, car_3_twist) 
         stop_3 = False  
         future_waypoints_3 = []
+        at_lane_3 = True
         at_junction_3 = False 
 
         pos_car_4 = Point(0.0, -3.0, 0.0)
@@ -671,6 +700,7 @@ if __name__ == '__main__':
         car_4_odom = Odometry(Header, "base_footprint", car_4_pose_with_covariance, car_4_twist) 
         stop_4 = False  
         future_waypoints_4 = []
+        at_lane_4 = True
         at_junction_4 = False 
 
         pos_car_5 = Point(-6.3, -8.0, 0.0)
@@ -690,14 +720,15 @@ if __name__ == '__main__':
         car_5_odom = Odometry(Header, "base_footprint", car_5_pose_with_covariance, car_5_twist) 
         stop_5 = False  
         future_waypoints_5 = []
+        at_lane_5 = True
         at_junction_5 = False 
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1, at_junction_1)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2, at_junction_2)
-        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3, at_junction_3)
-        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4, at_junction_4)
-        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5, at_junction_5)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1, at_lane_1, at_junction_1)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2, at_lane_2, at_junction_2)
+        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3, at_lane_3, at_junction_3)
+        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4, at_lane_4, at_junction_4)
+        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5, at_lane_5, at_junction_5)
 
         # environment setup
         no_of_vehicles = 0
