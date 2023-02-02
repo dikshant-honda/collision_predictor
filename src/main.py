@@ -432,11 +432,11 @@ class Subscriber:
         self.removal(car)
 
     def add_to_intersection(self, car, junction_type):
-        if car.id not in self.car_at_junction[junction_type]:
+        if car not in self.car_at_junction[junction_type]:
             self.car_at_junction[junction_type].append(car)
 
     def remove_from_intersection(self, car, junction_type):
-        if car.id in self.car_at_junction[junction_type]:
+        if car in self.car_at_junction[junction_type]:
             self.car_at_junction[junction_type].remove(car)
 
     def at_intersection(self, car):
@@ -528,9 +528,9 @@ class Subscriber:
             self.dubins_update(car_5)
             if time_taken > 2.5:
                 self.dubins_update(car_4)
-            if time_taken > 16:
+            if time_taken > 15:
                 self.dubins_update(car_3)
-            if time_taken > 21:
+            if time_taken > 20.5:
                 self.dubins_update(car_2)
 
             # update environment
