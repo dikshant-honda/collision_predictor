@@ -30,8 +30,7 @@ class Subscriber:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.5                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-        self.intersection_vision = 1                     # check card arriving near intersection
-        self.junctions = {"X":0, "Y":0, "T":0}          # dictionary for storing the number of vehicles at intersection
+        self.intersection_vision = 2                    # check card arriving near intersection
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
         
         # subscribers
@@ -340,7 +339,7 @@ class Subscriber:
         car_5.past_d.append(car_5.d)
 
     def stop(self, car):
-        print("Stop:", car.id)
+        print("!!! Stop:", car.id, "!!!")
         linear = Vector3(0, 0, 0)
         angular = Vector3(0, 0, 0)
         move = Twist(linear, angular)
@@ -434,12 +433,10 @@ class Subscriber:
 
     def add_to_intersection(self, car, junction_type):
         if car.id not in self.car_at_junction[junction_type]:
-            self.junctions[junction_type] += 1
             self.car_at_junction[junction_type].append(car.id)
 
     def remove_from_intersection(self, car, junction_type):
         if car.id in self.car_at_junction[junction_type]:
-            self.junctions[junction_type] -= 1
             self.car_at_junction[junction_type].remove(car.id)
 
     def at_intersection(self, car):
@@ -451,54 +448,45 @@ class Subscriber:
         d_T = distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y)
         d_X = distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y)
         d_Y = distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y)
-
+        
         if d_T <= self.intersection_vision and car.at_lanes:
-            print("Vehicle arriving near the T-intersection")
+            # print("Vehicle at the T-intersection")
             self.add_to_intersection(car, "T")
             car.at_junction = True
             car.at_lanes = False
 
         if d_X <= self.intersection_vision and car.at_lanes:
-            print("Vehicle arriving near the X-intersection")
+            # print("Vehicle at the X-intersection")
             self.add_to_intersection(car, "X")
             car.at_junction = True
             car.at_lanes = False
         
         if d_Y <= self.intersection_vision and car.at_lanes:
-            print("Vehicle arriving near the Y-intersection")
+            # print("Vehicle at the Y-intersection")
             self.add_to_intersection(car, "Y")
             car.at_junction = True
             car.at_lanes = False
 
-        # if  d_T >= self.intersection_vision:
-        #     car.at_lanes = True
-        #     if car.at_junction and car.at_lanes:
-        print(car.id, "leaving the T-intersection")
-        self.remove_from_intersection(car, "T")
-        car.at_junction = False
-        car.at_lanes = True
+        if  d_T >= self.intersection_vision:
+            self.remove_from_intersection(car, "T")
+            car.at_lanes = True
+            car.at_junction = False
             
         if  d_X >= self.intersection_vision:
+            self.remove_from_intersection(car, "X")
             car.at_lanes = True
-            if car.at_junction and not car.at_lanes:
-                print(car.id, "leaving the X-intersection")
-                self.remove_from_intersection(car, "X")
-                car.at_junction = False
-                car.at_lanes = True
+            car.at_junction = False
 
-        if  d_T >= self.intersection_vision:
+        if  d_Y >= self.intersection_vision:
+            self.remove_from_intersection(car, "Y")
             car.at_lanes = True
-            if car.at_junction and not car.at_lanes:
-                print(car.id, "leaving the Y-intersection")
-                self.remove_from_intersection(car, "Y")
-                car.at_junction = False
-                car.at_lanes = True
+            car.at_junction = False
 
     def interaction(self):
-        for key, val in self.junctions.items():
-            if val > 1:
-                print("starting interaction at", key, "-intersection")
-                print(self.car_at_junction[key], "are at", key, "-intersection") 
+        for key, val in self.car_at_junction.items():
+            if len(val) > 1:
+                print("interaction at", key, "- intersection")
+                print(self.car_at_junction[key], "are at", key, "- intersection") 
 
     def print_info(self, env):
         print("current number of moving vehicles:", env.vehicles)
