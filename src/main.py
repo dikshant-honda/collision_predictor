@@ -16,8 +16,6 @@ from frenet import *
 from geometry_utils import *
 from lane_info import *
 from pid_planner import PI
-from dubins_path_planner import *
-from stanley_controller import *
 from plotter import plotter
 
 class Subscriber:
@@ -140,7 +138,6 @@ class Subscriber:
 
     # Transform from Frenet s,d coordinates to Cartesian x,y
     def get_xy(self, s, d, path, s_map):
-
         if path == None or s_map == None:
             print("Empty path. Cannot compute Cartesian coordinates")
             return 0.0, 0.0
@@ -213,8 +210,7 @@ class Subscriber:
             self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
         x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
-        ind_closest = closest_point_ind(path, x_pos, y_pos)
-        
+        ind_closest = closest_point_ind(path, x_pos, y_pos)        
         yaw_path = car.car_yaw
         # still on the lane
         if ind_closest < len(path)-1:
