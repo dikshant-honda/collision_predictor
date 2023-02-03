@@ -6,66 +6,41 @@ import time
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import message_filters
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
-from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance
-from tf.transformations import quaternion_from_euler
+from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance, Quaternion
+from collision_predictor.msg import Environment, VehicleState
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
 from geometry_utils import *
 from lane_info import *
-from collision_predictor.msg import Environment, VehicleState
-import message_filters
+from pid_planner import PI
+from dubins_path_planner import *
+from stanley_controller import *
 from plotter import plotter
-
-class PI:
-    def __init__(self, P = 0.97, I = 100000, current_time = None):
-        self.Kp = P
-        self.Ki = I
-
-        self.sample_time = 0.1
-        self.current_time = current_time if current_time is not None else time.time()
-        self.last_time = self.current_time
-
-        self.clear()
-
-    def clear(self):
-        self.SetPoint = [0.0, 0.0]
-        self.PTerm = 0.0
-        self.ITerm = 0.0
-        self.last_error = 0.0
-
-        self.output = 0.0
-
-    def update(self, feedback_value, current_time=None):
-        error =  distance(feedback_value[0], feedback_value[1], self.SetPoint[0], self.SetPoint[1])
-        
-        self.current_time = current_time if current_time is not None else time.time()
-        delta_time = self.current_time - self.last_time
-        delta_error = error - self.last_error
-
-        if delta_time <= self.sample_time:
-            self.PTerm = self.Kp*delta_error
-            self.ITerm += error*delta_time
-
-            self.last_time = self.current_time
-            self.last_error = error
-
-        self.output = self.PTerm + self.Ki * self.ITerm 
 
 class Subscriber:
     def __init__(self):
         # variables
         self.width = 2                                  # lane width
-        self.interp_back_path = 10                      # interpolate back to path after this # of steps
+        self.interp_back_path = 40                      # interpolate back to path after this # of steps
         self.plan_t_m = 3                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.5                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-
-        # # time synchronized callback
-        # ts.registerCallback(self.callback)
         
+        # subscribers
+        self.car_1_sub = message_filters.Subscriber('/tb3_1/odom', Odometry)
+        self.car_2_sub = message_filters.Subscriber('/tb3_2/odom', Odometry)
+        self.car_3_sub = message_filters.Subscriber('/tb3_3/odom', Odometry)
+        self.car_4_sub = message_filters.Subscriber('/tb3_4/odom', Odometry)
+        self.car_5_sub = message_filters.Subscriber('/tb3_5/odom', Odometry)
+
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub, self.car_3_sub, self.car_4_sub, self.    car_5_sub], 10, 0.1)
+        self.ts.registerCallback(self.callback)
+
         self.main()
 
     # converting ther nav_path message type to list for ease in accessibility
@@ -191,8 +166,7 @@ class Subscriber:
     # future waypoints
     def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
         s, d_curr, _ = self.get_frenet_with_theta(init_x, init_y, path, s_map)
-        # d = (d_curr + d) / 2                    # average of all the deviations from center
-        d = d_curr
+        d = (d_curr + d) / 2                    # average of all the deviations from center
         future_waypoints = []
         for t in range(self.np_m):
             if t < self.interp_back_path:
@@ -212,69 +186,6 @@ class Subscriber:
         car.d = d
         return future_waypoints
 
-    # Vehicle state subcribers
-    def callback1(self, msg):
-        car_1.pose = msg
-        car_1.twist = msg.twist.twist
-        car_1.past_vel.pop(0)
-        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-        v = v_1
-        car_1.past_vel.append(v)
-        car_1.past_d.pop(0)
-        car_1.past_d.append(car_1.d)
-
-    def callback2(self, msg):
-        car_2.pose = msg
-        car_2.twist = msg.twist.twist
-        car_2.past_vel.pop(0)
-        v = v_2
-        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-        car_2.past_vel.append(v)
-        car_2.past_d.pop(0)
-        car_2.past_d.append(car_2.d) 
-
-    def callback3(self, msg):
-        car_3.pose = msg
-        car_3.twist = msg.twist.twist
-        car_3.past_vel.pop(0)
-        v = v_3
-        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-        car_3.past_vel.append(v)
-        car_3.past_d.pop(0)
-        car_3.past_d.append(car_3.d)
-
-    def callback4(self, msg):
-        car_4.pose = msg
-        car_4.twist = msg.twist.twist
-        car_4.past_vel.pop(0)
-        v = v_4
-        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-        car_4.past_vel.append(v)
-        car_4.past_d.pop(0)
-        car_4.past_d.append(car_4.d) 
-
-    def callback5(self, msg):
-        car_5.pose = msg
-        car_5.twist = msg.twist.twist
-        car_5.past_vel.pop(0)
-        v = v_5
-        # v = np.sqrt(msg.twist.twist.linear.x**2+msg.twist.twist.linear.y**2)
-        car_5.past_vel.append(v)
-        car_5.past_d.pop(0)
-        car_5.past_d.append(car_5.d) 
-
-    def callbacks(self, car):
-        if car.id == "car_1":
-            rospy.Subscriber('/tb3_1/odom', Odometry, self.callback1)
-        if car.id == "car_2":
-            rospy.Subscriber('/tb3_2/odom', Odometry, self.callback2)
-        if car.id == "car_3":
-            rospy.Subscriber('/tb3_3/odom', Odometry, self.callback3)
-        if car.id == "car_4":
-            rospy.Subscriber('/tb3_4/odom', Odometry, self.callback4)
-        if car.id == "car_5":
-            rospy.Subscriber('/tb3_5/odom', Odometry, self.callback5)
-
     def publishers(self, car, move):
         if car.id == "car_1":
             pub1.publish(move)
@@ -287,7 +198,58 @@ class Subscriber:
         if car.id == "car_5":
             pub5.publish(move)
 
+    def correct_angle(self, angle):
+        if angle > np.pi:
+            angle = angle - 2*np.pi
+        elif angle < -np.pi:
+            angle = angle + 2*np.pi
+        
+        return angle
+
+    def dubins_update(self, car):
+        if car not in env.vehicle_states:
+            self.add(car)
+        path, _  = self.get_lane_and_s_map(car.car_route)
+        x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
+        ind_closest = closest_point_ind(path, x_pos, y_pos)
+        
+        yaw_path = car.car_yaw
+        # still on the lane
+        if ind_closest < len(path)-1:
+            x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
+            _, _, init_yaw = euler_from_quaternion([x, y, z, w])
+
+            # PI controller for yaw correction
+            pi = PI(P=1.4)
+            yaw_desired = yaw_path[ind_closest]
+            feedback = self.correct_angle(init_yaw)
+            ang_error = yaw_desired - feedback
+            ang_error = self.correct_angle(ang_error)
+            pi.update(-ang_error)
+            omega = pi.output
+            
+            v = np.mean(car.past_vel) 
+
+            # twist message to be published
+            linear = Vector3(v, 0, 0)
+            angular = Vector3(0, 0, omega)
+            move = Twist(linear, angular)
+            car.stop = False
+
+        # stop after reaching the end of lane
+        else:
+            linear = Vector3(0, 0, 0)
+            angular = Vector3(0, 0, 0)
+            move = Twist(linear, angular)
+            car.stop = True
+            self.EOL(car)
+
+        # publish the move message
+        self.publishers(car, move)
+
+    '''
     def update(self, car):
+        self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
         x, y = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
         ind_closest = closest_point_ind(path, x, y)
@@ -324,61 +286,58 @@ class Subscriber:
             angular = Vector3(0, 0, 0)
             move = Twist(linear, angular)
             car.stop = True
+            self.EOL(car)
 
         # publish the move message
         self.publishers(car, move)
         # update car data
         self.callbacks(car)
+    '''
 
-        # ------------------------------- not working properly ----------------------
-        # time synchronized callback
-        # def callback(veh_1, veh_2, veh_3, veh_4, veh_5):
-        #     print("callback function called")
-        #     # car 1 updates
-        #     car_1.pose = veh_1
-        #     car_1.twist = veh_1.twist.twist
-        #     car_1.past_vel.pop(0)
-        #     car_1.past_vel.append(v_1)
-        #     car_1.past_d.pop(0)
-        #     car_1.past_d.append(car_1.d)
+    # time synchronized callback
+    def callback(self, veh_1, veh_2, veh_3, veh_4, veh_5):
+        # car 1 updates
+        car_1.pose = veh_1
+        car_1.twist = veh_1.twist.twist
+        car_1.past_vel.pop(0)
+        car_1.past_vel.append(v_1)
+        car_1.past_d.pop(0)
+        car_1.past_d.append(car_1.d)
 
-        #     # car 2 updates
-        #     car_2.pose = veh_2
-        #     car_2.twist = veh_2.twist.twist
-        #     car_2.past_vel.pop(0)
-        #     car_2.past_vel.append(v_2)
-        #     car_2.past_d.pop(0)
-        #     car_2.past_d.append(car_2.d)
+        # car 2 updates
+        car_2.pose = veh_2
+        car_2.twist = veh_2.twist.twist
+        car_2.past_vel.pop(0)
+        car_2.past_vel.append(v_2)
+        car_2.past_d.pop(0)
+        car_2.past_d.append(car_2.d)
 
-        #     # car 3 updates
-        #     car_3.pose = veh_3
-        #     car_3.twist = veh_3.twist.twist
-        #     car_3.past_vel.pop(0)
-        #     car_3.past_vel.append(v_3)
-        #     car_3.past_d.pop(0)
-        #     car_3.past_d.append(car_3.d)
+        # car 3 updates
+        car_3.pose = veh_3
+        car_3.twist = veh_3.twist.twist
+        car_3.past_vel.pop(0)
+        car_3.past_vel.append(v_3)
+        car_3.past_d.pop(0)
+        car_3.past_d.append(car_3.d)
 
-        #     # car 4 updates
-        #     car_4.pose = veh_4
-        #     car_4.twist = veh_4.twist.twist
-        #     car_4.past_vel.pop(0)
-        #     car_4.past_vel.append(v_4)
-        #     car_4.past_d.pop(0)
-        #     car_4.past_d.append(car_4.d)
+        # car 4 updates
+        car_4.pose = veh_4
+        car_4.twist = veh_4.twist.twist
+        car_4.past_vel.pop(0)
+        car_4.past_vel.append(v_4)
+        car_4.past_d.pop(0)
+        car_4.past_d.append(car_4.d)
 
-        #     # car 5 updates
-        #     car_5.pose = veh_5
-        #     car_5.twist = veh_5.twist.twist
-        #     car_5.past_vel.pop(0)
-        #     car_5.past_vel.append(v_5)
-        #     car_5.past_d.pop(0)
-        #     car_5.past_d.append(car_5.d)
-            
-        # ts = message_filters.TimeSynchronizer([car_1_sub, car_2_sub, car_3_sub, car_4_sub, car_5_sub], 1)
-        # ts.registerCallback(callback)
+        # car 5 updates
+        car_5.pose = veh_5
+        car_5.twist = veh_5.twist.twist
+        car_5.past_vel.pop(0)
+        car_5.past_vel.append(v_5)
+        car_5.past_d.pop(0)
+        car_5.past_d.append(car_5.d)
 
     def stop(self, car):
-        print("trying to stop:", car.id)
+        print("Stop:", car.id)
         linear = Vector3(0, 0, 0)
         angular = Vector3(0, 0, 0)
         move = Twist(linear, angular)
@@ -395,12 +354,8 @@ class Subscriber:
         env.vehicles -= 1
         env.vehicle_states.remove(car)
 
-    # joint functions
-    # def update(self, car):
-    #     self.update(car)
-
-    # def EOL(self, car):
-    #     self.removal(car)
+    def EOL(self, car):                         # vehicle has reached the goal point
+        self.removal(car)
 
     # collision check using line intersection technique
     def lineIntersection(self, future_waypoints_1, future_waypoints_2):
@@ -474,41 +429,39 @@ class Subscriber:
             return True
         return False
 
+    def print_info(self, env):
+        print("current number of moving vehicles:", env.vehicles)
+
     def main(self):
-        global count
         time_taken = 0
-        self.add(car_1)
-        self.add(car_4)
         while not rospy.is_shutdown():
             start = time.time()
 
-            # car_1.future_waypoints = self.get_future_trajectory(car_1)
-            # car_2.future_waypoints = self.get_future_trajectory(car_2)
-            # car_3.future_waypoints = self.get_future_trajectory(car_3)
-            # car_4.future_waypoints = self.get_future_trajectory(car_4)
-            # car_5.future_waypoints = self.get_future_trajectory(car_5)
-
             car_1_pos = car_1.pose.pose.pose.position
+            car_2_pos = car_2.pose.pose.pose.position
+            car_3_pos = car_3.pose.pose.pose.position
             car_4_pos = car_4.pose.pose.pose.position
             car_5_pos = car_5.pose.pose.pose.position
 
             plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
+            plt.plot(car_2_pos.x, car_2_pos.y, 'c*')
+            plt.plot(car_3_pos.x, car_3_pos.y, 'y*')
             plt.plot(car_4_pos.x, car_4_pos.y, 'b*')
             plt.plot(car_5_pos.x, car_5_pos.y, 'g*')
 
-            self.update(car_1)
-            # self.update(car_2)
-            # self.update(car_3)
-            # self.update(car_4)
-            self.update(car_5)
-            if time_taken > 1:
-                self.update(car_4)
+            # scenario #1
+            self.dubins_update(car_1)
+            self.dubins_update(car_5)
+            if time_taken > 1.4:
+                self.dubins_update(car_4)
+            if time_taken > 16:
+                self.dubins_update(car_3)
+            if time_taken > 21:
+                self.dubins_update(car_2)
+
             if self.inVicinity(car_1, car_4):
                 car_1.future_waypoints = self.get_future_trajectory(car_1)
-                # car_2.future_waypoints = self.get_future_trajectory(car_2)
-                # car_3.future_waypoints = self.get_future_trajectory(car_3)
                 car_4.future_waypoints = self.get_future_trajectory(car_4)
-                # car_5.future_waypoints = self.get_future_trajectory(car_5)
 
                 self.point_to_arr(car_1.id, car_1.future_waypoints)
                 self.point_to_arr(car_4.id, car_4.future_waypoints)
@@ -521,14 +474,9 @@ class Subscriber:
 
                 if self.collision(car_1.future_waypoints, car_4.future_waypoints):
                     print("possibility of collision")
-                    # self.stop(car_1)
                     self.stop(car_4)
-                    # break
 
             if self.inVicinity(car_4, car_5):
-                # car_1.future_waypoints = self.get_future_trajectory(car_1)
-                # car_2.future_waypoints = self.get_future_trajectory(car_2)
-                # car_3.future_waypoints = self.get_future_trajectory(car_3)
                 car_4.future_waypoints = self.get_future_trajectory(car_4)
                 car_5.future_waypoints = self.get_future_trajectory(car_5)
 
@@ -542,58 +490,57 @@ class Subscriber:
 
                 if self.collision(car_4.future_waypoints, car_5.future_waypoints):
                     print("possibility of collision")
-                    # self.stop(car_4)
                     self.stop(car_5)
-                    # break
+            
+            if self.inVicinity(car_3, car_5):
+                car_3.future_waypoints = self.get_future_trajectory(car_3)
+                car_5.future_waypoints = self.get_future_trajectory(car_5)
 
-            # if car_1.stop:
-            #     self.removal(car_1)
-            # if car_2.stop:
-            #     self.removal(car_2)
-            # if car_3.stop:
-            #     self.removal(car_3)
-            # if car_4.stop:
-            #     self.removal(car_4)
-            # if car_5.stop:
-            #     self.removal(car_5)
-            # if not car_1.future_waypoints and not car_2.future_waypoints:
-            #     print("there's no future trajectory, vehicle has just started interacting with the environment")
-            #     print("time to register the vehicle into the environment")
-            #     # adding vehicles to the environment
-            #     self.add(car_1)
-            #     self.add(car_2)
-            # else:
-            #     if not self.lineIntersection(car_1.future_waypoints, car_2.future_waypoints):
-            #         # start checking for intersection
-            #         car_1.future_waypoints, car_1.d = self.get_future_trajectory(car_1)
-            #         car_2.future_waypoints, car_2.d = self.get_future_trajectory(car_2)
-            #         self.update(car_1)
-            #         self.update(car_2)
-            #         if car_1.stop:
-            #             self.removal(car_1)
-            #         if car_2.stop:
-            #             self.removal(car_2)
-                # add more functionalities
+                self.point_to_arr(car_3.id, car_3.future_waypoints)
+                self.point_to_arr(car_5.id, car_5.future_waypoints)
+                x_5, y_5 = plotter(car_5.id)
+                x_3, y_3 = plotter(car_3.id)
+
+                plt.plot(x_5, y_5, '-')
+                plt.plot(x_3, y_3, '-')
+
+                if self.collision(car_3.future_waypoints, car_5.future_waypoints):
+                    print("possibility of collision")
+                    self.stop(car_5)
+
+            if self.inVicinity(car_3, car_2):
+                car_2.future_waypoints = self.get_future_trajectory(car_2)
+                car_3.future_waypoints = self.get_future_trajectory(car_3)
+
+                self.point_to_arr(car_3.id, car_3.future_waypoints)
+                self.point_to_arr(car_2.id, car_2.future_waypoints)
+                x_2, y_2 = plotter(car_2.id)
+                x_3, y_3 = plotter(car_3.id)
+
+                plt.plot(x_2, y_2, '-')
+                plt.plot(x_3, y_3, '-')
+
+                if self.collision(car_3.future_waypoints, car_2.future_waypoints):
+                    print("possibility of collision")
+                    self.stop(car_2)
+
             end = time.time()
             time_taken += end-start
-
-            if time_taken > 5:
-                count += 1
-                if count == 1 or count == 100 or count == 200:
-                    plt.clf()
 
             # plotting tools
             plt.xlabel("X")
             plt.ylabel("Y")
             plt.title("Future trajectories of the moving vehicles")
-            # plt.grid()
             plt.pause(0.000000001)
-            # print("time taken for computation of future trajectories", end-start)
-        # rospy.sleep(1.0)
 
-    def print_info(env):
-        print("current number of vehicles:", env.vehicles)
-        print("**************************************")        
+            # printing environment information
+            print("Loop execution time", end-start)
+            print("time elapsed:", time_taken)
+            self.print_info(env)
+            print("------------------------------------------")
+            if env.vehicles == 0:
+                "Execution Done"
+                break   
 
 if __name__ == '__main__':
     try:
@@ -603,7 +550,8 @@ if __name__ == '__main__':
         v_1 = 0.3
         lin_vel_1 = Vector3(v_1, 0.0, 0.0)
         ang_vel_1 = Vector3(0.0, 0.0, 0.0)
-        car_1_pose = Pose(pos_car_1, quaternion_from_euler(0, 0, yaw_car_1))
+        q_1 = quaternion_from_euler(0, 0, yaw_car_1)
+        car_1_pose = Pose(pos_car_1, Quaternion(q_1[0], q_1[1], q_1[2], q_1[3]))
         car_1_twist = Twist(lin_vel_1, ang_vel_1)
         s_car_1 = 0 
         d_car_1 = 0.0
@@ -620,7 +568,8 @@ if __name__ == '__main__':
         v_2 = 0.3
         lin_vel_2 = Vector3(v_2, 0.0, 0.0)
         ang_vel_2 = Vector3(0.0, 0.0, 0.0)
-        car_2_pose = Pose(pos_car_2, quaternion_from_euler(0, 0, yaw_car_2))
+        q_2 = quaternion_from_euler(0, 0, yaw_car_2)
+        car_2_pose = Pose(pos_car_2, Quaternion(q_2[0], q_2[1], q_2[2], q_2[3]))
         car_2_twist = Twist(lin_vel_2, ang_vel_2)
         s_car_2 = 0 
         d_car_2 = 0.0
@@ -637,7 +586,8 @@ if __name__ == '__main__':
         v_3 = 0.3
         lin_vel_3 = Vector3(v_3, 0.0, 0.0)
         ang_vel_3 = Vector3(0.0, 0.0, 0.0)
-        car_3_pose = Pose(pos_car_3, quaternion_from_euler(0, 0, yaw_car_3))
+        q_3 = quaternion_from_euler(0, 0, yaw_car_3)
+        car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
         car_3_twist = Twist(lin_vel_3, ang_vel_3)
         s_car_3 = 0 
         d_car_3 = 0.0
@@ -654,7 +604,8 @@ if __name__ == '__main__':
         v_4 = 0.3
         lin_vel_4 = Vector3(v_4, 0.0, 0.0)
         ang_vel_4 = Vector3(0.0, 0.0, 0.0)
-        car_4_pose = Pose(pos_car_4, quaternion_from_euler(0, 0, yaw_car_4))
+        q_4 = quaternion_from_euler(0, 0, yaw_car_4)
+        car_4_pose = Pose(pos_car_4, Quaternion(q_4[0], q_4[1], q_4[2], q_4[3]))
         car_4_twist = Twist(lin_vel_4, ang_vel_4)
         s_car_4 = 0 
         d_car_4 = 0.0
@@ -668,10 +619,11 @@ if __name__ == '__main__':
 
         pos_car_5 = Point(-6.3, -8.0, 0.0)
         yaw_car_5 = 1.57
-        v_5 = 0.3
+        v_5 = 0.22
         lin_vel_5 = Vector3(v_5, 0.0, 0.0)
         ang_vel_5 = Vector3(0.0, 0.0, 0.0)
-        car_5_pose = Pose(pos_car_5, quaternion_from_euler(0, 0, yaw_car_5))
+        q_5 = quaternion_from_euler(0, 0, yaw_car_5)
+        car_5_pose = Pose(pos_car_5, Quaternion(q_5[0], q_5[1], q_5[2], q_5[3]))
         car_5_twist = Twist(lin_vel_5, ang_vel_5)
         s_car_5 = 0 
         d_car_5 = 0.0
@@ -684,20 +636,20 @@ if __name__ == '__main__':
         future_waypoints_5 = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route)
-        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route)
-        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route)
-        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route, car_yaw_1)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route, car_yaw_2)
+        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route, car_yaw_3)
+        car_4 = VehicleState("car_4", car_4_odom, car_4_twist, past_vel_4, d_car_4, past_d_4, stop_4, future_waypoints_4, car_4_route, car_yaw_4)
+        car_5 = VehicleState("car_5", car_5_odom, car_5_twist, past_vel_5, d_car_5, past_d_5, stop_5, future_waypoints_5, car_5_route, car_yaw_5)
 
         # environment setup
         no_of_vehicles = 0
-        vehicle_list = []
+        vehicle_states = []
         at_junction = False
         register = False
         deregister = False 
         interaction = False
-        env = Environment(no_of_vehicles, vehicle_list, at_junction, register, deregister, interaction)
+        env = Environment(no_of_vehicles, vehicle_states, at_junction, register, deregister, interaction)
 
         # directory for plotting the future trajectories of the vehicles
         save_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
@@ -708,15 +660,6 @@ if __name__ == '__main__':
         pub3 = rospy.Publisher('/tb3_3/cmd_vel', Twist, queue_size=10)
         pub4 = rospy.Publisher('/tb3_4/cmd_vel', Twist, queue_size=10)
         pub5 = rospy.Publisher('/tb3_5/cmd_vel', Twist, queue_size=10)
-        
-        # # subscribers
-        # car_1_sub = message_filters.Subscriber('/tb3_1/odom', Odometry)
-        # car_2_sub = message_filters.Subscriber('/tb3_2/odom', Odometry)
-        # car_3_sub = message_filters.Subscriber('/tb3_3/odom', Odometry)
-        # car_4_sub = message_filters.Subscriber('/tb3_4/odom', Odometry)
-        # car_5_sub = message_filters.Subscriber('/tb3_5/odom', Odometry)
-
-        count = 0 # plot clear
 
         sub = Subscriber()
 
