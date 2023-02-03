@@ -513,11 +513,23 @@ class Subscriber:
 
     def main(self):
         time_taken = 0
+        # arr_1_x = []
+        # arr_1_y = []
+        # arr_4_x = []
+        # arr_4_y = []
         while not rospy.is_shutdown():
             start = time.time()
 
             # print current position of the vehicle
             self.plot_current_position()
+
+            # car_1_pos = car_1.pose.pose.pose.position
+            # car_4_pos = car_4.pose.pose.pose.position
+
+            # arr_1_x.append(car_1_pos.x)
+            # arr_1_y.append(car_1_pos.y)
+            # arr_4_x.append(car_4_pos.x)
+            # arr_4_y.append(car_4_pos.y)
 
             # scenario #1
             self.dubins_update(car_1)
@@ -558,6 +570,12 @@ class Subscriber:
 
             print("Loop execution time", end-start)
             # print("time elapsed:", time_taken)
+            # print("**************")
+            # print("car1x:", arr_1_x)
+            # print("car1y:", arr_1_y)
+            # print("car4x:", arr_4_x)
+            # print("car4y:", arr_4_y)
+            # print("**************")
             print("------------------------------------------")
             if env.vehicles == 0:
                 print("Execution Done")
