@@ -1,15 +1,15 @@
 <launch>
-  <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
-  <arg name="agent_1"  default="tb3_1"/>
-  <arg name="agent_2" default="tb3_2"/>
+  <arg name="model" default="$(find collision_predictor)/robot.urdf.xacro"/>
+  <arg name="agent_1"  default="custom_bot_1"/>
+  <arg name="agent_2" default="custom_bot_2"/>
 
-  <arg name="agent_1_x_pos" default=" 0.0"/>
+  <arg name="agent_1_x_pos" default="-0.5"/>
   <arg name="agent_1_y_pos" default="-10.0"/>
   <arg name="agent_1_z_pos" default=" 0.0"/>
   <arg name="agent_1_yaw"   default=" 1.57"/>
 
   <arg name="agent_2_x_pos" default=" 9.0"/>
-  <arg name="agent_2_y_pos" default=" 0.0"/>
+  <arg name="agent_2_y_pos" default="-0.5"/>
   <arg name="agent_2_z_pos" default=" 0.0"/>
   <arg name="agent_2_yaw"   default=" 3.14"/>
 
@@ -24,25 +24,59 @@
   </include>  
 
   <group ns = "$(arg agent_1)">
-    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+    <!-- push robot_description to factory and spawn robot in gazebo -->
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+          args="-urdf -model robot $(arg agent_1) -x $(arg agent_1_x_pos) -y $(arg agent_1_y_pos) -z $(arg agent_1_z_pos) -Y $(arg agent_1_yaw) -param robot_description" respawn="false" output="screen" />
 
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+    <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
       <param name="publish_frequency" type="double" value="50.0" />
       <param name="tf_prefix" value="$(arg agent_1)" />
     </node>
-    
-    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg agent_1) -x $(arg agent_1_x_pos) -y $(arg agent_1_y_pos) -z $(arg agent_1_z_pos) -Y $(arg agent_1_yaw) -param robot_description" />
+
+    <rosparam command="load"
+              file="$(find urdf_sim_tutorial)/config/joints.yaml"
+              ns="r2d2_joint_state_controller" />
+    <rosparam command="load"
+              file="$(find urdf_sim_tutorial)/config/head.yaml"
+              ns="r2d2_head_controller" />
+    <rosparam command="load"
+              file="$(find urdf_sim_tutorial)/config/diffdrive.yaml"
+              ns="r2d2_diff_drive_controller" />
+
+    <node name="r2d2_controller_spawner" pkg="controller_manager" type="spawner"
+      args="r2d2_joint_state_controller
+            r2d2_head_controller
+            r2d2_diff_drive_controller
+            --shutdown-timeout 7"/>
   </group>
 
   <group ns = "$(arg agent_2)">
-    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+    <!-- push robot_description to factory and spawn robot in gazebo -->
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+          args="-urdf -model $(arg agent_2) -x $(arg agent_2_x_pos) -y $(arg agent_2_y_pos) -z $(arg agent_2_z_pos) -Y $(arg agent_2_yaw) -unpause -param robot_description" respawn="false" output="screen" />
 
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+    <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
       <param name="publish_frequency" type="double" value="50.0" />
       <param name="tf_prefix" value="$(arg agent_2)" />
     </node>
 
-    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg agent_2) -x $(arg agent_2_x_pos) -y $(arg agent_2_y_pos) -z $(arg agent_2_z_pos) -Y $(arg agent_2_yaw) -param robot_description" />
+    <rosparam command="load"
+              file="$(find urdf_sim_tutorial)/config/joints.yaml"
+              ns="r2d2_joint_state_controller" />
+    <rosparam command="load"
+              file="$(find urdf_sim_tutorial)/config/head.yaml"
+              ns="r2d2_head_controller" />
+    <rosparam command="load"
+              file="$(find urdf_sim_tutorial)/config/diffdrive.yaml"
+              ns="r2d2_diff_drive_controller" />
+
+    <node name="r2d2_controller_spawner" pkg="controller_manager" type="spawner"
+      args="r2d2_joint_state_controller
+            r2d2_head_controller
+            r2d2_diff_drive_controller
+            --shutdown-timeout 7"/>
   </group>
 
 </launch>
