@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import os
+import numpy as np
 
 def plotter(car):
     open_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
@@ -9,13 +10,13 @@ def plotter(car):
 
     lines = file.read().split(',')
 
-    x, y = [], []
+    x, y = np.array([]), np.array([])
 
     for line in lines: 
         points = line.split()
 
     for i in range(0, len(points), 2):
-        x.append(float(points[i]))
-        y.append(float(points[i+1]))
+        x = np.append(x, float(points[i]))
+        y = np.append(y, float(points[i+1]))
 
     return x, y
