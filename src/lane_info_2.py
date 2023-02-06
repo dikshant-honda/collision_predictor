@@ -2,7 +2,7 @@
 
 import numpy as np 
 import matplotlib.pyplot as plt
-# from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point
 import dubins
 
 def get_dubins(start, end, theta0, theta1, step_size = 0.02):
@@ -91,14 +91,14 @@ x20, y20, yaw20 = get_dubins([0.5, 1], [-1, -0.5], -np.pi/2, np.pi)				# right t
 
 # vehicle trajectories
 # car 1 path
-# x_car_1 = np.hstack((x3, x14, x6, x18, x8))
-# y_car_1 = np.hstack((y3, y14, y6, y18, y8))  
-# car_yaw_1 =  np.hstack((yaw3, yaw14, yaw6, yaw18, yaw8))
+x_car_1 = np.hstack((x5, x12, x3))
+y_car_1 = np.hstack((y5, y12, y3))  
+car_yaw_1 =  np.hstack((yaw5, yaw12, yaw3))
 
-# # car 2 path 
-# x_car_2 = np.hstack((x7[::-1], x19[::-1], x6[::-1], x14[::-1], x3[::-1]))
-# y_car_2 = np.hstack((y7[::-1], y19[::-1], y6[::-1], y14[::-1], y3[::-1]))
-# car_yaw_2 = np.hstack((np.add(yaw7, np.pi/2), np.add(yaw19, np.pi/4+np.pi/2), np.add(yaw6, np.pi), np.add(yaw14, np.pi), np.add(yaw3, np.pi)))
+# car 2 path 
+x_car_2 = np.hstack((x1, x10, x3))
+y_car_2 = np.hstack((y1, y10, y3))
+car_yaw_2 = np.hstack((yaw1, yaw10, yaw3))
 
 # # car 3 path
 # x_car_3 = np.hstack((x4, x17, x6, x18, x8))
@@ -116,13 +116,13 @@ x20, y20, yaw20 = get_dubins([0.5, 1], [-1, -0.5], -np.pi/2, np.pi)				# right t
 # car_yaw_5 = np.hstack((yaw1, yaw9, yaw3, yaw12, yaw4[::-1]))
 
 # converting car path into geometry_msgs/Point
-# car_1_route = []
-# for i in range(len(x_car_1)):
-#     car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
+car_1_route = []
+for i in range(len(x_car_1)):
+    car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
 
-# car_2_route = []
-# for i in range(len(x_car_2)):
-#     car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
+car_2_route = []
+for i in range(len(x_car_2)):
+    car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
 
 # car_3_route = []
 # for i in range(len(x_car_3)):
@@ -159,16 +159,16 @@ x20, y20, yaw20 = get_dubins([0.5, 1], [-1, -0.5], -np.pi/2, np.pi)				# right t
 # plt.plot(y19, -x19, 'b--')
 # plt.plot(y20, -x20, 'b--')
 
-# plt.plot(x_car_1, y_car_1)
-# plt.plot(x_car_2, y_car_2)
+# plt.plot(y_car_1, -x_car_1)
+# plt.plot(y_car_2, -x_car_2)
 # plt.plot(x_car_3, y_car_3)
 # plt.plot(x_car_4, y_car_4)
 # plt.plot(x_car_5, y_car_5)
 
-# print(x_car_1, y_car_1, yaw_car_1)
-# print(x_car_2, y_car_2, yaw_car_2)
+# print(x_car_1, y_car_1, car_yaw_1)
+# print(x_car_2, y_car_2, car_yaw_2)
 # print(x_car_3, y_car_3, yaw_car_3)
 # print(x_car_4, y_car_4, car_yaw_4)
 # print(x_car_5, y_car_5, yaw_car_5)
 
-plt.show()
+# plt.show()
