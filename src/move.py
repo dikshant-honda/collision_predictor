@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # speed of the turtlebots
     lin_vel = 5
-    ang_vel = 0.0
+    ang_vel = 0.1
 
     while not rospy.is_shutdown():
         update_pos(pub, lin_vel, ang_vel)
