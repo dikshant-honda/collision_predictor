@@ -1,0 +1,18 @@
+<launch>
+  <arg name="robot_name"/>
+  <arg name="init_pose"/>
+
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" ns="/$(arg robot_name)"
+        args="$(arg init_pose) -unpause -urdf -model $(arg robot_name) -param /robot_description" respawn="false" output="screen" />
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="30.0" />
+  </node>
+
+  <rosparam command="load"
+            file="$(find urdf_sim_tutorial)/config/diffdrive.yaml"
+            ns="$(arg robot_name)" />
+
+  <node name="controller_spawner_$(arg robot_name)" pkg="controller_manager" type="spawner" respawn="false"
+    ns="/$(arg robot_name)" output="screen" args="r2d2_diff_drive_controller --shutdown-timeout 3 --namespace=$/(arg robot_name)"/>
+</launch>
