@@ -1,0 +1,22 @@
+<launch>
+  <arg name="model" default="$(find collision_predictor)/robot.urdf.xacro"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+
+  <!-- BEGIN CAR 1-->
+  <group ns="car1">
+    <param name="tf_prefix" value="car1_tf" />
+    <include file="$(find collision_predictor)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x 0.0 -y -10.0 -z 0 -Y 3.14" />
+      <arg name="robot_name"  value="car1" />
+    </include>
+  </group>
+
+  <!-- BEGIN CAR 2-->
+  <group ns="car2">
+    <param name="tf_prefix" value="car2_tf" />
+    <include file="$(find collision_predictor)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x 9.0 -y 0.0 -z 0" />
+      <arg name="robot_name"  value="car2" />
+    </include>
+  </group>
+</launch>
