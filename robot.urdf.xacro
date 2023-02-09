@@ -34,7 +34,7 @@
         <box size="${baselen} ${bodylen} 0.1"/>
       </geometry>
       <origin xyz="0 0 0.15"/>
-      <material name="blue"/>
+      <material name="black"/>
     </visual>
     <collision>
       <geometry>
@@ -44,6 +44,9 @@
     </collision>
     <xacro:default_inertial mass="10"/>
   </link>
+  <gazebo reference="base_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
 
   <xacro:macro name="wheel" params="prefix suffix reflect">
 
@@ -100,7 +103,7 @@
           <box size="${leglen} 0.0 0.0"/>
         </geometry>
         <origin xyz="0 0 -${leglen/2}" rpy="0 ${pi/2} 0"/>
-        <material name="white"/>
+        <material name="blue"/>
       </visual>
       <collision>
         <geometry>
@@ -122,7 +125,7 @@
         <geometry>
           <box size="${baselen} 0.1 0.1"/>
         </geometry>
-        <material name="white"/>
+        <material name="blue"/>
       </visual>
       <collision>
         <geometry>
@@ -139,10 +142,17 @@
     </joint>
     <xacro:wheel prefix="${prefix}" suffix="front" reflect="1"/>
     <xacro:wheel prefix="${prefix}" suffix="back" reflect="-1"/>
+
+    <gazebo reference="${prefix}_leg">
+      <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <gazebo reference="${prefix}_base">
+      <material>Gazebo/Blue</material>
+    </gazebo>
   </xacro:macro>
   <xacro:leg prefix="right" reflect="-1" />
   <xacro:leg prefix="left" reflect="1" />
-
 
   <!-- Gazebo plugin for ROS Control -->
   <gazebo>
