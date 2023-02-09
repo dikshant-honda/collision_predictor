@@ -5,22 +5,7 @@
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
-  <arg name="model1" default="$(find collision_predictor)/robot.urdf.xacro"/>
-  <arg name="model2" default="$(find collision_predictor)/robot2.urdf.xacro"/>
-
-  <arg name="agent_1"  default="custom_bot_1"/>
-  <arg name="agent_2"  default="custom_bot_2"/>
-
-  <arg name="agent_1_x_pos" default="-0.5"/>
-  <arg name="agent_1_y_pos" default="-10.0"/>
-  <arg name="agent_1_z_pos" default=" 0.0"/>
-  <arg name="agent_1_yaw"   default=" 1.57"/>
-
-  <arg name="agent_2_x_pos" default=" 9.0"/>
-  <arg name="agent_2_y_pos" default="-0.5"/>
-  <arg name="agent_2_z_pos" default=" 0.0"/>
-  <arg name="agent_2_yaw"   default=" 3.14"/>
-
+ 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find collision_predictor)/world2.sdf"/>
@@ -31,60 +16,5 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <group ns = "$(arg agent_1)">
-    <param name="robot_description" command="$(find xacro)/xacro $(arg model1)" />
-
-    <!-- push robot_description to factory and spawn robot in gazebo -->
-    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
-          args="-x $(arg agent_1_x_pos) -y $(arg agent_1_y_pos) -z $(arg agent_1_z_pos) -Y $(arg agent_1_yaw) -unpause -urdf -model $(arg model1) -param robot_description" respawn="false" output="screen" />
-
-    <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
-      <param name="publish_frequency" type="double" value="30.0" />
-    </node>
-
-    <rosparam command="load"
-              file="$(find urdf_sim_tutorial)/config/joints.yaml"
-              ns="r2d2_joint_state_controller" />
-    <rosparam command="load"
-              file="$(find urdf_sim_tutorial)/config/head.yaml"
-              ns="r2d2_head_controller" />
-    <rosparam command="load"
-              file="$(find urdf_sim_tutorial)/config/diffdrive.yaml"
-              ns="r2d2_diff_drive_controller" />
-
-    <node name="r2d2_controller_spawner" pkg="controller_manager" type="spawner"
-      args="r2d2_joint_state_controller
-            r2d2_head_controller
-            r2d2_diff_drive_controller
-            --shutdown-timeout 3"/>
-  </group>
-
-  <group ns = "$(arg agent_2)">
-    <param name="robot_description" command="$(find xacro)/xacro $(arg model2)" />
-
-    <!-- push robot_description to factory and spawn robot in gazebo -->
-    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
-          args="-x $(arg agent_2_x_pos) -y $(arg agent_2_y_pos) -z $(arg agent_2_z_pos) -Y $(arg agent_2_yaw) -unpause -urdf -model $(arg model2) -param robot_description" respawn="false" output="screen" />
-
-    <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
-      <param name="publish_frequency" type="double" value="30.0" />
-    </node>
-
-    <rosparam command="load"
-              file="$(find urdf_sim_tutorial)/config/joints.yaml"
-              ns="r2d2_joint_state_controller" />
-    <rosparam command="load"
-              file="$(find urdf_sim_tutorial)/config/head.yaml"
-              ns="r2d2_head_controller" />
-    <rosparam command="load"
-              file="$(find urdf_sim_tutorial)/config/diffdrive.yaml"
-              ns="r2d2_diff_drive_controller" />
-
-    <node name="r2d2_controller_spawner" pkg="controller_manager" type="spawner"
-      args="r2d2_joint_state_controller
-            r2d2_head_controller
-            r2d2_diff_drive_controller
-            --shutdown-timeout 3"/>
-    </group>
-
+  <include file="$(find collision_predictor)/launch/multi_robot.launch"/>
 </launch>
