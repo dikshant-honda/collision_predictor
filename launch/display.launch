@@ -19,7 +19,7 @@
 
   <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
 
-  <rosparam file="$(find collision_predictor)/config/gazebo_ros_control_params.yaml" command="load"/>
+  <!-- <rosparam file="$(find collision_predictor)/config/gazebo_ros_control_params.yaml" command="load"/> -->
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
