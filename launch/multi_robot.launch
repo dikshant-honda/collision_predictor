@@ -6,7 +6,7 @@
   <group ns="car_1">
     <param name="tf_prefix" value="car_1_tf" />
     <include file="$(find collision_predictor)/launch/one_robot.launch" >
-      <arg name="init_pose" value="-x 0.0 -y -10.0 -z 0 -Y 3.14" />
+      <arg name="init_pose" value="-x 0.0 -y -10.0 -z 0 -Y 1.57" />
       <arg name="robot_name"  value="car_1" />
     </include>
   </group>
