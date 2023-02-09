@@ -1,6 +1,8 @@
 <launch>
   <arg name="robot_name"/>
   <arg name="init_pose"/>
+  <arg name="model" default="$(find collision_predictor)/robot.urdf.xacro"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
 
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" ns="/$(arg robot_name)"
         args="$(arg init_pose) -unpause -urdf -model $(arg robot_name) -param /robot_description" respawn="false" output="screen" />
@@ -9,10 +11,17 @@
     <param name="publish_frequency" type="double" value="30.0" />
   </node>
 
+  <!-- < load controller configurations /> -->
   <rosparam command="load"
-            file="$(find urdf_sim_tutorial)/config/diffdrive.yaml"
-            ns="$(arg robot_name)" />
+        file="$(find urdf_sim_tutorial)/config/joints.yaml"
+        ns="r2d2_joint_state_controller" />
+  <rosparam command="load"
+        file="$(find urdf_sim_tutorial)/config/diffdrive.yaml"
+        ns="r2d2_diff_drive_controller" />
 
-  <node name="controller_spawner_$(arg robot_name)" pkg="controller_manager" type="spawner" respawn="false"
-    ns="/$(arg robot_name)" output="screen" args="r2d2_diff_drive_controller --shutdown-timeout 3 --namespace=$/(arg robot_name)"/>
+  <node name="controller_spawner_$(arg robot_name)" pkg="controller_manager" 
+    type="spawner" respawn="false"
+    ns="/$(arg robot_name)"
+    args=" r2d2_joint_state_controller r2d2_diff_drive_controller"
+    output="screen" />
 </launch>
