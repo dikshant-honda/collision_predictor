@@ -5,7 +5,7 @@ import numpy as np
 
 def plotter(car):
     open_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
-    file_name = "traj_"+car+".txt"
+    file_name = "traj_"+car+"_double.txt"       # replace by single lane later
     file = open(os.path.join(open_path, file_name), "r+")
 
     lines = file.read().split(',')
