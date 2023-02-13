@@ -353,35 +353,42 @@ class Subscriber:
             car.at_junction = False
 
     # get the next lane information when arriving at the intersection
-    def get_possible_lanes(self, start_point):
-        # coming from south
-        if start_point.x == 1 and start_point.y == -0.5:
-            possible_lanes = ([x9, y9], [x10, y10], [x11, y11])
-        # coming from west
-        if start_point.x == -0.5 and start_point.y == -1:
-            possible_lanes = ([x12, y12], [x13, y13], [x14, y14])
-        # coming from north
-        if start_point.x == -1 and start_point.y == -0.5:
-            possible_lanes = ([x15, y15], [x16, y16], [x17, y17])
-        # coming from east
-        if start_point.x == 0.5 and start_point.y == 1:
-            possible_lanes = ([x18, y18], [x19, y19], [x20, y20])
+    def get_possible_lanes(self, location):
+        possible_lanes = []
+        directions = ["left", "right", "down", "up"]
+        for dir in directions:
+            if dir != location:
+                possible_lanes.append(location+"_to_"+dir)
         return possible_lanes
+        # # coming from south
+        # if distance(start_point.x, start_point.y, 1, -0.5) < 0.1:
+        #     possible_lanes = ([x9, y9], [x10, y10], [x11, y11])
+        # # coming from west
+        # if distance(start_point.x, start_point.y, -0.5, -1) < 0.1:
+        #     possible_lanes = ([x12, y12], [x13, y13], [x14, y14])
+        # # coming from north
+        # if distance(start_point.x, start_point.y, -1, -0.5) < 0.1:
+        #     possible_lanes = ([x15, y15], [x16, y16], [x17, y17])
+        # # coming from east
+        # if distance(start_point.x, start_point.y, 0.5, 1) < 0.1:
+        #     possible_lanes = ([x18, y18], [x19, y19], [x20, y20])
+        # return possible_lanes
 
     def get_route(self, curr_route, next_lane):
         curr_lane_len = len(curr_route)
         next_lane_len = horizon - curr_lane_len
         for i in range(next_lane_len):
-            curr_route.append(Point(next_lane_len[0][i], next_lane_len[1][i]))
+            curr_route.append(Point(next_lane[0][i], next_lane[1][i]))
         return curr_route
 
-    def get_lanes(self, curr_route):
+    def get_lanes(self, car, curr_route):
         possible_car_routes = []
+        self.get_possible_lanes(car.location)
         if len(curr_route) < horizon:
             possible_lanes = self.get_possible_lanes(curr_route[-1])
             for next_lane in possible_lanes:
                 possible_car_routes.append(self.get_route(curr_route, next_lane))
-        idx = np.random.randint(0, len(possible_lanes))                                      # replace this by the lowest risk lane 
+            idx = np.random.randint(0, len(possible_lanes))                                      # replace this by the lowest risk lane 
         car_route = possible_car_routes[idx]
         return car_route
 
@@ -448,7 +455,7 @@ class Subscriber:
 
 if __name__ == '__main__':
     try:
-        horizon = 50
+        horizon = 100                  # number of points visible to the driver
         # registering the vehicles
         # car 1 information
         pos_car_1 = Point(-0.5, -10.0, 0.0)
@@ -468,15 +475,16 @@ if __name__ == '__main__':
         car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
         stop_1 = False  
         future_waypoints_1 = []
+        at_lane_1 = True
+        at_junction_1 = False
+        location_1 = "left"
         idx_1 = list(x5).index(pos_car_1.x)
         car_1_route_ = []
         car_1_yaw_ = []
-        # [x5, y5] is the starting lane for vehicle 1
+        # [x5, y5] is the starting lane for vehicle 1  // right
         for i in range(horizon):
             car_1_route_.append(Point(x5[idx_1+i], y5[idx_1+i]))
             car_1_yaw_.append(yaw5[idx_1+i])
-        at_lane_1 = True
-        at_junction_1 = False
 
         # car 2 information
         pos_car_2 = Point(9.0, -0.5, 0.0)
@@ -498,17 +506,18 @@ if __name__ == '__main__':
         future_waypoints_2 = []
         at_lane_2 = True
         at_junction_2 = False
+        location_2 = "down"
         idx_2 = list(x1).index(pos_car_2.x)
         car_2_route_ = []
         car_2_yaw_ = []
-        # [x1, y1] is the starting lane for vehicle 2
+        # [x1, y1] is the starting lane for vehicle 2  // down
         for i in range(horizon):
             car_2_route_.append(Point(x1[idx_2+i], y1[idx_2+i]))
             car_2_yaw_.append(yaw1[idx_2+i]) 
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, at_lane_1, at_junction_1)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, at_lane_2, at_junction_2)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, at_lane_1, at_junction_1, location_1)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, at_lane_2, at_junction_2, location_2)
 
         # environment setup
         no_of_vehicles = 0
