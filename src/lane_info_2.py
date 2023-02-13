@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from geometry_msgs.msg import Point
 import dubins
 
-def get_dubins(start, end, theta0, theta1, step_size = 0.02):
+def get_dubins(start, end, theta0, theta1, step_size = 0.01):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
@@ -26,7 +26,7 @@ def get_dubins(start, end, theta0, theta1, step_size = 0.02):
 	
 	return x, y, yaw
 
-def get_straight_dubins(start, end, theta0, theta1, step_size = 0.02):
+def get_straight_dubins(start, end, theta0, theta1, step_size = 0.01):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
@@ -170,5 +170,7 @@ for i in range(len(x_car_2)):
 # print(x_car_3, y_car_3, yaw_car_3)
 # print(x_car_4, y_car_4, car_yaw_4)
 # print(x_car_5, y_car_5, yaw_car_5)
+
+print(len(x9))
 
 # plt.show()
