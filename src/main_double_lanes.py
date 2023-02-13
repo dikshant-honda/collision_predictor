@@ -352,6 +352,7 @@ class Subscriber:
             car.at_lanes = True
             car.at_junction = False
 
+    # get the next lane information when arriving at the intersection
     def get_possible_lanes(self, start_point):
         # coming from south
         if start_point.x == 1 and start_point.y == -0.5:
@@ -367,14 +368,21 @@ class Subscriber:
             possible_lanes = ([x18, y18], [x19, y19], [x20, y20])
         return possible_lanes
 
-    def get_route(self, curr_lane, next_lane):
-        pass
+    def get_route(self, curr_route, next_lane):
+        curr_lane_len = len(curr_route)
+        next_lane_len = horizon - curr_lane_len
+        for i in range(next_lane_len):
+            curr_route.append(Point(next_lane_len[0][i], next_lane_len[1][i]))
+        return curr_route
 
-    def get_lanes(self, curr_lane):
-        if len(curr_lane) < horizon:
-            possible_lanes = self.get_possible_lanes(curr_lane[-1])
+    def get_lanes(self, curr_route):
+        possible_car_routes = []
+        if len(curr_route) < horizon:
+            possible_lanes = self.get_possible_lanes(curr_route[-1])
             for next_lane in possible_lanes:
-                car_route = self.get_route(curr_lane, next_lane)
+                possible_car_routes.append(self.get_route(curr_route, next_lane))
+        idx = np.random.randint(0, len(possible_lanes))                                      # replace this by the lowest risk lane 
+        car_route = possible_car_routes[idx]
         return car_route
 
     def update_env(self, env):
