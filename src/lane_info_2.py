@@ -2,7 +2,7 @@
 
 import numpy as np 
 import matplotlib.pyplot as plt
-from geometry_msgs.msg import Point
+# from geometry_msgs.msg import Point
 import dubins
 
 def get_dubins(start, end, theta0, theta1, step_size = 0.01):
@@ -115,14 +115,35 @@ car_yaw_2 = np.hstack((yaw1, yaw10, yaw3))
 # y_car_5 = np.hstack((y1, y9, y3, y12, y4[::-1]))
 # car_yaw_5 = np.hstack((yaw1, yaw9, yaw3, yaw12, yaw4[::-1]))
 
-# converting car path into geometry_msgs/Point
-car_1_route = []
-for i in range(len(x_car_1)):
-    car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
+# possible car routes
+# from down
+down_to_left = [np.hstack((x1, x9, x6)), np.hstack((y1, y9, y6)), np.hstack((yaw1, yaw9, yaw6))]
+down_to_up = [np.hstack((x1, x10, x3)), np.hstack((y1, y10, y3)), np.hstack((yaw1, yaw10, yaw3))]
+down_to_right = [np.hstack((x1, x11, x7)), np.hstack((y1, y11, y7)), np.hstack((yaw1, yaw11, yaw7))]
 
-car_2_route = []
-for i in range(len(x_car_2)):
-    car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
+# from left
+left_to_up = [np.hstack((x5, x12, x3)), np.hstack((y5, y12, y3)), np.hstack((yaw5, yaw12, yaw3))]
+left_to_right = [np.hstack((x5, x13, x7)), np.hstack((y5, y13, y7)), np.hstack((yaw5, yaw13, yaw7))]
+left_to_down = [np.hstack((x5, x14, x2)), np.hstack((y5, y14, y2)), np.hstack((yaw5, yaw14, yaw2))]
+
+# from up
+up_to_right = [np.hstack((x4, x15, x7)), np.hstack((y4, y15, y7)), np.hstack((yaw4, yaw15, yaw7))]
+up_to_down = [np.hstack((x4, x16, x2)), np.hstack((y4, y16, y2)), np.hstack((yaw4, yaw16, yaw2))]
+up_to_left = [np.hstack((x4, x17, x6)), np.hstack((y4, y17, y6)), np.hstack((yaw4, yaw17, yaw6))]
+
+# from right
+right_to_down = [np.hstack((x8, x18, x2)), np.hstack((y8, y18, y2)), np.hstack((yaw8, yaw18, yaw2))]
+right_to_left = [np.hstack((x8, x19, x6)), np.hstack((y8, y19, y6)), np.hstack((yaw8, yaw19, yaw6))]
+right_to_up = [np.hstack((x8, x20, x3)), np.hstack((y8, y20, y3)), np.hstack((yaw8, yaw20, yaw3))]
+
+# converting car path into geometry_msgs/Point
+# car_1_route = []
+# for i in range(len(x_car_1)):
+#     car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
+
+# car_2_route = []
+# for i in range(len(x_car_2)):
+#     car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
 
 # car_3_route = []
 # for i in range(len(x_car_3)):
@@ -164,13 +185,5 @@ for i in range(len(x_car_2)):
 # plt.plot(x_car_3, y_car_3)
 # plt.plot(x_car_4, y_car_4)
 # plt.plot(x_car_5, y_car_5)
-
-# print(x_car_1, y_car_1, car_yaw_1)
-# print(x_car_2, y_car_2, car_yaw_2)
-# print(x_car_3, y_car_3, yaw_car_3)
-# print(x_car_4, y_car_4, car_yaw_4)
-# print(x_car_5, y_car_5, yaw_car_5)
-
-print(len(x9))
 
 # plt.show()
