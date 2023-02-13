@@ -32,8 +32,8 @@ class Subscriber:
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
         
         # subscribers
-        self.car_1_sub = message_filters.Subscriber('/tb3_1/odom', Odometry)
-        self.car_2_sub = message_filters.Subscriber('/tb3_2/odom', Odometry)
+        self.car_1_sub = message_filters.Subscriber('/car_1/r2d2_diff_drive_controller/odom', Odometry)
+        self.car_2_sub = message_filters.Subscriber('/car_2/r2d2_diff_drive_controller/odom', Odometry)
         self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub], 10, 0.1)
         self.ts.registerCallback(self.callback)
 
@@ -196,8 +196,8 @@ class Subscriber:
         return angle
 
     def dubins_update(self, car):
-        if car not in env.vehicle_states:
-            self.add(car)
+        # if car not in env.vehicle_states:
+        #     self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
         x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
         ind_closest = closest_point_ind(path, x_pos, y_pos)        
@@ -208,7 +208,7 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI(P=0.5, I = 1000)
+            pi = PI(P=0.001, I = 1000)
             yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
@@ -436,6 +436,43 @@ class Subscriber:
             car_yaws.append(right_yaw)
         return car_routes, car_yaws
 
+    # change the below 2 functions
+    def arr_to_pt(self, route):
+        route_points = []
+        yaw_points = []
+        for i in range(len(route)):
+            route_points.append(Point(route[0][i], route[1][i], 0))
+            yaw_points.append(route[2][i])
+        return route_points, yaw_points
+
+    # full routes instead of indexing
+    def get_routes(self, car):
+        if car.id == "car_1":
+            car_routes = []
+            car_yaws = []
+            left_route, left_yaw = self.arr_to_pt(left_to_up)
+            straight_route, straight_yaw = self.arr_to_pt(left_to_right)
+            right_route, right_yaw = self.arr_to_pt(left_to_down)
+            car_routes.append(left_route)
+            car_yaws.append(left_yaw)
+            car_routes.append(straight_route)
+            car_yaws.append(straight_yaw)
+            car_routes.append(right_route)
+            car_yaws.append(right_yaw)
+        if car.id == "car_2":
+            car_routes = []
+            car_yaws = []
+            left_route, left_yaw = self.arr_to_pt(down_to_left)
+            straight_route, straight_yaw = self.arr_to_pt(down_to_up)
+            right_route, right_yaw = self.arr_to_pt(down_to_right)
+            car_routes.append(left_route)
+            car_yaws.append(left_yaw)
+            car_routes.append(straight_route)
+            car_yaws.append(straight_yaw)
+            car_routes.append(right_route)
+            car_yaws.append(right_yaw)
+        return car_routes, car_yaws
+
     def update_env(self, env):
         # printing environment information
         self.at_intersection(car_1)
@@ -471,25 +508,31 @@ class Subscriber:
             car_1_pos = car_1.pose.pose.pose.position
             car_2_pos = car_2.pose.pose.pose.position
 
-            self.dubins_update(car_1)
-            self.dubins_update(car_2)
-
             # update car route waypoints and car yaw
             car_routes_1, car_yaws_1 = self.get_new_route(car_1, car_1_pos)
             car_routes_2, car_yaws_2 = self.get_new_route(car_2, car_2_pos)
 
-            for i in range(3):
-                car_1.car_route = car_routes_1[i]
-                car_1.car_yaw = car_yaws_1[i]
-                car_2.car_route = car_routes_2[i]
-                car_2.car_yaw = car_yaws_2[i]
+            # for i in range(3):
+            #     car_1.car_route = car_routes_1[i]
+            #     car_1.car_yaw = car_yaws_1[i]
+            #     car_2.car_route = car_routes_2[i]
+            #     car_2.car_yaw = car_yaws_2[i]
 
-                car_1.future_waypoints = self.get_future_trajectory(car_1)
-                car_2.future_waypoints = self.get_future_trajectory(car_2)
-                self.plot_future_trajectory(car_1, car_2)
-                if self.collision(car_1.future_waypoints, car_2.future_waypoints):
-                    print("possibility of collision")
-                    self.stop(car_1)
+            #     car_1.future_waypoints = self.get_future_trajectory(car_1)
+            #     car_2.future_waypoints = self.get_future_trajectory(car_2)
+                # self.plot_future_trajectory(car_1, car_2)
+                # if self.collision(car_1.future_waypoints, car_2.future_waypoints):
+                #     print("possibility of collision")
+                #     self.stop(car_1)
+                
+            car_1.car_route = car_routes_1[0]
+            car_1.car_yaw = car_yaws_1[0]
+            car_2.car_route = car_routes_2[0]
+            car_2.car_yaw = car_yaws_2[0]
+
+            # update the position
+            self.dubins_update(car_1)
+            self.dubins_update(car_2)
 
             end = time.time()
             time_taken += end-start
@@ -500,16 +543,16 @@ class Subscriber:
             plt.title("Trajectories of the moving vehicles")
             plt.pause(0.000000001)
 
-            print("Loop execution time", end-start)
+            # print("Loop execution time", end-start)
             # print("time elapsed:", time_taken)
-            print("------------------------------------------")
-            if env.vehicles == 0:
-                print("Execution Done")
-                break   
+            # print("------------------------------------------")
+            # if env.vehicles == 0:
+            #     print("Execution Done")
+            #     break   
 
 if __name__ == '__main__':
     try:
-        horizon = 100                  # number of points visible to the driver
+        horizon = 500                  # number of points visible to the driver
         # registering the vehicles
         # car 1 information
         pos_car_1 = Point(-0.5, -10.0, 0.0)
@@ -536,9 +579,9 @@ if __name__ == '__main__':
         car_1_route_ = []
         car_1_yaw_ = []
         # [x5, y5] is the starting lane for vehicle 1  // right
-        for i in range(horizon):
-            car_1_route_.append(Point(x5[idx_1+i], y5[idx_1+i], 0))
-            car_1_yaw_.append(yaw5[idx_1+i])
+        # for i in range(horizon):
+        #     car_1_route_.append(Point(x5[idx_1+i], y5[idx_1+i], 0))
+        #     car_1_yaw_.append(yaw5[idx_1+i])
 
         # car 2 information
         pos_car_2 = Point(9.0, -0.5, 0.0)
@@ -565,9 +608,9 @@ if __name__ == '__main__':
         car_2_route_ = []
         car_2_yaw_ = []
         # [x1, y1] is the starting lane for vehicle 2  // down
-        for i in range(horizon):
-            car_2_route_.append(Point(x1[idx_2+i], y1[idx_2+i], 0))
-            car_2_yaw_.append(yaw1[idx_2+i]) 
+        # for i in range(horizon):
+        #     car_2_route_.append(Point(x1[idx_2+i], y1[idx_2+i], 0))
+        #     car_2_yaw_.append(yaw1[idx_2+i]) 
 
         # initialize the vehicles
         car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, at_lane_1, at_junction_1, location_1)
