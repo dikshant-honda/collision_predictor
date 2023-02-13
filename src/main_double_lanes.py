@@ -270,7 +270,7 @@ class Subscriber:
         return False
 
     def point_to_arr(self, car, points_arr):
-        file_name = "traj_"+car+".txt"
+        file_name = "traj_"+car+"_double.txt"
         file = open(os.path.join(save_path, file_name), "w")
         for i in range(len(points_arr)):
             file.write(str(points_arr[i].x))
@@ -352,6 +352,9 @@ class Subscriber:
             car.at_lanes = True
             car.at_junction = False
 
+    '''
+    work on these functions to make everything more smooth
+    
     # get the next lane information when arriving at the intersection
     def get_possible_lanes(self, location):
         possible_lanes = []
@@ -360,19 +363,6 @@ class Subscriber:
             if dir != location:
                 possible_lanes.append(location+"_to_"+dir)
         return possible_lanes
-        # # coming from south
-        # if distance(start_point.x, start_point.y, 1, -0.5) < 0.1:
-        #     possible_lanes = ([x9, y9], [x10, y10], [x11, y11])
-        # # coming from west
-        # if distance(start_point.x, start_point.y, -0.5, -1) < 0.1:
-        #     possible_lanes = ([x12, y12], [x13, y13], [x14, y14])
-        # # coming from north
-        # if distance(start_point.x, start_point.y, -1, -0.5) < 0.1:
-        #     possible_lanes = ([x15, y15], [x16, y16], [x17, y17])
-        # # coming from east
-        # if distance(start_point.x, start_point.y, 0.5, 1) < 0.1:
-        #     possible_lanes = ([x18, y18], [x19, y19], [x20, y20])
-        # return possible_lanes
 
     def get_route(self, curr_route, next_lane):
         curr_lane_len = len(curr_route)
@@ -391,6 +381,60 @@ class Subscriber:
             idx = np.random.randint(0, len(possible_lanes))                                      # replace this by the lowest risk lane 
         car_route = possible_car_routes[idx]
         return car_route
+    '''
+    def closest_pt_idx(self, lane, x, y):
+        # finding the closest index on lane from point(x,y)
+        index = 0
+        closest_index = 0
+        min_dist = 10000.0
+        for i in range(len(lane[0])):
+            dist = distance(lane[0][i], lane[1][i], x, y)
+            if dist < min_dist:
+                min_dist = dist
+                closest_index = index
+            index += 1
+        return closest_index
+
+    def arr_to_point(self, route, idx):
+        route_points = []
+        yaw_points = []
+        for i in range(horizon):
+            route_points.append(Point(route[0][idx+i], route[1][idx+i], 0))
+            yaw_points.append(route[2][idx+i])
+        return route_points, yaw_points
+
+    def get_new_route(self, car, pos):
+        if car.id == "car_1":
+            car_routes = []
+            car_yaws = []
+            idx_left = self.closest_pt_idx(left_to_up, pos.x, pos.y)
+            idx_straight = self.closest_pt_idx(left_to_right, pos.x, pos.y)
+            idx_right = self.closest_pt_idx(left_to_down, pos.x, pos.y)
+            left_route, left_yaw = self.arr_to_point(left_to_up, idx_left)
+            straight_route, straight_yaw = self.arr_to_point(left_to_right, idx_straight)
+            right_route, right_yaw = self.arr_to_point(left_to_down, idx_right)
+            car_routes.append(left_route)
+            car_yaws.append(left_yaw)
+            car_routes.append(straight_route)
+            car_yaws.append(straight_yaw)
+            car_routes.append(right_route)
+            car_yaws.append(right_yaw)
+        if car.id == "car_2":
+            car_routes = []
+            car_yaws = []
+            idx_left = self.closest_pt_idx(down_to_left, pos.x, pos.y)
+            idx_straight = self.closest_pt_idx(down_to_up, pos.x, pos.y)
+            idx_right = self.closest_pt_idx(down_to_right, pos.x, pos.y)
+            left_route, left_yaw = self.arr_to_point(down_to_left, idx_left)
+            straight_route, straight_yaw = self.arr_to_point(down_to_up, idx_straight)
+            right_route, right_yaw = self.arr_to_point(down_to_right, idx_right)
+            car_routes.append(left_route)
+            car_yaws.append(left_yaw)
+            car_routes.append(straight_route)
+            car_yaws.append(straight_yaw)
+            car_routes.append(right_route)
+            car_yaws.append(right_yaw)
+        return car_routes, car_yaws
 
     def update_env(self, env):
         # printing environment information
@@ -430,12 +474,22 @@ class Subscriber:
             self.dubins_update(car_1)
             self.dubins_update(car_2)
 
-            car_1.future_waypoints = self.get_future_trajectory(car_1)
-            car_2.future_waypoints = self.get_future_trajectory(car_2)
-            self.plot_future_trajectory(car_1, car_2)
-            if self.collision(car_1.future_waypoints, car_2.future_waypoints):
-                print("possibility of collision")
-                self.stop(car_1)
+            # update car route waypoints and car yaw
+            car_routes_1, car_yaws_1 = self.get_new_route(car_1, car_1_pos)
+            car_routes_2, car_yaws_2 = self.get_new_route(car_2, car_2_pos)
+
+            for i in range(3):
+                car_1.car_route = car_routes_1[i]
+                car_1.car_yaw = car_yaws_1[i]
+                car_2.car_route = car_routes_2[i]
+                car_2.car_yaw = car_yaws_2[i]
+
+                car_1.future_waypoints = self.get_future_trajectory(car_1)
+                car_2.future_waypoints = self.get_future_trajectory(car_2)
+                self.plot_future_trajectory(car_1, car_2)
+                if self.collision(car_1.future_waypoints, car_2.future_waypoints):
+                    print("possibility of collision")
+                    self.stop(car_1)
 
             end = time.time()
             time_taken += end-start
@@ -483,7 +537,7 @@ if __name__ == '__main__':
         car_1_yaw_ = []
         # [x5, y5] is the starting lane for vehicle 1  // right
         for i in range(horizon):
-            car_1_route_.append(Point(x5[idx_1+i], y5[idx_1+i]))
+            car_1_route_.append(Point(x5[idx_1+i], y5[idx_1+i], 0))
             car_1_yaw_.append(yaw5[idx_1+i])
 
         # car 2 information
@@ -512,7 +566,7 @@ if __name__ == '__main__':
         car_2_yaw_ = []
         # [x1, y1] is the starting lane for vehicle 2  // down
         for i in range(horizon):
-            car_2_route_.append(Point(x1[idx_2+i], y1[idx_2+i]))
+            car_2_route_.append(Point(x1[idx_2+i], y1[idx_2+i], 0))
             car_2_yaw_.append(yaw1[idx_2+i]) 
 
         # initialize the vehicles
@@ -532,8 +586,8 @@ if __name__ == '__main__':
         save_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
 
         rospy.init_node('predictor', anonymous=True)
-        pub1 = rospy.Publisher('/tb3_1/cmd_vel', Twist, queue_size=10)
-        pub2 = rospy.Publisher('/tb3_2/cmd_vel', Twist, queue_size=10)
+        pub1 = rospy.Publisher('/car_1/r2d2_diff_drive_controller/cmd_vel', Twist, queue_size=10)
+        pub2 = rospy.Publisher('/car_2/r2d2_diff_drive_controller/cmd_vel', Twist, queue_size=10)
 
         sub = Subscriber()
 
