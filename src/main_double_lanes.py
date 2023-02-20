@@ -208,7 +208,7 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI(P=0.001, I = 1000)
+            pi = PI(P=0.01, I = 1000)
             yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
@@ -437,41 +437,41 @@ class Subscriber:
         return car_routes, car_yaws
 
     # change the below 2 functions
-    def arr_to_pt(self, route):
-        route_points = []
-        yaw_points = []
-        for i in range(len(route)):
-            route_points.append(Point(route[0][i], route[1][i], 0))
-            yaw_points.append(route[2][i])
-        return route_points, yaw_points
+    # def arr_to_pt(self, route):
+    #     route_points = []
+    #     yaw_points = []
+    #     for i in range(len(route)):
+    #         route_points.append(Point(route[0][i], route[1][i], 0))
+    #         yaw_points.append(route[2][i])
+    #     return route_points, yaw_points
 
-    # full routes instead of indexing
-    def get_routes(self, car):
-        if car.id == "car_1":
-            car_routes = []
-            car_yaws = []
-            left_route, left_yaw = self.arr_to_pt(left_to_up)
-            straight_route, straight_yaw = self.arr_to_pt(left_to_right)
-            right_route, right_yaw = self.arr_to_pt(left_to_down)
-            car_routes.append(left_route)
-            car_yaws.append(left_yaw)
-            car_routes.append(straight_route)
-            car_yaws.append(straight_yaw)
-            car_routes.append(right_route)
-            car_yaws.append(right_yaw)
-        if car.id == "car_2":
-            car_routes = []
-            car_yaws = []
-            left_route, left_yaw = self.arr_to_pt(down_to_left)
-            straight_route, straight_yaw = self.arr_to_pt(down_to_up)
-            right_route, right_yaw = self.arr_to_pt(down_to_right)
-            car_routes.append(left_route)
-            car_yaws.append(left_yaw)
-            car_routes.append(straight_route)
-            car_yaws.append(straight_yaw)
-            car_routes.append(right_route)
-            car_yaws.append(right_yaw)
-        return car_routes, car_yaws
+    # # full routes instead of indexing
+    # def get_routes(self, car):
+    #     if car.id == "car_1":
+    #         car_routes = []
+    #         car_yaws = []
+    #         left_route, left_yaw = self.arr_to_pt(left_to_up)
+    #         straight_route, straight_yaw = self.arr_to_pt(left_to_right)
+    #         right_route, right_yaw = self.arr_to_pt(left_to_down)
+    #         car_routes.append(left_route)
+    #         car_yaws.append(left_yaw)
+    #         car_routes.append(straight_route)
+    #         car_yaws.append(straight_yaw)
+    #         car_routes.append(right_route)
+    #         car_yaws.append(right_yaw)
+    #     if car.id == "car_2":
+    #         car_routes = []
+    #         car_yaws = []
+    #         left_route, left_yaw = self.arr_to_pt(down_to_left)
+    #         straight_route, straight_yaw = self.arr_to_pt(down_to_up)
+    #         right_route, right_yaw = self.arr_to_pt(down_to_right)
+    #         car_routes.append(left_route)
+    #         car_yaws.append(left_yaw)
+    #         car_routes.append(straight_route)
+    #         car_yaws.append(straight_yaw)
+    #         car_routes.append(right_route)
+    #         car_yaws.append(right_yaw)
+    #     return car_routes, car_yaws
 
     def update_env(self, env):
         # printing environment information
@@ -533,7 +533,7 @@ class Subscriber:
             # update the position
             self.dubins_update(car_1)
             self.dubins_update(car_2)
-
+            print(len(car_1.car_route))
             end = time.time()
             time_taken += end-start
 
@@ -552,7 +552,7 @@ class Subscriber:
 
 if __name__ == '__main__':
     try:
-        horizon = 500                  # number of points visible to the driver
+        horizon = 100                  # number of points visible to the driver
         # registering the vehicles
         # car 1 information
         pos_car_1 = Point(-0.5, -10.0, 0.0)
