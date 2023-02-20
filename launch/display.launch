@@ -19,11 +19,12 @@
 
   <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
 
-  <!-- <rosparam file="$(find collision_predictor)/config/gazebo_ros_control_params.yaml" command="load"/> -->
-
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
         args="-x 3.0 -y 0.0 -z 1.0 -unpause -urdf -model robot -param robot_description" respawn="false" output="screen" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="odom_to_world" 
+        args="-x 3.0 -y 0.0 -z 1.0 /map /odom" /> 
 
   <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
     <param name="publish_frequency" type="double" value="30.0" />
@@ -38,6 +39,5 @@
 
   <node name="r2d2_controller_spawner" pkg="controller_manager" type="spawner"
     args="r2d2_joint_state_controller
-          r2d2_diff_drive_controller
-          --shutdown-timeout 3"/>
+          r2d2_diff_drive_controller"/>
 </launch>
