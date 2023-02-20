@@ -38,7 +38,7 @@ class Subscriber:
         self.car_4_sub = message_filters.Subscriber('/tb3_4/odom', Odometry)
         self.car_5_sub = message_filters.Subscriber('/tb3_5/odom', Odometry)
 
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub, self.car_3_sub, self.car_4_sub, self.    car_5_sub], 10, 0.1)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub, self.car_3_sub, self.car_4_sub, self.car_5_sub], 10, 0.1)
         self.ts.registerCallback(self.callback)
 
         self.main()
