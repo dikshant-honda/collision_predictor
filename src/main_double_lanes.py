@@ -391,8 +391,8 @@ class Subscriber:
             dist = distance(lane[0][i], lane[1][i], x, y)
             if dist < min_dist:
                 min_dist = dist
-                closest_index = index
-            index += 1
+                closest_index = i
+            # index += 1
         return closest_index
 
     def arr_to_point(self, route, idx):
@@ -410,30 +410,35 @@ class Subscriber:
             idx_left = self.closest_pt_idx(left_to_up, pos.x, pos.y)
             idx_straight = self.closest_pt_idx(left_to_right, pos.x, pos.y)
             idx_right = self.closest_pt_idx(left_to_down, pos.x, pos.y)
+            print(idx_left, idx_right, idx_straight)
+            print("************************")
             left_route, left_yaw = self.arr_to_point(left_to_up, idx_left)
             straight_route, straight_yaw = self.arr_to_point(left_to_right, idx_straight)
             right_route, right_yaw = self.arr_to_point(left_to_down, idx_right)
+            # print(left_route[-10:])
+            # print(straight_route[-10:])
+            # print(right_route[-10:])
             car_routes.append(left_route)
             car_yaws.append(left_yaw)
             car_routes.append(straight_route)
             car_yaws.append(straight_yaw)
             car_routes.append(right_route)
             car_yaws.append(right_yaw)
-        if car.id == "car_2":
-            car_routes = []
-            car_yaws = []
-            idx_left = self.closest_pt_idx(down_to_left, pos.x, pos.y)
-            idx_straight = self.closest_pt_idx(down_to_up, pos.x, pos.y)
-            idx_right = self.closest_pt_idx(down_to_right, pos.x, pos.y)
-            left_route, left_yaw = self.arr_to_point(down_to_left, idx_left)
-            straight_route, straight_yaw = self.arr_to_point(down_to_up, idx_straight)
-            right_route, right_yaw = self.arr_to_point(down_to_right, idx_right)
-            car_routes.append(left_route)
-            car_yaws.append(left_yaw)
-            car_routes.append(straight_route)
-            car_yaws.append(straight_yaw)
-            car_routes.append(right_route)
-            car_yaws.append(right_yaw)
+        # if car.id == "car_2":
+        #     car_routes = []
+        #     car_yaws = []
+        #     idx_left = self.closest_pt_idx(down_to_left, pos.x, pos.y)
+        #     idx_straight = self.closest_pt_idx(down_to_up, pos.x, pos.y)
+        #     idx_right = self.closest_pt_idx(down_to_right, pos.x, pos.y)
+        #     left_route, left_yaw = self.arr_to_point(down_to_left, idx_left)
+        #     straight_route, straight_yaw = self.arr_to_point(down_to_up, idx_straight)
+        #     right_route, right_yaw = self.arr_to_point(down_to_right, idx_right)
+        #     car_routes.append(left_route)
+        #     car_yaws.append(left_yaw)
+        #     car_routes.append(straight_route)
+        #     car_yaws.append(straight_yaw)
+        #     car_routes.append(right_route)
+        #     car_yaws.append(right_yaw)
         return car_routes, car_yaws
 
     # change the below 2 functions
@@ -485,17 +490,17 @@ class Subscriber:
         car_2_pos = car_2.pose.pose.pose.position
 
         plt.plot(car_1_pos.y, -car_1_pos.x, 'r*')
-        plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
+        # plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
 
     def plot_future_trajectory(self, car1, car2):
         self.point_to_arr(car1.id, car1.future_waypoints)
         self.point_to_arr(car2.id, car2.future_waypoints)
         x1, y1 = plotter(car1.id)
-        x2, y2 = plotter(car2.id)
+        # x2, y2 = plotter(car2.id)
 
         # plot trajectories
         plt.plot(y1, -x1, '-')
-        plt.plot(y2, -x2, '-')
+        # plt.plot(y2, -x2, '-')
 
     def main(self):
         time_taken = 0
@@ -506,11 +511,11 @@ class Subscriber:
             self.plot_current_position()
 
             car_1_pos = car_1.pose.pose.pose.position
-            car_2_pos = car_2.pose.pose.pose.position
-
+            # car_2_pos = car_2.pose.pose.pose.position
+            print(car_1_pos)
             # update car route waypoints and car yaw
             car_routes_1, car_yaws_1 = self.get_new_route(car_1, car_1_pos)
-            car_routes_2, car_yaws_2 = self.get_new_route(car_2, car_2_pos)
+            # car_routes_2, car_yaws_2 = self.get_new_route(car_2, car_2_pos)
 
             # for i in range(3):
             #     car_1.car_route = car_routes_1[i]
@@ -527,13 +532,13 @@ class Subscriber:
                 
             car_1.car_route = car_routes_1[0]
             car_1.car_yaw = car_yaws_1[0]
-            car_2.car_route = car_routes_2[0]
-            car_2.car_yaw = car_yaws_2[0]
+            # car_2.car_route = car_routes_2[0]
+            # car_2.car_yaw = car_yaws_2[0]
 
             # update the position
             self.dubins_update(car_1)
-            self.dubins_update(car_2)
-            print(len(car_1.car_route))
+            # self.dubins_update(car_2)
+            
             end = time.time()
             time_taken += end-start
 
@@ -575,13 +580,8 @@ if __name__ == '__main__':
         at_lane_1 = True
         at_junction_1 = False
         location_1 = "left"
-        idx_1 = list(x5).index(pos_car_1.x)
         car_1_route_ = []
         car_1_yaw_ = []
-        # [x5, y5] is the starting lane for vehicle 1  // right
-        # for i in range(horizon):
-        #     car_1_route_.append(Point(x5[idx_1+i], y5[idx_1+i], 0))
-        #     car_1_yaw_.append(yaw5[idx_1+i])
 
         # car 2 information
         pos_car_2 = Point(9.0, -0.5, 0.0)
@@ -604,13 +604,8 @@ if __name__ == '__main__':
         at_lane_2 = True
         at_junction_2 = False
         location_2 = "down"
-        idx_2 = list(x1).index(pos_car_2.x)
         car_2_route_ = []
         car_2_yaw_ = []
-        # [x1, y1] is the starting lane for vehicle 2  // down
-        # for i in range(horizon):
-        #     car_2_route_.append(Point(x1[idx_2+i], y1[idx_2+i], 0))
-        #     car_2_yaw_.append(yaw1[idx_2+i]) 
 
         # initialize the vehicles
         car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, at_lane_1, at_junction_1, location_1)
@@ -632,6 +627,8 @@ if __name__ == '__main__':
         pub1 = rospy.Publisher('/car_1/r2d2_diff_drive_controller/cmd_vel', Twist, queue_size=10)
         pub2 = rospy.Publisher('/car_2/r2d2_diff_drive_controller/cmd_vel', Twist, queue_size=10)
 
+        odom1 = rospy.Publisher('/car_1/r2d2_diff_drive_controller/odom', Odometry, queue_size=10)
+        odom1.publish(car_1_odom)
         sub = Subscriber()
 
         rospy.spin()
