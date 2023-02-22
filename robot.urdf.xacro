@@ -156,8 +156,27 @@
 
   <!-- Gazebo plugin for ROS Control -->
   <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-      <robotNamespace>/bot</robotNamespace>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">     
+    </plugin>
+
+    <plugin name="bot_controller" filename="libgazebo_ros_diff_drive.so">
+      <updateRate>50.0</updateRate>
+      <robotBaseFrame>/base_link</robotBaseFrame>
+      <wheelSeparation>0.4</wheelSeparation>
+      <wheelDiameter>0.05</wheelDiameter>
+      <torque>5</torque>
+      <leftFrontJoint>left_front_wheel_joint</leftFrontJoint>
+      <rightFrontJoint>right_front_wheel_joint</rightFrontJoint>
+      <leftRearJoint>left_back_wheel_joint</leftRearJoint>
+      <rightRearJoint>right_back_wheel_joint</rightRearJoint>
+      <topicName>cmd_vel</topicName>
+      <commandTopic>cmd_vel</commandTopic>
+      <broadcastTF>true</broadcastTF>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>/odom</odometryFrame>
+      <covariance_x>0.000100</covariance_x>
+      <covariance_y>0.000100</covariance_y>
+      <covariance_yaw>0.010000</covariance_yaw>
     </plugin>
   </gazebo>
 
