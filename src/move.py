@@ -18,7 +18,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(2)
 
     # speed of the turtlebots
-    lin_vel = 3
+    lin_vel = 1
     ang_vel = 0.0
 
     while not rospy.is_shutdown():
