@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot name="car" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:arg name="robot_name" default="car"/>
+
   <xacro:property name="width" value="0.1" />
   <xacro:property name="leglen" value="0.1" />
   <xacro:property name="polelen" value="0.0" />
@@ -154,26 +154,29 @@
   <xacro:leg prefix="right" reflect="-1" />
   <xacro:leg prefix="left" reflect="1" />
 
-  <!-- <dummy link> -->
+  <!-- <dummy links>
   <link name="map" />
   <link name="odom" />
   <joint name="map_joint" type="fixed">
     <parent link="map" />
     <child link="odom" /> 
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-  </joint>
+  </joint> -->
 
-  <link name="odom" />  
-  <joint name="odom_joint" type="fixed">
+  <!-- <link name="base_link"/> -->
+  <!-- <joint name="odom_joint" type="fixed">
     <parent link="odom" />
     <child link="base_link" /> 
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-  </joint>
+  </joint> -->
 
   <!-- Gazebo plugin for ROS Control -->
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so"> 
     </plugin>
+  </gazebo>
+
+  <!-- <gazebo>
     <plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
@@ -182,6 +185,6 @@
       <robotBaseFrame>base_link</robotBaseFrame>
       <cmdTimeout>1.0</cmdTimeout>
     </plugin>
-  </gazebo>
+  </gazebo> -->
 
 </robot>
