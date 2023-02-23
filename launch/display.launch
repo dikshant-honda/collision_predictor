@@ -1,5 +1,8 @@
 <launch>
-
+  <!-- Robot Init pose -->
+  <arg name="x_pos" default="3.0"/>
+  <arg name="y_pos" default="0.0"/>
+  <arg name="yaw_pos" default="0.0"/>
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
@@ -17,18 +20,11 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)" />
-
-  <!-- push robot_description to factory and spawn robot in gazebo -->
-  <node name="bot_spawner" pkg="gazebo_ros" type="spawn_model"
-        args="-x 2.0 -y 0.0 -unpause -urdf -model robot -param robot_description" respawn="false" output="screen" />
-
-  <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
-    <param name="publish_frequency" type="double" value="30.0" />
-  </node>
-
-  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="map_broadcast" args="0.0 0.0 0 0 0 0 /map /odom" /> -->
-  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcast" args="0.0 0.0 0 0 0 0 /world /map" /> -->
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model)"/>
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model car -param robot_description -x $(arg x_pos) -y $(arg y_pos) -Y $(arg yaw_pos)" />
+  
+  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" /> -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
   <rosparam file="$(find collision_predictor)/config/joints.yaml" command="load" ns="joint_state_controller"/>
   <rosparam file="$(find collision_predictor)/config/bot_control.yaml" command="load" ns="diff_drive_controller" />
