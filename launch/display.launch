@@ -27,8 +27,12 @@
     <param name="publish_frequency" type="double" value="30.0" />
   </node>
 
-  <rosparam file="$(find collision_predictor)/config/bot_control.yaml" command="load" />
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="map_broadcast" args="0.0 0.0 0 0 0 0 /map /odom" /> -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="world_broadcast" args="0.0 0.0 0 0 0 0 /world /map" /> -->
+
+  <rosparam file="$(find collision_predictor)/config/joints.yaml" command="load" ns="joint_state_controller"/>
+  <rosparam file="$(find collision_predictor)/config/bot_control.yaml" command="load" ns="diff_drive_controller" />
 
   <node name="bot_control" pkg="controller_manager" type="spawner"
-    args="bot_controller"/>
+    args="joint_state_controller diff_drive_controller"/>
 </launch>
