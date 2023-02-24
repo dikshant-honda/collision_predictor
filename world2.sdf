@@ -87,26 +87,26 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name='my_world_2.sdf'>
+    <model name='intersection'>
       <link name='link_0'>
         <inertial>
-          <mass>2.53293</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22771</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>17.397</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>17.2025</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>5.5115 -1.13834 0.5 0 -0 0</pose>
+        <pose>7.37446 -2.06662 0.022372 0 -0 0</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -126,7 +126,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -181,23 +181,23 @@
       </link>
       <link name='link_0_clone'>
         <inertial>
-          <mass>2.53293</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22771</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>17.397</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>17.2025</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>5.50371 1.14187 0.5 0 -0 0</pose>
+        <pose>7.37467 2.06539 0.022372 0 -0 0</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -217,7 +217,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -272,23 +272,23 @@
       </link>
       <link name='link_0_clone_0'>
         <inertial>
-          <mass>2.53293</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22771</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>17.397</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>17.2025</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>-5.50872 -1.13855 0.5 0 -0 0</pose>
+        <pose>-7.37567 2.06509 0.022372 0 -0 0</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -308,7 +308,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -363,23 +363,23 @@
       </link>
       <link name='link_0_clone_1'>
         <inertial>
-          <mass>2.53293</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22771</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>17.397</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>17.2025</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>-5.5114 1.14051 0.5 0 -0 0</pose>
+        <pose>-7.37843 -2.06594 0.022372 0 -0 0</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -399,7 +399,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>9.0233 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -454,23 +454,23 @@
       </link>
       <link name='link_0_clone_2'>
         <inertial>
-          <mass>2.45206</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22044</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>15.7962</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>15.608</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>1.14312 5.65006 0.5 0 -0 1.56885</pose>
+        <pose>2.0754 -7.50662 0.022372 0 -0 1.57132</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -490,7 +490,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -545,23 +545,23 @@
       </link>
       <link name='link_0_clone_2_clone'>
         <inertial>
-          <mass>2.45206</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22044</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>15.7962</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>15.608</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>-1.13674 5.64551 0.5 0 -0 1.56885</pose>
+        <pose>-2.06322 -7.51033 0.022372 0 -0 1.57132</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -581,7 +581,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -636,23 +636,23 @@
       </link>
       <link name='link_0_clone_2_clone_0'>
         <inertial>
-          <mass>2.45206</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22044</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>15.7962</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>15.608</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>1.13502 -5.64433 0.5 0 -0 1.56885</pose>
+        <pose>-2.07313 7.50972 0.022372 0 -0 1.57132</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -672,7 +672,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -727,23 +727,23 @@
       </link>
       <link name='link_0_clone_2_clone_1'>
         <inertial>
-          <mass>2.45206</mass>
+          <mass>0.527326</mass>
           <inertia>
-            <ixx>0.22044</ixx>
+            <ixx>0.00644641</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>15.7962</iyy>
+            <iyy>5.08955</iyy>
             <iyz>0</iyz>
-            <izz>15.608</izz>
+            <izz>5.08475</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <pose>-1.1451 -5.64536 0.5 0 -0 1.56885</pose>
+        <pose>2.06155 7.51219 0.022372 0 -0 1.57132</pose>
         <visual name='visual'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <material>
@@ -763,7 +763,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>8.73522 0.28071 1</size>
+              <size>10.756 0.136932 0.357695</size>
             </box>
           </geometry>
           <surface>
@@ -816,15 +816,64 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
+      <model name='ground_plane'>
+        <static>1</static>
+        <link name='link'>
+          <collision name='collision'>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>100 100</size>
+              </plane>
+            </geometry>
+            <surface>
+              <contact>
+                <collide_bitmask>65535</collide_bitmask>
+                <ode/>
+              </contact>
+              <friction>
+                <ode>
+                  <mu>100</mu>
+                  <mu2>50</mu2>
+                </ode>
+                <torsional>
+                  <ode/>
+                </torsional>
+              </friction>
+              <bounce/>
+            </surface>
+            <max_contacts>10</max_contacts>
+          </collision>
+          <visual name='visual'>
+            <cast_shadows>0</cast_shadows>
+            <geometry>
+              <plane>
+                <normal>0 0 1</normal>
+                <size>100 100</size>
+              </plane>
+            </geometry>
+            <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/White</name>
+              </script>
+            </material>
+          </visual>
+          <self_collide>0</self_collide>
+          <enable_wind>0</enable_wind>
+          <kinematic>0</kinematic>
+        </link>
+        <pose>0.004373 -0.002904 -0.178972 0 -0 0</pose>
+      </model>
       <static>0</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>-0 -0.005446 0 0 -0 0</pose>
+      <pose>0.026476 0.047837 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>121 129000000</sim_time>
-      <real_time>20 443099905</real_time>
-      <wall_time>1675647136 674431944</wall_time>
-      <iterations>20338</iterations>
+      <sim_time>131 153000000</sim_time>
+      <real_time>131 859167162</real_time>
+      <wall_time>1677220603 44688326</wall_time>
+      <iterations>131153</iterations>
       <model name='ground_plane'>
         <pose>0 0 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -835,57 +884,67 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='my_world_2.sdf'>
-        <pose>0.000132 -0.005353 0 0 -0 -8.8e-05</pose>
+      <model name='intersection'>
+        <pose>0.026475 0.04783 0.156456 -9e-06 0 0</pose>
         <scale>1 1 1</scale>
         <link name='link_0'>
-          <pose>5.51153 -1.14418 0.5 0 -0 -8.8e-05</pose>
+          <pose>7.40094 -2.01879 0.178847 -9e-06 0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.475052 -1.32776 4.65749 -2.0054 -0.900331 0.179126</acceleration>
-          <wrench>-1.20327 -3.36313 11.7971 0 -0 0</wrench>
+          <acceleration>-1e-06 2.13868 -2.07805 0.608278 -9e-06 -0</acceleration>
+          <wrench>-0 1.12778 -1.09581 0 -0 0</wrench>
         </link>
         <link name='link_0_clone'>
-          <pose>5.50374 1.13603 0.5 0 -0 -8.8e-05</pose>
+          <pose>7.40115 2.11322 0.178847 -9e-06 0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.475052 -1.32776 4.65749 -2.0054 -0.900331 0.179126</acceleration>
-          <wrench>-1.20327 -3.36313 11.7971 0 -0 0</wrench>
+          <acceleration>-1e-06 2.13868 -2.07805 0.608278 -9e-06 -0</acceleration>
+          <wrench>-0 1.12778 -1.09581 0 -0 0</wrench>
         </link>
         <link name='link_0_clone_0'>
-          <pose>-5.50869 -1.14439 0.5 0 -0 -8.8e-05</pose>
+          <pose>-7.34919 2.11292 0.178847 -9e-06 0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.475052 -1.32776 4.65749 -2.0054 -0.900331 0.179126</acceleration>
-          <wrench>-1.20327 -3.36313 11.7971 0 -0 0</wrench>
+          <acceleration>-1e-06 2.13868 -2.07805 0.608278 -9e-06 -0</acceleration>
+          <wrench>-0 1.12778 -1.09581 0 -0 0</wrench>
         </link>
         <link name='link_0_clone_1'>
-          <pose>-5.51137 1.13467 0.5 0 -0 -8.8e-05</pose>
+          <pose>-7.35195 -2.01811 0.178847 -9e-06 0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.475052 -1.32776 4.65749 -2.0054 -0.900331 0.179126</acceleration>
-          <wrench>-1.20327 -3.36313 11.7971 0 -0 0</wrench>
+          <acceleration>-1e-06 2.13868 -2.07805 0.608278 -9e-06 -0</acceleration>
+          <wrench>-0 1.12778 -1.09581 0 -0 0</wrench>
         </link>
         <link name='link_0_clone_2'>
-          <pose>1.14352 5.64463 0.5 0 -0 1.56894</pose>
+          <pose>2.10188 -7.45878 0.178847 -9e-06 -0 1.57132</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>1.33083 0.486734 4.6459 0.547972 -1.45069 -0.184852</acceleration>
-          <wrench>3.26327 1.1935 11.392 0 -0 0</wrench>
+          <acceleration>-2.13868 -0.001121 -2.07805 1.79986 0.626902 -3.14159</acceleration>
+          <wrench>-1.12778 -0.000591 -1.09581 0 -0 0</wrench>
         </link>
         <link name='link_0_clone_2_clone'>
-          <pose>-1.13634 5.64008 0.5 0 -0 1.56894</pose>
+          <pose>-2.03674 -7.46249 0.178847 -9e-06 -0 1.57132</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>1.33083 0.486734 4.6459 0.547972 -1.45069 -0.184852</acceleration>
-          <wrench>3.26327 1.1935 11.392 0 -0 0</wrench>
+          <acceleration>-2.13868 -0.001121 -2.07805 1.79986 0.626902 -3.14159</acceleration>
+          <wrench>-1.12778 -0.000591 -1.09581 0 -0 0</wrench>
         </link>
         <link name='link_0_clone_2_clone_0'>
-          <pose>1.13542 -5.64976 0.5 0 -0 1.56894</pose>
+          <pose>-2.04665 7.55756 0.178847 -9e-06 -0 1.57132</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>1.33083 0.486734 4.6459 0.547972 -1.45069 -0.184852</acceleration>
-          <wrench>3.26327 1.1935 11.392 0 -0 0</wrench>
+          <acceleration>-2.13868 -0.001121 -2.07805 1.79986 0.626902 -3.14159</acceleration>
+          <wrench>-1.12778 -0.000591 -1.09581 0 -0 0</wrench>
         </link>
         <link name='link_0_clone_2_clone_1'>
-          <pose>-1.14471 -5.65079 0.5 0 -0 1.56894</pose>
+          <pose>2.08803 7.56003 0.178847 -9e-06 -0 1.57132</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>1.33083 0.486734 4.6459 0.547972 -1.45069 -0.184852</acceleration>
-          <wrench>3.26327 1.1935 11.392 0 -0 0</wrench>
+          <acceleration>-2.13868 -0.001121 -2.07805 1.79986 0.626902 -3.14159</acceleration>
+          <wrench>-1.12778 -0.000591 -1.09581 0 -0 0</wrench>
         </link>
+        <model name='ground_plane'>
+          <pose>0.030849 0.044933 -0.178972 0 -0 0</pose>
+          <scale>1 1 1</scale>
+          <link name='link'>
+            <pose>0.030849 0.044933 -0.178972 0 -0 0</pose>
+            <velocity>0 0 0 0 -0 0</velocity>
+            <acceleration>0 0 0 0 -0 0</acceleration>
+            <wrench>0 0 0 0 -0 0</wrench>
+          </link>
+        </model>
       </model>
       <light name='sun'>
         <pose>0 0 10 0 -0 0</pose>
@@ -893,7 +952,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>0 0 29.3252 -0.003464 1.57079 3.13813</pose>
+        <pose>5 -5 2 0 0.275643 2.3562</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
