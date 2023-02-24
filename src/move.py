@@ -13,12 +13,12 @@ def update_pos(pub, lin_vel, ang_vel):
 # main function
 if __name__ == '__main__':
     rospy.init_node('move_robot_node')
-    pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    pub = rospy.Publisher('/diff_drive_controller/cmd_vel', Twist, queue_size=10)
 
     rate = rospy.Rate(2)
 
     # speed of the turtlebots
-    lin_vel = 1
+    lin_vel = 3.0
     ang_vel = 0.0
 
     while not rospy.is_shutdown():
