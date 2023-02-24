@@ -5,12 +5,12 @@
   <arg name="robot_2" default="car_2"/>
 
   <!-- Robot Init poses -->
-  <arg name="x_pos_1" default="-0.5"/>
+  <arg name="x_pos_1" default="-0.9"/>
   <arg name="y_pos_1" default="-10.0"/>
   <arg name="yaw_pos_1" default="1.57"/>
 
   <arg name="x_pos_2" default="9.0"/>
-  <arg name="y_pos_2" default="-0.5"/>
+  <arg name="y_pos_2" default="-0.9"/>
   <arg name="yaw_pos_2" default="3.14"/>
 
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
