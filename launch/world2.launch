@@ -1,4 +1,18 @@
 <launch>
+
+  <!-- Defining robots -->
+  <arg name="robot_1"  default="car_1"/>
+  <arg name="robot_2" default="car_2"/>
+
+  <!-- Robot Init poses -->
+  <arg name="x_pos_1" default="0.0"/>
+  <arg name="y_pos_1" default="-10.0"/>
+  <arg name="yaw_pos_1" default="1.57"/>
+
+  <arg name="x_pos_2" default="9.0"/>
+  <arg name="y_pos_2" default="0.0"/>
+  <arg name="yaw_pos_2" default="3.14"/>
+
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
@@ -16,5 +30,25 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <include file="$(find collision_predictor)/launch/multi_robot.launch"/>
+  <arg name="model" default="$(find collision_predictor)/robot.urdf.xacro"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+
+  <!-- BEGIN CAR 1-->
+  <group ns="$(arg robot_1)">
+    <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
+      <param name="publish_frequency" type="double" value="30.0" />
+      <param name="tf_prefix" value="$(arg robot_1)" />
+    </node>
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+        args="-x $(arg x_pos_1) -y $(arg y_pos_1) -Y $(arg yaw_pos_1) -unpause -urdf -model $(arg robot_1) -param /robot_description" respawn="false" output="screen" />
+  </group>
+
+  <!-- BEGIN CAR 2-->
+  <group ns="$(arg robot_2)">
+    <param name="tf_prefix" value="$(arg robot_2)" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+        args="-x $(arg x_pos_2) -y $(arg y_pos_2) -Y $(arg yaw_pos_2) -unpause -urdf -model $(arg robot_2) -param /robot_description" respawn="false" output="screen" />
+  </group>
+
 </launch>
