@@ -28,7 +28,7 @@ class Subscriber:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.5                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-        self.intersection_vision = 2                    # check card arriving near intersection
+        self.intersection_vision = 4                    # check cars arriving near intersection
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
         
         # subscribers
@@ -429,10 +429,26 @@ class Subscriber:
             horizon += 1
             idx += 1
         return car_route_, yaw_route_
+    
+    def arriving_near_intersection(self, car_pos, intersection_center):
+        arriving = False
+        x, y = car_pos.x, car_pos.y
+        global arrived
+        dist = distance(x, y, intersection_center[0], intersection_center[1])
+        while 2 < dist < 4 and not arrived:
+            print("coming towards the intersection, sample multiple trajectories")
+            arriving = True
+            return arriving
+        if 1.9 < dist < 2:
+            print("reached intersection, sample one of the trajectory")
+            arrived = True
+        return arriving
 
     def main(self):
         time_taken = 0
         while not rospy.is_shutdown():
+            flag = True                         # flag for stopping the car
+
             start = time.time()
 
             # print current position of the vehicle
@@ -440,25 +456,42 @@ class Subscriber:
 
             car_1_pos = car_1.pose.pose.pose.position
 
-            # get route from the current position of the vehicle
-            curr_lane_1 = left_to_up
-            car_route_, yaw_route_ = self.get_route(car_1, car_1_pos, curr_lane_1)
+            if self.arriving_near_intersection(car_1_pos, [0, 0]) and not arrived:
+                # get route from the current position of the vehicle
+                possible_lanes = left_to_up, left_to_right, left_to_down
+                for lane in possible_lanes:
+                    car_route_, yaw_route_ = self.get_route(car_1, car_1_pos, lane)
+                    car_1.car_route = car_route_
+                    car_1.car_yaw = yaw_route_
 
-            car_1.car_route = car_route_
-            car_1.car_yaw = yaw_route_
+                    if len(car_route_) == 1:
+                        print("reached the end point")
+                        self.stop(car_1)
+                        flag = False
+                        break
 
-            if len(car_route_) == 1:
-                print("reached the end point")
-                self.stop(car_1)
-                break
-            
+                    car_1.future_waypoints = self.get_future_trajectory(car_1)
+
+                    self.plot_future_trajectory(car_1)
+            else:
+                car_route_, yaw_route_ = self.get_route(car_1, car_1_pos, left_to_down)
+                car_1.car_route = car_route_
+                car_1.car_yaw = yaw_route_
+
+                if len(car_route_) == 1:
+                    print("reached the end point")
+                    self.stop(car_1)
+                    flag = False
+                    break
+
+                car_1.future_waypoints = self.get_future_trajectory(car_1)
+
+                self.plot_future_trajectory(car_1)
+                
             # update the position
-            self.dubins_update(car_1)
-            # self.dubins_update(car_2)
-
-            car_1.future_waypoints = self.get_future_trajectory(car_1)
-
-            self.plot_future_trajectory(car_1)
+            if flag:
+                self.dubins_update(car_1)
+                # self.dubins_update(car_2)
             
             end = time.time()
             time_taken += end-start
@@ -547,6 +580,8 @@ if __name__ == '__main__':
         rospy.init_node('predictor', anonymous=True)
         pub1 = rospy.Publisher('/car_1/cmd_vel', Twist, queue_size=10)
         pub2 = rospy.Publisher('/car_2/cmd_vel', Twist, queue_size=10)
+
+        arrived = False
 
         sub = Subscriber()
 
