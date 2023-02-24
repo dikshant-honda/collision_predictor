@@ -9,7 +9,7 @@ def get_dubins(start, end, theta0, theta1, step_size = 0.01):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
-	turning_radius = 0.49
+	turning_radius = 1.55
 	path = dubins.shortest_path(q0, q1, turning_radius)
 	
 	configurations, _ = path.sample_many(step_size)
@@ -59,34 +59,34 @@ gazebo coordinate system:
 '''
 
 # straight lines information
-x1, y1, yaw1 = get_straight_dubins([10, -0.5], [1, -0.5], np.pi, np.pi)     	# down
-x2, y2, yaw2 = get_straight_dubins([1, 0.5], [10, 0.5], 0, 0)             		# down 
+x1, y1, yaw1 = get_straight_dubins([13, -0.9], [2.5, -0.9], np.pi, np.pi)     		# down
+x2, y2, yaw2 = get_straight_dubins([2.5, 0.9], [13, 0.9], 0, 0)             		# down 
 
-x3, y3, yaw3 = get_straight_dubins([-1, -0.5], [-10, -0.5], np.pi, np.pi)   	# up
-x4, y4, yaw4 = get_straight_dubins([-10, 0.5], [-1, 0.5], 0, 0)      	  		# up
+x3, y3, yaw3 = get_straight_dubins([-2.5, -0.9], [-13, -0.9], np.pi, np.pi)   		# up
+x4, y4, yaw4 = get_straight_dubins([-13, 0.9], [-2.5, 0.9], 0, 0)      	  			# up
 
-x5, y5, yaw5 = get_straight_dubins([-0.5, -10], [-0.5, -1], np.pi/2, np.pi/2) 	# left
-x6, y6, yaw6 = get_straight_dubins([0.5, -1], [0.5, -10], -np.pi/2, -np.pi/2) 	# left
+x5, y5, yaw5 = get_straight_dubins([-0.9, -13], [-0.9, -2.5], np.pi/2, np.pi/2) 	# left
+x6, y6, yaw6 = get_straight_dubins([0.9, -2.5], [0.9, -13], -np.pi/2, -np.pi/2) 	# left
 
-x7, y7, yaw7 = get_straight_dubins([-0.5, 1], [-0.5, 10], np.pi/2, np.pi/2) 	# right
-x8, y8, yaw8 = get_straight_dubins([0.5, 10], [0.5, 1], -np.pi/2, -np.pi/2) 	# right
+x7, y7, yaw7 = get_straight_dubins([-0.9, 2.5], [-0.9, 13], np.pi/2, np.pi/2) 		# right
+x8, y8, yaw8 = get_straight_dubins([0.9, 13], [0.9, 2.5], -np.pi/2, -np.pi/2) 		# right
 
 # intersection information
-x9, y9, yaw9 = get_dubins([1, -0.5], [0.5, -1], np.pi, -np.pi/2)				# down to left
-x10, y10, yaw10 = get_dubins([1, -0.5], [-1, -0.5], np.pi, np.pi)				# down to up
-x11, y11, yaw11 = get_dubins([1, -0.5], [-0.5, 1], np.pi, np.pi/2)				# down to right
+x9, y9, yaw9 = get_dubins([2.5, -0.9], [0.9, -2.5], np.pi, -np.pi/2)				# down to left
+x10, y10, yaw10 = get_dubins([2.5, -0.9], [-2.5, -0.9], np.pi, np.pi)				# down to up
+x11, y11, yaw11 = get_dubins([2.5, -0.9], [-0.9, 2.5], np.pi, np.pi/2)				# down to right
 
-x12, y12, yaw12 = get_dubins([-0.5, -1], [-1, -0.5], np.pi/2, np.pi)			# left to up
-x13, y13, yaw13 = get_dubins([-0.5, -1], [-0.5, 1], np.pi/2, np.pi/2)			# left to right
-x14, y14, yaw14 = get_dubins([-0.5, -1], [1, 0.5], np.pi/2, 0)					# left to down
+x12, y12, yaw12 = get_dubins([-0.9, -2.5], [-2.5, -0.9], np.pi/2, np.pi)			# left to up
+x13, y13, yaw13 = get_dubins([-0.9, -2.5], [-0.9, 2.5], np.pi/2, np.pi/2)			# left to right
+x14, y14, yaw14 = get_dubins([-0.9, -2.5], [2.5, 0.9], np.pi/2, 0)					# left to down
 
-x15, y15, yaw15 = get_dubins([-1, 0.5], [-0.5, 1], 0, np.pi/2)					# up to right
-x16, y16, yaw16 = get_dubins([-1, 0.5], [1, 0.5], 0, 0)							# up to down
-x17, y17, yaw17 = get_dubins([-1, 0.5], [0.5, -1], 0, -np.pi/2)					# up to left
+x15, y15, yaw15 = get_dubins([-2.5, 0.9], [-0.9, 2.5], 0, np.pi/2)					# up to right
+x16, y16, yaw16 = get_dubins([-2.5, 0.9], [2.5, 0.9], 0, 0)							# up to down
+x17, y17, yaw17 = get_dubins([-2.5, 0.9], [0.9, -2.5], 0, -np.pi/2)					# up to left
 
-x18, y18, yaw18 = get_dubins([0.5, 1], [1, 0.5], -np.pi/2, 0)					# right to down
-x19, y19, yaw19 = get_dubins([0.5, 1], [0.5, -1], -np.pi/2, -np.pi/2)			# right to left
-x20, y20, yaw20 = get_dubins([0.5, 1], [-1, -0.5], -np.pi/2, np.pi)				# right to up
+x18, y18, yaw18 = get_dubins([0.9, 2.5], [2.5, 0.9], -np.pi/2, 0)					# right to down
+x19, y19, yaw19 = get_dubins([0.9, 2.5], [0.9, -2.5], -np.pi/2, -np.pi/2)			# right to left
+x20, y20, yaw20 = get_dubins([0.9, 2.5], [-2.5, -0.9], -np.pi/2, np.pi)				# right to up
 
 # vehicle trajectories
 # car 1 path

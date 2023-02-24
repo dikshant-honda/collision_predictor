@@ -208,7 +208,7 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI(P=7.0, I = 1000)
+            pi = PI(P=14.0, I = 1000)
             yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
@@ -560,9 +560,9 @@ if __name__ == '__main__':
         horizon = 100                  # number of points visible to the driver
         # registering the vehicles
         # car 1 information
-        pos_car_1 = Point(-0.5, -10.0, 0.0)
+        pos_car_1 = Point(-0.9, -10.0, 0.0)
         yaw_car_1 = 1.57
-        v_1 = 0.6
+        v_1 = 1.4
         lin_vel_1 = Vector3(v_1, 0.0, 0.0)
         ang_vel_1 = Vector3(0.0, 0.0, 0.0)
         q_1 = quaternion_from_euler(0, 0, yaw_car_1)
@@ -584,7 +584,7 @@ if __name__ == '__main__':
         car_1_yaw_ = []
 
         # car 2 information
-        pos_car_2 = Point(9.0, -0.5, 0.0)
+        pos_car_2 = Point(9.0, -0.9, 0.0)
         yaw_car_2 = 3.14
         v_2 = 1
         lin_vel_2 = Vector3(v_2, 0.0, 0.0)
