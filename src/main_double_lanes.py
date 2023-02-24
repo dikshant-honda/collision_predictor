@@ -447,6 +447,11 @@ class Subscriber:
             car_1.car_route = car_route_
             car_1.car_yaw = yaw_route_
 
+            if len(car_route_) == 1:
+                print("reached the end point")
+                self.stop(car_1)
+                break
+            
             # update the position
             self.dubins_update(car_1)
             # self.dubins_update(car_2)
