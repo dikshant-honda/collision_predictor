@@ -2,15 +2,14 @@
 
 import numpy as np 
 import matplotlib.pyplot as plt
-# from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point
 import dubins
 
 def get_dubins(start, end, theta0, theta1, step_size = 0.01):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
-	turning_radius = 0.4
-
+	turning_radius = 0.49
 	path = dubins.shortest_path(q0, q1, turning_radius)
 	
 	configurations, _ = path.sample_many(step_size)
@@ -137,9 +136,9 @@ right_to_left = [np.hstack((x8, x19, x6)), np.hstack((y8, y19, y6)), np.hstack((
 right_to_up = [np.hstack((x8, x20, x3)), np.hstack((y8, y20, y3)), np.hstack((yaw8, yaw20, yaw3))]
 
 # converting car path into geometry_msgs/Point
-# car_1_route = []
-# for i in range(len(x_car_1)):
-#     car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
+car_1_route = []
+for i in range(len(left_to_down[0])):
+    car_1_route.append(Point(left_to_down[0][i], left_to_down[1][i], 0))
 
 # car_2_route = []
 # for i in range(len(x_car_2)):
@@ -158,27 +157,27 @@ right_to_up = [np.hstack((x8, x20, x3)), np.hstack((y8, y20, y3)), np.hstack((ya
 #     car_5_route.append(Point(x_car_5[i], y_car_5[i], 0))
 
 # plotting
-# plt.plot(y1, -x1, 'g')
-# plt.plot(y2, -x2, 'g')
-# plt.plot(y3, -x3, 'g')
-# plt.plot(y4, -x4, 'g')
-# plt.plot(y5, -x5, 'g')
-# plt.plot(y6, -x6, 'g')
-# plt.plot(y7, -x7, 'g')
-# plt.plot(y8, -x8, 'g')
+plt.plot(y1, -x1, 'g')
+plt.plot(y2, -x2, 'g')
+plt.plot(y3, -x3, 'g')
+plt.plot(y4, -x4, 'g')
+plt.plot(y5, -x5, 'g')
+plt.plot(y6, -x6, 'g')
+plt.plot(y7, -x7, 'g')
+plt.plot(y8, -x8, 'g')
 
-# plt.plot(y9, -x9, 'r--')
-# plt.plot(y10, -x10, 'r--')
-# plt.plot(y11, -x11, 'r--')
-# plt.plot(y12, -x12, 'b--')
-# plt.plot(y13, -x13, 'b--')
-# plt.plot(y14, -x14, 'b--')
-# plt.plot(y15, -x15, 'b--')
-# plt.plot(y16, -x16, 'b--')
-# plt.plot(y17, -x17, 'b--')
-# plt.plot(y18, -x18, 'b--')
-# plt.plot(y19, -x19, 'b--')
-# plt.plot(y20, -x20, 'b--')
+plt.plot(y9, -x9, 'r--')
+plt.plot(y10, -x10, 'r--')
+plt.plot(y11, -x11, 'r--')
+plt.plot(y12, -x12, 'b--')
+plt.plot(y13, -x13, 'b--')
+plt.plot(y14, -x14, 'b--')
+plt.plot(y15, -x15, 'b--')
+plt.plot(y16, -x16, 'b--')
+plt.plot(y17, -x17, 'b--')
+plt.plot(y18, -x18, 'b--')
+plt.plot(y19, -x19, 'b--')
+plt.plot(y20, -x20, 'b--')
 
 # plt.plot(y_car_1, -x_car_1)
 # plt.plot(y_car_2, -x_car_2)

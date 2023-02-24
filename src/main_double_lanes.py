@@ -32,8 +32,8 @@ class Subscriber:
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
         
         # subscribers
-        self.car_1_sub = message_filters.Subscriber('/car_1/r2d2_diff_drive_controller/odom', Odometry)
-        self.car_2_sub = message_filters.Subscriber('/car_2/r2d2_diff_drive_controller/odom', Odometry)
+        self.car_1_sub = message_filters.Subscriber('/car_1/odom', Odometry)
+        self.car_2_sub = message_filters.Subscriber('/car_2/odom', Odometry)
         self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub], 10, 0.1)
         self.ts.registerCallback(self.callback)
 
@@ -208,7 +208,7 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI(P=0.01, I = 1000)
+            pi = PI(P=7.0, I = 1000)
             yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
@@ -512,9 +512,9 @@ class Subscriber:
 
             car_1_pos = car_1.pose.pose.pose.position
             # car_2_pos = car_2.pose.pose.pose.position
-            print(car_1_pos)
+            # print(car_1_pos)
             # update car route waypoints and car yaw
-            car_routes_1, car_yaws_1 = self.get_new_route(car_1, car_1_pos)
+            # car_routes_1, car_yaws_1 = self.get_new_route(car_1, car_1_pos)
             # car_routes_2, car_yaws_2 = self.get_new_route(car_2, car_2_pos)
 
             # for i in range(3):
@@ -530,8 +530,8 @@ class Subscriber:
                 #     print("possibility of collision")
                 #     self.stop(car_1)
                 
-            car_1.car_route = car_routes_1[0]
-            car_1.car_yaw = car_yaws_1[0]
+            car_1.car_route = car_1_route
+            car_1.car_yaw = left_to_down[2]
             # car_2.car_route = car_routes_2[0]
             # car_2.car_yaw = car_yaws_2[0]
 
@@ -562,7 +562,7 @@ if __name__ == '__main__':
         # car 1 information
         pos_car_1 = Point(-0.5, -10.0, 0.0)
         yaw_car_1 = 1.57
-        v_1 = 1
+        v_1 = 0.6
         lin_vel_1 = Vector3(v_1, 0.0, 0.0)
         ang_vel_1 = Vector3(0.0, 0.0, 0.0)
         q_1 = quaternion_from_euler(0, 0, yaw_car_1)
@@ -624,11 +624,9 @@ if __name__ == '__main__':
         save_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
 
         rospy.init_node('predictor', anonymous=True)
-        pub1 = rospy.Publisher('/car_1/r2d2_diff_drive_controller/cmd_vel', Twist, queue_size=10)
-        pub2 = rospy.Publisher('/car_2/r2d2_diff_drive_controller/cmd_vel', Twist, queue_size=10)
+        pub1 = rospy.Publisher('/car_1/cmd_vel', Twist, queue_size=10)
+        pub2 = rospy.Publisher('/car_2/cmd_vel', Twist, queue_size=10)
 
-        odom1 = rospy.Publisher('/car_1/r2d2_diff_drive_controller/odom', Odometry, queue_size=10)
-        odom1.publish(car_1_odom)
         sub = Subscriber()
 
         rospy.spin()
