@@ -74,8 +74,6 @@ class Subscriber:
             quat = quaternion_from_euler(0,0,yaw)
             poses = PoseStamped(Header, Pose(point, quat))
             pose_arr.append(poses)
-        # adding the last point
-        pose_arr.append(PoseStamped(Header, Pose(Point2D(lane_route[-1][0], lane_route[-1][1]), quat)))
         path_route = Path(Header, pose_arr)
         lane_line_list, lane_s_map = self.path_to_list(path_route)
 
@@ -269,7 +267,7 @@ class Subscriber:
                     return True
         return False
 
-    def point_to_arr(self, car, points_arr):
+    def point_to_arr_write(self, car, points_arr):
         file_name = "traj_"+car+"_double.txt"
         file = open(os.path.join(save_path, file_name), "w")
         for i in range(len(points_arr)):
@@ -398,8 +396,8 @@ class Subscriber:
         # plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
 
     def plot_future_trajectory(self, car1):
-        self.point_to_arr(car1.id, car1.future_waypoints)
-        # self.point_to_arr(car2.id, car2.future_waypoints)
+        self.point_to_arr_write(car1.id, car1.future_waypoints)
+        # self.point_to_arr_write(car2.id, car2.future_waypoints)
         x1, y1 = plotter(car1.id)
         # x2, y2 = plotter(car2.id)
 
@@ -430,14 +428,18 @@ class Subscriber:
                 min_dist = dist
                 closest_index = i
         return closest_index
-    
+
     def stack_lanes(self, prev_lane, next_lane):
-        lane = [np.hstack((prev_lane[0], next_lane[0])), np.hstack((prev_lane[1], next_lane[1]))]
+        if len(next_lane) == 0:
+            return prev_lane
+        prev_arr_x, prev_arr_y = point_to_arr(prev_lane)
+        next_arr_x, next_arr_y = point_to_arr(next_lane)
+        lane_x = np.hstack((prev_arr_x, next_arr_x))
+        lane_y = np.hstack((prev_arr_y, next_arr_y))
+        lane = [arr_to_point(lane_x, lane_y), np.hstack((prev_lane[1], next_lane[1]))]
         return lane
     
     def get_route(self, pos, original_lane, next_lane):
-        if len(next_lane) == 0:
-            return original_lane
         lane = self.stack_lanes(original_lane, next_lane)
         idx = self.closest_pt_idx(pos.x, pos.y, lane)
         car_route_ = []
@@ -455,16 +457,24 @@ class Subscriber:
         x, y = car_pos.x, car_pos.y
         global arrived
         dist = distance(x, y, intersection_center[0], intersection_center[1])
-        while 2 < dist < 4 and not arrived:
+        while 2.5 < dist < 5 and not arrived:
             print("coming towards the intersection, sample multiple trajectories")
             arriving = True
             return arriving
-        if 1.9 < dist < 2 and not arrived:
+        if 2.4 < dist < 2.5 and not arrived:
+            print("*******************************************************")
             print("reached intersection, sample one of the trajectory")
+            print("*******************************************************")
             arrived = True
             next_routes = self.get_turning_routes(car.location)
             idx = np.random.randint(0,3)
-            print("chosen route index:", idx)
+            print(idx)
+            if idx == 0:
+                print("turn left")
+            elif idx == 1:
+                print("go straight")
+            else:
+                print("turn right")
             chosen_route = next_routes[idx]
             merging_route = self.get_linking_route(chosen_route)
             car.location = self.stack_lanes(car.location, merging_route)
@@ -507,7 +517,9 @@ class Subscriber:
                 car_1.future_waypoints = self.get_future_trajectory(car_1)
 
                 self.plot_future_trajectory(car_1)
-                
+
+            print(len(car_route_))
+
             # update the position
             if flag:
                 self.dubins_update(car_1)
