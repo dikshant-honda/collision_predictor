@@ -45,6 +45,13 @@ def get_straight_dubins(start, end, theta0, theta1, step_size = 0.01):
 
 	return x, y, yaw
 
+
+def arr_to_point(x, y):
+	point_arr = []
+	for i in range(len(x)):
+		point_arr.append(Point(x[i], y[i], 0))
+	return point_arr
+
 '''
 gazebo coordinate system:
 
@@ -135,10 +142,32 @@ right_to_down = [np.hstack((x8, x18, x2)), np.hstack((y8, y18, y2)), np.hstack((
 right_to_left = [np.hstack((x8, x19, x6)), np.hstack((y8, y19, y6)), np.hstack((yaw8, yaw19, yaw6))]
 right_to_up = [np.hstack((x8, x20, x3)), np.hstack((y8, y20, y3)), np.hstack((yaw8, yaw20, yaw3))]
 
+# lane information
+lane_1 = [arr_to_point(x1, y1), yaw1]
+lane_2 = [arr_to_point(x2, y2), yaw2]
+lane_3 = [arr_to_point(x3, y3), yaw3]
+lane_4 = [arr_to_point(x4, y4), yaw4]
+lane_5 = [arr_to_point(x5, y5), yaw5]
+lane_6 = [arr_to_point(x6, y6), yaw6]
+lane_7 = [arr_to_point(x7, y7), yaw7]
+lane_8 = [arr_to_point(x8, y8), yaw8]
+lane_9 = [arr_to_point(x9, y9), yaw9]
+lane_10 = [arr_to_point(x10, y10), yaw10]
+lane_11 = [arr_to_point(x11, y11), yaw11]
+lane_12 = [arr_to_point(x12, y12), yaw12]
+lane_13 = [arr_to_point(x13, y13), yaw13]
+lane_14 = [arr_to_point(x14, y14), yaw14]
+lane_15 = [arr_to_point(x15, y15), yaw15]
+lane_16 = [arr_to_point(x16, y16), yaw16]
+lane_17 = [arr_to_point(x17, y17), yaw17]
+lane_18 = [arr_to_point(x18, y18), yaw18]
+lane_19 = [arr_to_point(x19, y19), yaw19]
+lane_20 = [arr_to_point(x20, y20), yaw20]
+
 # converting car path into geometry_msgs/Point
-car_1_route = []
-for i in range(len(left_to_down[0])):
-    car_1_route.append(Point(left_to_down[0][i], left_to_down[1][i], 0))
+# car_1_route = []
+# for i in range(len(left_to_down[0])):
+#     car_1_route.append(Point(left_to_down[0][i], left_to_down[1][i], 0))
 
 # car_2_route = []
 # for i in range(len(x_car_2)):
