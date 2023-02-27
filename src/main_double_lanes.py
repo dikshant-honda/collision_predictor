@@ -22,7 +22,7 @@ class Subscriber:
     def __init__(self):
         # variables
         self.width = 2                                  # lane width
-        self.interp_back_path = 500                     # interpolate back to path after this # of steps
+        self.interp_back_path = 1000                    # interpolate back to path after this # of steps
         self.plan_t_m = 3                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
@@ -193,7 +193,7 @@ class Subscriber:
         
         return angle
 
-    def dubins_update(self, car):
+    def move(self, car):
         # if car not in env.vehicle_states:
         #     self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
@@ -228,7 +228,7 @@ class Subscriber:
             angular = Vector3(0, 0, 0)
             move = Twist(linear, angular)
             car.stop = True
-            self.EOL(car)
+            # self.EOL(car)
 
         # publish the move message
         self.publishers(car, move)
@@ -292,9 +292,10 @@ class Subscriber:
         env.vehicle_states.append(car)
 
     def removal(self, car):
-        env.deregister = True
-        env.vehicles -= 1
-        env.vehicle_states.remove(car)
+        if car in env.vehicle_states:
+            env.deregister = True
+            env.vehicles -= 1
+            env.vehicle_states.remove(car)
 
     def EOL(self, car):                         # vehicle has reached the goal point
         self.removal(car)
@@ -350,37 +351,6 @@ class Subscriber:
             car.at_lanes = True
             car.at_junction = False
 
-    '''
-    work on these functions to make everything more smooth
-    
-    # get the next lane information when arriving at the intersection
-    def get_possible_lanes(self, location):
-        possible_lanes = []
-        directions = ["left", "right", "down", "up"]
-        for dir in directions:
-            if dir != location:
-                possible_lanes.append(location+"_to_"+dir)
-        return possible_lanes
-
-    def get_route(self, curr_route, next_lane):
-        curr_lane_len = len(curr_route)
-        next_lane_len = horizon - curr_lane_len
-        for i in range(next_lane_len):
-            curr_route.append(Point(next_lane[0][i], next_lane[1][i]))
-        return curr_route
-
-    def get_lanes(self, car, curr_route):
-        possible_car_routes = []
-        self.get_possible_lanes(car.location)
-        if len(curr_route) < horizon:
-            possible_lanes = self.get_possible_lanes(curr_route[-1])
-            for next_lane in possible_lanes:
-                possible_car_routes.append(self.get_route(curr_route, next_lane))
-            idx = np.random.randint(0, len(possible_lanes))                                      # replace this by the lowest risk lane 
-        car_route = possible_car_routes[idx]
-        return car_route
-    '''
-
     def update_env(self, env):
         # printing environment information
         self.at_intersection(car_1)
@@ -393,23 +363,28 @@ class Subscriber:
         car_2_pos = car_2.pose.pose.pose.position
 
         plt.plot(car_1_pos.y, -car_1_pos.x, 'r*')
-        # plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
+        plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
 
-    def plot_future_trajectory(self, car1):
-        self.point_to_arr_write(car1.id, car1.future_waypoints)
-        # self.point_to_arr_write(car2.id, car2.future_waypoints)
-        x1, y1 = plotter(car1.id)
-        # x2, y2 = plotter(car2.id)
+    def plot_future_trajectory(self, car):
+        self.point_to_arr_write(car.id, car.future_waypoints)
+        x, y = plotter(car.id)
 
         # plot trajectories
-        plt.plot(y1, -x1, '-')
-        # plt.plot(y2, -x2, '-')
+        plt.plot(y, -x, '-')
 
     def get_turning_routes(self, original_lane):
+        if original_lane == lane_1:
+            return [lane_9, lane_10, lane_11]
         if original_lane == lane_5:
             return [lane_12, lane_13, lane_14]
         
     def get_linking_route(self, turning_route):
+        if turning_route == lane_9:
+            merging_route = lane_6
+        if turning_route == lane_10:
+            merging_route = lane_3
+        if turning_route == lane_11:
+            merging_route = lane_7
         if turning_route == lane_12:
             merging_route = lane_3
         if turning_route == lane_13:
@@ -455,75 +430,80 @@ class Subscriber:
     def arriving_near_intersection(self, car, car_pos, intersection_center):
         arriving = False
         x, y = car_pos.x, car_pos.y
-        global arrived
         dist = distance(x, y, intersection_center[0], intersection_center[1])
-        while 2.5 < dist < 5 and not arrived:
-            print("coming towards the intersection, sample multiple trajectories")
+        while 2.5 < dist < 5 and not car.at_junction:
+            if 4.9 < dist < 5:
+                print("coming towards the intersection, sample multiple trajectories")
             arriving = True
             return arriving
-        if 2.4 < dist < 2.5 and not arrived:
+        if 2.4 < dist < 2.5 and not car.at_junction:
             print("*******************************************************")
             print("reached intersection, sample one of the trajectory")
             print("*******************************************************")
-            arrived = True
+            car.at_junction = True
             next_routes = self.get_turning_routes(car.location)
             idx = np.random.randint(0,3)
-            print(idx)
             if idx == 0:
-                print("turn left")
+                print(car.id, ": turn left")
             elif idx == 1:
-                print("go straight")
+                print(car.id, ": go straight")
             else:
-                print("turn right")
+                print(car.id, ": turn right")
             chosen_route = next_routes[idx]
             merging_route = self.get_linking_route(chosen_route)
+            car.location = self.stack_lanes(car.location, chosen_route)
             car.location = self.stack_lanes(car.location, merging_route)
         return arriving
+    
+    def update(self, car):
+        if self.arriving_near_intersection(car, car.pose.pose.pose.position, [0, 0]) and not car.at_junction:
+            # get route from the current position of the vehicle
+            possible_lanes = self.get_turning_routes(car.location)
+            for lane in possible_lanes:
+                car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, lane)
+                car.car_route = car_route_
+                car.car_yaw = yaw_route_
+
+                car.future_waypoints = self.get_future_trajectory(car)
+
+                self.plot_future_trajectory(car)
+        else:
+            car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
+            car.car_route = car_route_
+            car.car_yaw = yaw_route_
+
+            if len(car_route_) == 1:
+                print("reached the end point")
+                self.stop(car)
+                self.EOL(car)
+                car.reached_end = True
+
+            # car.future_waypoints = self.get_future_trajectory(car)
+
+            # self.plot_future_trajectory(car)
+
 
     def main(self):
         time_taken = 0
-        while not rospy.is_shutdown():
-            flag = True                         # flag for stopping the car
 
+        # register vehicles to the environment
+        self.add(car_1)
+        self.add(car_2)
+
+        while not rospy.is_shutdown():
             start = time.time()
 
             # print current position of the vehicle
             self.plot_current_position()
+                
+            # update the environment info and move
+            if not car_1.reached_end:
+                self.update(car_1)
+                self.move(car_1)
 
-            car_1_pos = car_1.pose.pose.pose.position
-
-            if self.arriving_near_intersection(car_1, car_1_pos, [0, 0]) and not arrived:
-                # get route from the current position of the vehicle
-                possible_lanes = self.get_turning_routes(car_1.location)
-                for lane in possible_lanes:
-                    car_route_, yaw_route_ = self.get_route(car_1_pos, car_1.location, lane)
-                    car_1.car_route = car_route_
-                    car_1.car_yaw = yaw_route_
-
-                    car_1.future_waypoints = self.get_future_trajectory(car_1)
-
-                    self.plot_future_trajectory(car_1)
-            else:
-                car_route_, yaw_route_ = self.get_route(car_1_pos, car_1.location, [])
-                car_1.car_route = car_route_
-                car_1.car_yaw = yaw_route_
-
-                if len(car_route_) == 1:
-                    print("reached the end point")
-                    self.stop(car_1)
-                    flag = False
-                    break
-
-                car_1.future_waypoints = self.get_future_trajectory(car_1)
-
-                self.plot_future_trajectory(car_1)
-
-            print(len(car_route_))
-
-            # update the position
-            if flag:
-                self.dubins_update(car_1)
-                # self.dubins_update(car_2)
+            if not car_2.reached_end:
+                self.update(car_2)
+                self.move(car_2)
             
             end = time.time()
             time_taken += end-start
@@ -537,9 +517,9 @@ class Subscriber:
             # print("Loop execution time", end-start)
             # print("time elapsed:", time_taken)
             # print("------------------------------------------")
-            # if env.vehicles == 0:
-            #     print("Execution Done")
-            #     break   
+            if env.vehicles == 0:
+                print("Execution Done")
+                break   
 
 if __name__ == '__main__':
     try:
@@ -563,7 +543,7 @@ if __name__ == '__main__':
         car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
         stop_1 = False  
         future_waypoints_1 = []
-        at_lane_1 = True
+        reached_end_1 = False
         at_junction_1 = False
         location_1 = lane_5
         car_1_route_ = []
@@ -587,15 +567,15 @@ if __name__ == '__main__':
         car_2_odom = Odometry(Header, "base_footprint", car_2_pose_with_covariance, car_2_twist) 
         stop_2 = False  
         future_waypoints_2 = []
-        at_lane_2 = True
+        reached_end_2 = False
         at_junction_2 = False
-        location_2 = "down"
+        location_2 = lane_1
         car_2_route_ = []
         car_2_yaw_ = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, at_lane_1, at_junction_1, location_1)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, at_lane_2, at_junction_2, location_2)
+        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
+        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
 
         # environment setup
         no_of_vehicles = 0
@@ -612,8 +592,6 @@ if __name__ == '__main__':
         rospy.init_node('predictor', anonymous=True)
         pub1 = rospy.Publisher('/car_1/cmd_vel', Twist, queue_size=10)
         pub2 = rospy.Publisher('/car_2/cmd_vel', Twist, queue_size=10)
-
-        arrived = False
 
         sub = Subscriber()
 
