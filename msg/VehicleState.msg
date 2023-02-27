@@ -10,4 +10,4 @@ geometry_msgs/Point[] car_route
 float32[] car_yaw
 std_msgs/Bool at_lanes
 std_msgs/Bool at_junction
-std_msgs/String location
+float32[] location
