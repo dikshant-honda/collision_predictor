@@ -3,6 +3,7 @@
   <!-- Defining robots -->
   <arg name="robot_1"  default="car_1"/>
   <arg name="robot_2" default="car_2"/>
+  <arg name="robot_3" default="car_3"/>
 
   <!-- Robot Init poses -->
   <arg name="x_pos_1" default="-0.9"/>
@@ -12,6 +13,10 @@
   <arg name="x_pos_2" default="9.0"/>
   <arg name="y_pos_2" default="-0.9"/>
   <arg name="yaw_pos_2" default="3.14"/>
+
+  <arg name="x_pos_3" default="-10.0"/>
+  <arg name="y_pos_3" default="0.9"/>
+  <arg name="yaw_pos_3" default="0.0"/>
 
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
@@ -51,4 +56,10 @@
         args="-x $(arg x_pos_2) -y $(arg y_pos_2) -Y $(arg yaw_pos_2) -unpause -urdf -model $(arg robot_2) -param /robot_description" respawn="false" output="screen" />
   </group>
 
+  <!-- BEGIN CAR 3-->
+  <group ns="$(arg robot_3)">
+    <param name="tf_prefix" value="$(arg robot_3)" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+        args="-x $(arg x_pos_3) -y $(arg y_pos_3) -Y $(arg yaw_pos_3) -unpause -urdf -model $(arg robot_3) -param /robot_description" respawn="false" output="screen" />
+  </group>
 </launch>
