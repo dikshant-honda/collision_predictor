@@ -1,5 +1,6 @@
 # ! /usr/bin/env python3
 
+import rospy
 import numpy as np 
 import matplotlib.pyplot as plt
 from geometry_msgs.msg import Point
@@ -163,6 +164,8 @@ lane_17 = [arr_to_point(x17, y17), yaw17]
 lane_18 = [arr_to_point(x18, y18), yaw18]
 lane_19 = [arr_to_point(x19, y19), yaw19]
 lane_20 = [arr_to_point(x20, y20), yaw20]
+
+# print(np.hstack((lane_1[0], lane_2[0])))
 
 # converting car path into geometry_msgs/Point
 # car_1_route = []
