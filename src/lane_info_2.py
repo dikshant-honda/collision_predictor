@@ -53,6 +53,13 @@ def arr_to_point(x, y):
 		point_arr.append(Point(x[i], y[i], 0))
 	return point_arr
 
+def point_to_arr(lane):
+	arr_x, arr_y = [], []
+	for i in range(len(lane[0])):
+		arr_x.append(lane[0][i].x)
+		arr_y.append(lane[0][i].y)
+	return arr_x, arr_y
+
 '''
 gazebo coordinate system:
 
