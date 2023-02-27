@@ -21,7 +21,6 @@ from plotter import plotter
 class Subscriber:
     def __init__(self):
         # variables
-        self.width = 2                                  # lane width
         self.interp_back_path = 1000                    # interpolate back to path after this # of steps
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
@@ -34,7 +33,8 @@ class Subscriber:
         # subscribers
         self.car_1_sub = message_filters.Subscriber('/car_1/odom', Odometry)
         self.car_2_sub = message_filters.Subscriber('/car_2/odom', Odometry)
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub], 10, 0.1)
+        self.car_3_sub = message_filters.Subscriber('/car_3/odom', Odometry)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub, self.car_3_sub], 10, 0.1)
         self.ts.registerCallback(self.callback)
 
         self.main()
@@ -184,6 +184,8 @@ class Subscriber:
             pub1.publish(move)
         if car.id == "car_2":
             pub2.publish(move)
+        if car.id == "car_3":
+            pub3.publish(move)
 
     def correct_angle(self, angle):
         if angle > np.pi:
@@ -234,7 +236,7 @@ class Subscriber:
         self.publishers(car, move)
 
     # time synchronized callback
-    def callback(self, veh_1, veh_2):
+    def callback(self, veh_1, veh_2, veh_3):
         # car 1 updates
         car_1.pose = veh_1
         car_1.twist = veh_1.twist.twist
@@ -250,6 +252,14 @@ class Subscriber:
         car_2.past_vel.append(v_2)
         car_2.past_d.pop(0)
         car_2.past_d.append(car_2.d)
+
+        # car 3 updates
+        car_3.pose = veh_3
+        car_3.twist = veh_3.twist.twist
+        car_3.past_vel.pop(0)
+        car_3.past_vel.append(v_3)
+        car_3.past_d.pop(0)
+        car_3.past_d.append(car_3.d)
 
     def stop(self, car):
         print("!!! Stop:", car.id, "!!!")
@@ -361,9 +371,11 @@ class Subscriber:
     def plot_current_position(self):
         car_1_pos = car_1.pose.pose.pose.position
         car_2_pos = car_2.pose.pose.pose.position
+        car_3_pos = car_3.pose.pose.pose.position
 
         plt.plot(car_1_pos.y, -car_1_pos.x, 'r*')
         plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
+        plt.plot(car_3_pos.y, -car_3_pos.x, 'g*')
 
     def plot_future_trajectory(self, car):
         self.point_to_arr_write(car.id, car.future_waypoints)
@@ -377,6 +389,8 @@ class Subscriber:
             return [lane_9, lane_10, lane_11]
         if original_lane == lane_5:
             return [lane_12, lane_13, lane_14]
+        if original_lane == lane_4:
+            return [lane_15, lane_16, lane_17]
         
     def get_linking_route(self, turning_route):
         if turning_route == lane_9:
@@ -391,6 +405,12 @@ class Subscriber:
             merging_route = lane_7
         if turning_route == lane_14:
             merging_route = lane_2
+        if turning_route == lane_15:
+            merging_route = lane_7
+        if turning_route == lane_16:
+            merging_route = lane_2
+        if turning_route == lane_17:
+            merging_route = lane_6
         return merging_route
 
     def closest_pt_idx(self, x, y, lane):
@@ -489,6 +509,7 @@ class Subscriber:
         # register vehicles to the environment
         self.add(car_1)
         self.add(car_2)
+        self.add(car_3)
 
         while not rospy.is_shutdown():
             start = time.time()
@@ -505,7 +526,19 @@ class Subscriber:
                 self.update(car_2)
                 self.move(car_2)
 
+            if not car_3.reached_end:
+                self.update(car_3)
+                self.move(car_3)
+
             if self.collision(car_1.future_waypoints, car_2.future_waypoints):
+                print("possibility of collision")
+                self.stop(car_2)
+            
+            if self.collision(car_1.future_waypoints, car_3.future_waypoints):
+                print("possibility of collision")
+                self.stop(car_3)
+
+            if self.collision(car_2.future_waypoints, car_3.future_waypoints):
                 print("possibility of collision")
                 self.stop(car_2)
             
@@ -578,9 +611,34 @@ if __name__ == '__main__':
         car_2_route_ = []
         car_2_yaw_ = []
 
+        # car 3 information
+        pos_car_3 = Point(-10.0, 0.9, 0.0)
+        yaw_car_3 = 0.0
+        v_3 = 0.7
+        lin_vel_3 = Vector3(v_3, 0.0, 0.0)
+        ang_vel_3 = Vector3(0.0, 0.0, 0.0)
+        q_3 = quaternion_from_euler(0, 0, yaw_car_3)
+        car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
+        car_3_twist = Twist(lin_vel_3, ang_vel_3)
+        s_car_3 = 0 
+        d_car_3 = 0.0
+        past_vel_3 = [v_3]*10
+        past_d_3 = [d_car_3]*10
+        covariance_3 = [[0 for _ in range(6)] for _ in range(6)]
+        car_3_pose_with_covariance = PoseWithCovariance(car_3_pose, covariance_3)
+        car_3_odom = Odometry(Header, "base_footprint", car_3_pose_with_covariance, car_3_twist) 
+        stop_3 = False  
+        future_waypoints_3 = []
+        reached_end_3 = False
+        at_junction_3 = False
+        location_3 = lane_4
+        car_3_route_ = []
+        car_3_yaw_ = []
+
         # initialize the vehicles
         car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
         car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
+        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
 
         # environment setup
         no_of_vehicles = 0
@@ -597,6 +655,7 @@ if __name__ == '__main__':
         rospy.init_node('predictor', anonymous=True)
         pub1 = rospy.Publisher('/car_1/cmd_vel', Twist, queue_size=10)
         pub2 = rospy.Publisher('/car_2/cmd_vel', Twist, queue_size=10)
+        pub3 = rospy.Publisher('/car_3/cmd_vel', Twist, queue_size=10)
 
         sub = Subscriber()
 
