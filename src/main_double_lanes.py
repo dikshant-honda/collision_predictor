@@ -23,10 +23,10 @@ class Subscriber:
         # variables
         self.width = 2                                  # lane width
         self.interp_back_path = 1000                    # interpolate back to path after this # of steps
-        self.plan_t_m = 3                               # planning horizon
+        self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
-        self.tol = 0.5                                  # tolerance value for proximity check
+        self.tol = 0.1                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
         self.intersection_vision = 4                    # check cars arriving near intersection
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
@@ -206,7 +206,7 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI(P=14.0, I = 1000)
+            pi = PI(P=23.23, I = 10000)
             yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
@@ -420,7 +420,7 @@ class Subscriber:
         car_route_ = []
         yaw_route_ = []
         horizon = 0
-        while idx < len(lane[0]) and horizon < 150:
+        while idx < len(lane[0]) and horizon < 300:
             car_route_.append(Point(lane[0][idx].x, lane[0][idx].y, 0))
             yaw_route_.append(lane[1][idx])
             horizon += 1
@@ -472,13 +472,13 @@ class Subscriber:
             car.car_route = car_route_
             car.car_yaw = yaw_route_
 
-            if len(car_route_) == 1:
+            if len(car_route_) <= 2:
                 print("reached the end point")
                 self.stop(car)
                 self.EOL(car)
                 car.reached_end = True
-
-            # car.future_waypoints = self.get_future_trajectory(car)
+            else:
+                car.future_waypoints = self.get_future_trajectory(car)
 
             # self.plot_future_trajectory(car)
 
@@ -504,26 +504,31 @@ class Subscriber:
             if not car_2.reached_end:
                 self.update(car_2)
                 self.move(car_2)
+
+            if self.collision(car_1.future_waypoints, car_2.future_waypoints):
+                print("possibility of collision")
+                self.stop(car_2)
             
             end = time.time()
             time_taken += end-start
 
             # plotting tools
+            plt.xlim(-13, 13)
+            plt.ylim(-13, 13)
             plt.xlabel("X")
             plt.ylabel("Y")
             plt.title("Trajectories of the moving vehicles")
             plt.pause(0.000000001)
 
-            # print("Loop execution time", end-start)
-            # print("time elapsed:", time_taken)
-            # print("------------------------------------------")
+            print("Loop execution time", end-start)
+            print("time elapsed:", time_taken)
+            print("------------------------------------------")
             if env.vehicles == 0:
                 print("Execution Done")
                 break   
 
 if __name__ == '__main__':
     try:
-        horizon = 100                  # number of points visible to the driver
         # registering the vehicles
         # car 1 information
         pos_car_1 = Point(-0.9, -10.0, 0.0)
@@ -552,7 +557,7 @@ if __name__ == '__main__':
         # car 2 information
         pos_car_2 = Point(9.0, -0.9, 0.0)
         yaw_car_2 = 3.14
-        v_2 = 1
+        v_2 = 0.6
         lin_vel_2 = Vector3(v_2, 0.0, 0.0)
         ang_vel_2 = Vector3(0.0, 0.0, 0.0)
         q_2 = quaternion_from_euler(0, 0, yaw_car_2)
