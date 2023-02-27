@@ -407,30 +407,50 @@ class Subscriber:
         plt.plot(y1, -x1, '-')
         # plt.plot(y2, -x2, '-')
 
+    def get_turning_routes(self, original_lane):
+        if original_lane == lane_5:
+            return [lane_12, lane_13, lane_14]
+        
+    def get_linking_route(self, turning_route):
+        if turning_route == lane_12:
+            merging_route = lane_3
+        if turning_route == lane_13:
+            merging_route = lane_7
+        if turning_route == lane_14:
+            merging_route = lane_2
+        return merging_route
+
     def closest_pt_idx(self, x, y, lane):
         # finding the closest index on lane from point(x,y)
         closest_index = 0
         min_dist = 10000.0
         for i in range(len(lane[0])):
-            dist = distance(lane[0][i], lane[1][i], x, y)
+            dist = distance(lane[0][i].x, lane[0][i].y, x, y)
             if dist < min_dist:
                 min_dist = dist
                 closest_index = i
         return closest_index
     
-    def get_route(self, car, pos, lane):
+    def stack_lanes(self, prev_lane, next_lane):
+        lane = [np.hstack((prev_lane[0], next_lane[0])), np.hstack((prev_lane[1], next_lane[1]))]
+        return lane
+    
+    def get_route(self, pos, original_lane, next_lane):
+        if len(next_lane) == 0:
+            return original_lane
+        lane = self.stack_lanes(original_lane, next_lane)
         idx = self.closest_pt_idx(pos.x, pos.y, lane)
         car_route_ = []
         yaw_route_ = []
         horizon = 0
         while idx < len(lane[0]) and horizon < 150:
-            car_route_.append(Point(lane[0][idx], lane[1][idx], 0))
-            yaw_route_.append(lane[2][idx])
+            car_route_.append(Point(lane[0][idx].x, lane[0][idx].y, 0))
+            yaw_route_.append(lane[1][idx])
             horizon += 1
             idx += 1
         return car_route_, yaw_route_
     
-    def arriving_near_intersection(self, car_pos, intersection_center):
+    def arriving_near_intersection(self, car, car_pos, intersection_center):
         arriving = False
         x, y = car_pos.x, car_pos.y
         global arrived
@@ -439,9 +459,15 @@ class Subscriber:
             print("coming towards the intersection, sample multiple trajectories")
             arriving = True
             return arriving
-        if 1.9 < dist < 2:
+        if 1.9 < dist < 2 and not arrived:
             print("reached intersection, sample one of the trajectory")
             arrived = True
+            next_routes = self.get_turning_routes(car.location)
+            idx = np.random.randint(0,3)
+            print("chosen route index:", idx)
+            chosen_route = next_routes[idx]
+            merging_route = self.get_linking_route(chosen_route)
+            car.location = self.stack_lanes(car.location, merging_route)
         return arriving
 
     def main(self):
@@ -456,25 +482,19 @@ class Subscriber:
 
             car_1_pos = car_1.pose.pose.pose.position
 
-            if self.arriving_near_intersection(car_1_pos, [0, 0]) and not arrived:
+            if self.arriving_near_intersection(car_1, car_1_pos, [0, 0]) and not arrived:
                 # get route from the current position of the vehicle
-                possible_lanes = left_to_up, left_to_right, left_to_down
+                possible_lanes = self.get_turning_routes(car_1.location)
                 for lane in possible_lanes:
-                    car_route_, yaw_route_ = self.get_route(car_1, car_1_pos, lane)
+                    car_route_, yaw_route_ = self.get_route(car_1_pos, car_1.location, lane)
                     car_1.car_route = car_route_
                     car_1.car_yaw = yaw_route_
-
-                    if len(car_route_) == 1:
-                        print("reached the end point")
-                        self.stop(car_1)
-                        flag = False
-                        break
 
                     car_1.future_waypoints = self.get_future_trajectory(car_1)
 
                     self.plot_future_trajectory(car_1)
             else:
-                car_route_, yaw_route_ = self.get_route(car_1, car_1_pos, left_to_down)
+                car_route_, yaw_route_ = self.get_route(car_1_pos, car_1.location, [])
                 car_1.car_route = car_route_
                 car_1.car_yaw = yaw_route_
 
@@ -533,7 +553,7 @@ if __name__ == '__main__':
         future_waypoints_1 = []
         at_lane_1 = True
         at_junction_1 = False
-        location_1 = "left"
+        location_1 = lane_5
         car_1_route_ = []
         car_1_yaw_ = []
 
