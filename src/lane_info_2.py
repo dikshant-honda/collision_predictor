@@ -10,7 +10,7 @@ def get_dubins(start, end, theta0, theta1, step_size = 0.01):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
-	turning_radius = 1.55
+	turning_radius = 1.59
 	path = dubins.shortest_path(q0, q1, turning_radius)
 	
 	configurations, _ = path.sample_many(step_size)
