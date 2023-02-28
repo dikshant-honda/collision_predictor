@@ -391,6 +391,8 @@ class Subscriber:
             return [lane_12, lane_13, lane_14]
         if original_lane == lane_4:
             return [lane_15, lane_16, lane_17]
+        if original_lane == lane_8:
+            return [lane_18, lane_19, lane_20]
         
     def get_linking_route(self, turning_route):
         if turning_route == lane_9:
@@ -411,6 +413,12 @@ class Subscriber:
             merging_route = lane_2
         if turning_route == lane_17:
             merging_route = lane_6
+        if turning_route == lane_18:
+            merging_route = lane_2
+        if turning_route == lane_19:
+            merging_route = lane_6
+        if turning_route == lane_20:
+            merging_route = lane_3
         return merging_route
 
     def closest_pt_idx(self, x, y, lane):
@@ -469,6 +477,7 @@ class Subscriber:
                 print(car.id, ": go straight")
             else:
                 print(car.id, ": turn right")
+            idx = 2
             chosen_route = next_routes[idx]
             merging_route = self.get_linking_route(chosen_route)
             car.location = self.stack_lanes(car.location, chosen_route)
@@ -500,7 +509,7 @@ class Subscriber:
             else:
                 car.future_waypoints = self.get_future_trajectory(car)
 
-            # self.plot_future_trajectory(car)
+            self.plot_future_trajectory(car)
 
 
     def main(self):
@@ -518,29 +527,29 @@ class Subscriber:
             self.plot_current_position()
                 
             # update the environment info and move
-            if not car_1.reached_end:
-                self.update(car_1)
-                self.move(car_1)
+            # if not car_1.reached_end:
+            #     self.update(car_1)
+            #     self.move(car_1)
 
-            if not car_2.reached_end:
-                self.update(car_2)
-                self.move(car_2)
+            # if not car_2.reached_end:
+            #     self.update(car_2)
+            #     self.move(car_2)
 
             if not car_3.reached_end:
                 self.update(car_3)
                 self.move(car_3)
 
-            if self.collision(car_1.future_waypoints, car_2.future_waypoints):
-                print("possibility of collision")
-                self.stop(car_2)
+            # if self.collision(car_1.future_waypoints, car_2.future_waypoints):
+            #     print("possibility of collision")
+            #     self.stop(car_2)
             
-            if self.collision(car_1.future_waypoints, car_3.future_waypoints):
-                print("possibility of collision")
-                self.stop(car_3)
+            # if self.collision(car_1.future_waypoints, car_3.future_waypoints):
+            #     print("possibility of collision")
+            #     self.stop(car_3)
 
-            if self.collision(car_2.future_waypoints, car_3.future_waypoints):
-                print("possibility of collision")
-                self.stop(car_2)
+            # if self.collision(car_2.future_waypoints, car_3.future_waypoints):
+            #     print("possibility of collision")
+            #     self.stop(car_2)
             
             end = time.time()
             time_taken += end-start
@@ -612,8 +621,8 @@ if __name__ == '__main__':
         car_2_yaw_ = []
 
         # car 3 information
-        pos_car_3 = Point(-10.0, 0.9, 0.0)
-        yaw_car_3 = 0.0
+        pos_car_3 = Point(0.9, 10.0, 0.0)
+        yaw_car_3 = 4.71
         v_3 = 0.7
         lin_vel_3 = Vector3(v_3, 0.0, 0.0)
         ang_vel_3 = Vector3(0.0, 0.0, 0.0)
@@ -631,7 +640,7 @@ if __name__ == '__main__':
         future_waypoints_3 = []
         reached_end_3 = False
         at_junction_3 = False
-        location_3 = lane_4
+        location_3 = lane_8
         car_3_route_ = []
         car_3_yaw_ = []
 
