@@ -14,9 +14,9 @@
   <arg name="y_pos_2" default="-0.9"/>
   <arg name="yaw_pos_2" default="3.14"/>
 
-  <arg name="x_pos_3" default="-10.0"/>
-  <arg name="y_pos_3" default="0.9"/>
-  <arg name="yaw_pos_3" default="0.0"/>
+  <arg name="x_pos_3" default="0.9"/>
+  <arg name="y_pos_3" default="10.0"/>
+  <arg name="yaw_pos_3" default="4.71"/>
 
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
