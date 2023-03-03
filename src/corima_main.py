@@ -295,7 +295,7 @@ class Subscriber:
         car_route_ = []
         yaw_route_ = []
         horizon = 0
-        while idx < len(lane[0]) and horizon < 300:
+        while idx < len(lane[0]) and horizon < 500:
             car_route_.append(Point(lane[0][idx].x, lane[0][idx].y, 0))
             yaw_route_.append(lane[1][idx])
             horizon += 1
@@ -364,11 +364,13 @@ class Subscriber:
         velocity_1 = Velocity(0, 0.7)
         position_1 = Position(car_1.pose.pose.pose.position.x, car_1.pose.pose.pose.position.y)
         id_1 = "14"
+        route_1 = car_1.car_route
         velocity_2 = Velocity(0.6, 0)
         position_2 = Position(car_2.pose.pose.pose.position.x, car_2.pose.pose.pose.position.y)
         id_2 = "7"
-        pt_1 = DataPoint(id_1, position_1, velocity_1, type_)
-        pt_2 = DataPoint(id_2, position_2, velocity_2, type_)
+        route_2 = car_2.car_route
+        pt_1 = DataPoint(id_1, position_1, velocity_1, route_1, type_)
+        pt_2 = DataPoint(id_2, position_2, velocity_2, route_2, type_)
         poses.append(pt_1)
         poses.append(pt_2)
         result = predict_collisions(poses)
@@ -384,13 +386,7 @@ class Subscriber:
 
         while not rospy.is_shutdown():
             start = time.time()
-
-            # print current position of the vehicle
-            self.plot_current_position()
-
-            result = self.corima_collision_predictor()
-            # print(result)
-                
+   
             # update the environment info and move
             if not car_1.reached_end:
                 self.update(car_1)
@@ -416,6 +412,11 @@ class Subscriber:
             # if self.collision(car_2.future_waypoints, car_3.future_waypoints):
             #     print("possibility of collision")
             #     self.stop(car_2)
+
+            # print current position of the vehicle
+            self.plot_current_position()
+            result = self.corima_collision_predictor()
+            print(result)
             
             end = time.time()
             time_taken += end-start

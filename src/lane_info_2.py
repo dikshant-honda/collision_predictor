@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from geometry_msgs.msg import Point
 import dubins
 
-def get_dubins(start, end, theta0, theta1, step_size = 0.01):
+def get_dubins(start, end, theta0, theta1, step_size = 0.001):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
@@ -26,7 +26,7 @@ def get_dubins(start, end, theta0, theta1, step_size = 0.01):
 	
 	return x, y, yaw
 
-def get_straight_dubins(start, end, theta0, theta1, step_size = 0.01):
+def get_straight_dubins(start, end, theta0, theta1, step_size = 0.001):
 	q0 = (start[0], start[1], theta0)
 	q1 = (end[0], end[1], theta1)
 
@@ -182,8 +182,6 @@ lane_17 = [arr_to_point(x17, y17), yaw17]
 lane_18 = [arr_to_point(x18, y18), yaw18]
 lane_19 = [arr_to_point(x19, y19), yaw19]
 lane_20 = [arr_to_point(x20, y20), yaw20]
-
-# print(np.hstack((lane_1[0], lane_2[0])))
 
 # plotting
 # plt.plot(y1, -x1, 'g')
