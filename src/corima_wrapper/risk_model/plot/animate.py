@@ -83,7 +83,7 @@ def animate(ego_trajectory: UncertainTrajectory, other_trajectories: list[Uncert
                 continue
             is_ego = True
             color = "green"
-            zorder = 1
+            zorder = 0
 
             ellipse = axes.add_artist(
                 create_ellipse(

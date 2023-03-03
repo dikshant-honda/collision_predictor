@@ -20,4 +20,5 @@ class DataPoint(NamedTuple):
     id: str
     position: Position
     velocity: Velocity
+    route: list
     type: Literal["person", "car", "bus", "unknown"] = "unknown"
