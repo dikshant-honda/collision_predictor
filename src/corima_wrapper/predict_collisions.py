@@ -65,7 +65,6 @@ def predict_collisions(
     # return list(zip(datapoints, compute_survival(events, delta_t=delta_t)))
     result = []
     # compare risk with respect to every other vehicle
-    print(datapoints)
     for ego in datapoints:
         uncertain_ego_trajectory = Trajectory.future_prediction(
             trajectory_id=ego.id,
@@ -90,8 +89,9 @@ def predict_collisions(
 
         events = calculate_overlaps(uncertain_ego_trajectory, uncertain_trajectories)
         probability = compute_survival(events, delta_t=delta_t)
-        result.append((ego, probability))
-
+        # result.append((ego, probability))
+        result.append(max(probability))
+        print(ego.id, max(probability))
         # getting the risks as a list, is it the risk with respect to other vehicle. how can i define my own risk value.
         animate(uncertain_ego_trajectory, uncertain_trajectories)
     return result

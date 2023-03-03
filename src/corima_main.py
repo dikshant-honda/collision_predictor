@@ -30,9 +30,7 @@ class Subscriber:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 0.1                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-        self.intersection_vision = 4                    # check cars arriving near intersection
-        self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
-        
+      
         # subscribers
         self.car_1_sub = message_filters.Subscriber('/car_1/odom', Odometry)
         self.car_2_sub = message_filters.Subscriber('/car_2/odom', Odometry)
@@ -159,29 +157,6 @@ class Subscriber:
 
         return p_xy.x, p_xy.y
 
-    # future waypoints
-    def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
-        s, d_curr, _ = self.get_frenet_with_theta(init_x, init_y, path, s_map)
-        d = (d_curr + d) / 2                    # average of all the deviations from center
-        future_waypoints = []
-        for t in range(self.np_m):
-            if t < self.interp_back_path:
-                d_val = d - ((t*d) / self.interp_back_path)
-                new_x, new_y = self.get_xy(s+v*self.dt_m*t, d_val, path, s_map)
-            else:
-                new_x, new_y = self.get_xy(s+v*self.dt_m*t, 0, path, s_map)
-            future_waypoints.append(Point(new_x, new_y, 0.0))
-        return future_waypoints, d
-
-    # getting the future trajectory
-    def get_future_trajectory(self, car): 
-        v = np.mean(car.past_vel)
-        d = np.mean(car.past_d)
-        lane_line_list, lane_s_map = self.get_lane_and_s_map(car.car_route)
-        future_waypoints, d = self.PredictTrajectoryVehicles(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
-        car.d = d
-        return future_waypoints
-
     def publishers(self, car, move):
         if car.id == "car_1":
             pub1.publish(move)
@@ -199,8 +174,6 @@ class Subscriber:
         return angle
 
     def move(self, car):
-        # if car not in env.vehicle_states:
-        #     self.add(car)
         path, _  = self.get_lane_and_s_map(car.car_route)
         x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
         ind_closest = closest_point_ind(path, x_pos, y_pos)        
@@ -272,33 +245,6 @@ class Subscriber:
         car.stop = True
         self.publishers(car, move)
 
-    # collision check by vicinity or point-wise check
-    def collision(self, points1, points2):
-        for i in range(len(points1)):
-            for j in range(len(points2)):
-                if distance(points1[i].x, points1[i].y, points2[j].x, points2[j].y) < self.tol:
-                    return True
-        return False
-
-    def point_to_arr_write(self, car, points_arr):
-        file_name = "traj_"+car+"_double.txt"
-        file = open(os.path.join(save_path, file_name), "w")
-        for i in range(len(points_arr)):
-            file.write(str(points_arr[i].x))
-            file.write("\t")
-            file.write(str(points_arr[i].y))
-            file.write("\n")
-        # print("trajectory for", car, "added to file:", file_name)
-        file.close()
-
-    def inVicinity(self, car1, car2):
-        car1_pos = car1.pose.pose.pose.position
-        car2_pos = car2.pose.pose.pose.position
-        if distance(car1_pos.x, car1_pos.y, car2_pos.x, car2_pos.y) < self.vision_radius:
-            # print("start checking the future trajectories between", car1.id, "and", car2.id)
-            return True
-        return False
-
     def add(self, car):
         env.register = True
         env.vehicles += 1
@@ -313,64 +259,6 @@ class Subscriber:
     def EOL(self, car):                         # vehicle has reached the goal point
         self.removal(car)
 
-    def add_to_intersection(self, car, junction_type):
-        if car not in self.car_at_junction[junction_type]:
-            self.car_at_junction[junction_type].append(car)
-
-    def remove_from_intersection(self, car, junction_type):
-        if car in self.car_at_junction[junction_type]:
-            self.car_at_junction[junction_type].remove(car)
-
-    def at_intersection(self, car):
-        car_pos = car.pose.pose.pose.position
-        T_intersection_origin = Point(-5.5, 0, 0)
-        X_intersection_origin = Point(0, 0, 0)
-        Y_intersection_origin = Point(6, 0, 0)
-
-        d_T = distance(car_pos.x, car_pos.y, T_intersection_origin.x, T_intersection_origin.y)
-        d_X = distance(car_pos.x, car_pos.y, X_intersection_origin.x, X_intersection_origin.y)
-        d_Y = distance(car_pos.x, car_pos.y, Y_intersection_origin.x, Y_intersection_origin.y)
-        
-        if d_T <= self.intersection_vision and car.at_lanes:
-            # print("Vehicle at the T-intersection")
-            self.add_to_intersection(car, "T")
-            car.at_junction = True
-            car.at_lanes = False
-
-        if d_X <= self.intersection_vision and car.at_lanes:
-            # print("Vehicle at the X-intersection")
-            self.add_to_intersection(car, "X")
-            car.at_junction = True
-            car.at_lanes = False
-        
-        if d_Y <= self.intersection_vision and car.at_lanes:
-            # print("Vehicle at the Y-intersection")
-            self.add_to_intersection(car, "Y")
-            car.at_junction = True
-            car.at_lanes = False
-
-        if  d_T >= self.intersection_vision:
-            self.remove_from_intersection(car, "T")
-            car.at_lanes = True
-            car.at_junction = False
-            
-        if  d_X >= self.intersection_vision:
-            self.remove_from_intersection(car, "X")
-            car.at_lanes = True
-            car.at_junction = False
-
-        if  d_Y >= self.intersection_vision:
-            self.remove_from_intersection(car, "Y")
-            car.at_lanes = True
-            car.at_junction = False
-
-    def update_env(self, env):
-        # printing environment information
-        self.at_intersection(car_1)
-        self.at_intersection(car_2)
-        # print(self.car_at_junction)
-        print("current number of moving vehicles:", env.vehicles)
-
     def plot_current_position(self):
         car_1_pos = car_1.pose.pose.pose.position
         car_2_pos = car_2.pose.pose.pose.position
@@ -379,50 +267,6 @@ class Subscriber:
         plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
         plt.plot(car_2_pos.x, car_2_pos.y, 'c*')
         # plt.plot(car_3_pos.x, car_3_pos.y, 'g*')
-
-    def plot_future_trajectory(self, car):
-        self.point_to_arr_write(car.id, car.future_waypoints)
-        x, y = plotter(car.id)
-
-        # plot trajectories
-        plt.plot(y, -x, '-')
-
-    def get_turning_routes(self, original_lane):
-        if original_lane == lane_1:
-            return [lane_9, lane_10, lane_11]
-        if original_lane == lane_5:
-            return [lane_12, lane_13, lane_14]
-        if original_lane == lane_4:
-            return [lane_15, lane_16, lane_17]
-        if original_lane == lane_8:
-            return [lane_18, lane_19, lane_20]
-        
-    def get_linking_route(self, turning_route):
-        if turning_route == lane_9:
-            merging_route = lane_6
-        if turning_route == lane_10:
-            merging_route = lane_3
-        if turning_route == lane_11:
-            merging_route = lane_7
-        if turning_route == lane_12:
-            merging_route = lane_3
-        if turning_route == lane_13:
-            merging_route = lane_7
-        if turning_route == lane_14:
-            merging_route = lane_2
-        if turning_route == lane_15:
-            merging_route = lane_7
-        if turning_route == lane_16:
-            merging_route = lane_2
-        if turning_route == lane_17:
-            merging_route = lane_6
-        if turning_route == lane_18:
-            merging_route = lane_2
-        if turning_route == lane_19:
-            merging_route = lane_6
-        if turning_route == lane_20:
-            merging_route = lane_3
-        return merging_route
 
     def closest_pt_idx(self, x, y, lane):
         # finding the closest index on lane from point(x,y)
@@ -472,7 +316,7 @@ class Subscriber:
             print("reached intersection, sample one of the trajectory")
             print("*******************************************************")
             car.at_junction = True
-            next_routes = self.get_turning_routes(car.location)
+            next_routes = get_turning_routes(car.location)
             idx = np.random.randint(0,3)
             if idx == 0:
                 print(car.id, ": turn left")
@@ -482,7 +326,7 @@ class Subscriber:
                 print(car.id, ": turn right")
             idx = 0
             chosen_route = next_routes[idx]
-            merging_route = self.get_linking_route(chosen_route)
+            merging_route = get_linking_route(chosen_route)
             car.location = self.stack_lanes(car.location, chosen_route)
             car.location = self.stack_lanes(car.location, merging_route)
         return arriving
@@ -490,7 +334,7 @@ class Subscriber:
     def update(self, car):
         if self.arriving_near_intersection(car, car.pose.pose.pose.position, [0, 0]) and not car.at_junction:
             # get route from the current position of the vehicle
-            possible_lanes = self.get_turning_routes(car.location)
+            possible_lanes = get_turning_routes(car.location)
             for lane in possible_lanes:
                 car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, lane)
                 car.car_route = car_route_
@@ -545,7 +389,7 @@ class Subscriber:
             self.plot_current_position()
 
             result = self.corima_collision_predictor()
-            print(result)
+            # print(result)
                 
             # update the environment info and move
             if not car_1.reached_end:

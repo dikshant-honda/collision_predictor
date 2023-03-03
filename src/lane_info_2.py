@@ -60,6 +60,43 @@ def point_to_arr(lane):
 		arr_y.append(lane[0][i].y)
 	return arr_x, arr_y
 
+def get_turning_routes(original_lane):
+	if original_lane == lane_1:
+		return [lane_9, lane_10, lane_11]
+	if original_lane == lane_5:
+		return [lane_12, lane_13, lane_14]
+	if original_lane == lane_4:
+		return [lane_15, lane_16, lane_17]
+	if original_lane == lane_8:
+		return [lane_18, lane_19, lane_20]
+	
+def get_linking_route(turning_route):
+	if turning_route == lane_9:
+		merging_route = lane_6
+	if turning_route == lane_10:
+		merging_route = lane_3
+	if turning_route == lane_11:
+		merging_route = lane_7
+	if turning_route == lane_12:
+		merging_route = lane_3
+	if turning_route == lane_13:
+		merging_route = lane_7
+	if turning_route == lane_14:
+		merging_route = lane_2
+	if turning_route == lane_15:
+		merging_route = lane_7
+	if turning_route == lane_16:
+		merging_route = lane_2
+	if turning_route == lane_17:
+		merging_route = lane_6
+	if turning_route == lane_18:
+		merging_route = lane_2
+	if turning_route == lane_19:
+		merging_route = lane_6
+	if turning_route == lane_20:
+		merging_route = lane_3
+	return merging_route
+
 '''
 gazebo coordinate system:
 
