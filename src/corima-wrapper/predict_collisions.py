@@ -15,13 +15,13 @@ from __future__ import annotations
 from risk_model import Probability, Trajectory, UncertaintyConfig, compute_survival
 from risk_model.event_calculators.overlap_calculator import calculate_overlaps
 
-from .config import UNCERTAINTY_CONFIG, ObjectType
-from .model import DataPoint
+from config import UNCERTAINTY_CONFIG, ObjectType
+from model import DataPoint
 
 from risk_model.plot.risk import plot_risk
 from risk_model.plot.animate import animate
 
-from .lane_info import *
+from lane_info import *
 
 
 def _find_config(config_type: str) -> UncertaintyConfig:

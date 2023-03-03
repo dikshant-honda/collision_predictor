@@ -24,10 +24,9 @@ from argparse import ArgumentParser, Namespace
 from copy import deepcopy
 from typing import Any
 
-from risk_model import Position, Probability, Velocity
-
-from risk_model_wrapper import DataPoint, predict_collisions
-
+from risk_model.model import Position, Probability, Velocity
+from predict_collisions import predict_collisions
+from model import DataPoint
 
 def _parse_arguments() -> Namespace:
     parser = ArgumentParser()

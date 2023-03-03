@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy import allclose
 
-from risk_model_wrapper.run_risk_model import (
+from run_risk_model import (
     _annotate_input_data_with_risk,
     _extract_data_points,
     _load_input_data,
@@ -59,10 +59,10 @@ for i in range(len(x1)):
 
 json_object = json.dumps(dictionary, indent = 4) 
 
-# with open("/home/dikshant/catkin_ws/src/CoRiMa/smart_cooperative_intersection_wrapper-main/data/Export_Honda/example1/sample.json", "w") as outfile:
+# with open("/home/dikshant/catkin_ws/src/collision_predictor/src/corima-wrapper/data/Export_Honda/example1/sample.json", "w") as outfile:
 #     outfile.write(json_object)
 
-for path in Path("/home/dikshant/catkin_ws/src/CoRiMa/smart_cooperative_intersection_wrapper-main/data/Export_Honda").glob("*"):
+for path in Path("/home/dikshant/catkin_ws/src/collision_predictor/src/corima-wrapper/data/Export_Honda").glob("*"):
     honda_export_file_path = path.joinpath("sample.json")
 
     print(f"Testing: {honda_export_file_path.as_posix()}")
@@ -79,5 +79,5 @@ for path in Path("/home/dikshant/catkin_ws/src/CoRiMa/smart_cooperative_intersec
 
 json_object_2 = json.dumps(annotated_input_data, indent = 4) 
 
-with open("/home/dikshant/catkin_ws/src/CoRiMa/smart_cooperative_intersection_wrapper-main/data/Export_Honda/example1/processed_sample_data.json", "w") as outfile:
+with open("/home/dikshant/catkin_ws/src/collision_predictor/src/corima-wrapper/data/Export_Honda/example1/processed_sample_data.json", "w") as outfile:
     outfile.write(json_object_2)

@@ -16,7 +16,7 @@ from operator import itemgetter
 from risk_model import Trajectory, UncertainTrajectory, compute_survival
 from risk_model.event_calculators.overlap_calculator import calculate_overlaps
 
-from .model import DataPoint
+from model import DataPoint
 
 
 def get_safest_trajectory(
