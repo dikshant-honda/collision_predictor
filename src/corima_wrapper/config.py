@@ -13,7 +13,7 @@
 
 from enum import Enum
 
-from risk_model import Sigma, UncertaintyConfig
+from .risk_model import Sigma, UncertaintyConfig
 
 
 class ObjectType(Enum):

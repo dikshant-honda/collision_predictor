@@ -12,14 +12,14 @@
 
 from __future__ import annotations
 
-from risk_model import Probability, Trajectory, UncertaintyConfig, compute_survival
-from risk_model.event_calculators.overlap_calculator import calculate_overlaps
+from .risk_model import Probability, Trajectory, UncertaintyConfig, compute_survival
+from .risk_model.event_calculators.overlap_calculator import calculate_overlaps
 
-from config import UNCERTAINTY_CONFIG, ObjectType
+from .config import UNCERTAINTY_CONFIG, ObjectType
 from model import DataPoint
 
-from risk_model.plot.risk import plot_risk
-from risk_model.plot.animate import animate
+from .risk_model.plot.risk import plot_risk
+from .risk_model.plot.animate import animate
 
 from lane_info import *
 
@@ -65,6 +65,7 @@ def predict_collisions(
     # return list(zip(datapoints, compute_survival(events, delta_t=delta_t)))
     result = []
     # compare risk with respect to every other vehicle
+    print(datapoints)
     for ego in datapoints:
         uncertain_ego_trajectory = Trajectory.future_prediction(
             trajectory_id=ego.id,
