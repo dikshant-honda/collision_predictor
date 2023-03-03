@@ -17,8 +17,6 @@ from geometry_utils import *
 from lane_info_2 import *
 from pid_planner import PI
 from plotter import plotter
-import risk_model
-#located at: /.local/lib/python3.8/site-packages/risk_model
 
 class Subscriber:
     def __init__(self):
