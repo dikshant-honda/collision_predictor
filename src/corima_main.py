@@ -17,6 +17,9 @@ from geometry_utils import *
 from lane_info_2 import *
 from pid_planner import PI
 from plotter import plotter
+from corima_wrapper.predict_collisions import predict_collisions
+from corima_wrapper.model import DataPoint
+from corima_wrapper.model import Position, Velocity
 
 class Subscriber:
     def __init__(self):
@@ -373,9 +376,9 @@ class Subscriber:
         car_2_pos = car_2.pose.pose.pose.position
         car_3_pos = car_3.pose.pose.pose.position
 
-        plt.plot(car_1_pos.y, -car_1_pos.x, 'r*')
-        plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
-        plt.plot(car_3_pos.y, -car_3_pos.x, 'g*')
+        plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
+        plt.plot(car_2_pos.x, car_2_pos.y, 'c*')
+        # plt.plot(car_3_pos.x, car_3_pos.y, 'g*')
 
     def plot_future_trajectory(self, car):
         self.point_to_arr_write(car.id, car.future_waypoints)
@@ -493,47 +496,66 @@ class Subscriber:
                 car.car_route = car_route_
                 car.car_yaw = yaw_route_
 
-                car.future_waypoints = self.get_future_trajectory(car)
+                # car.future_waypoints = self.get_future_trajectory(car)
 
-                self.plot_future_trajectory(car)
+                # self.plot_future_trajectory(car)
         else:
             car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
             car.car_route = car_route_
             car.car_yaw = yaw_route_
 
-            if len(car_route_) <= 2:
-                print("reached the end point")
-                self.stop(car)
-                self.EOL(car)
-                car.reached_end = True
-            else:
-                car.future_waypoints = self.get_future_trajectory(car)
+            # if len(car_route_) <= 2:
+            #     print("reached the end point")
+            #     self.stop(car)
+            #     self.EOL(car)
+            #     car.reached_end = True
+            # else:
+            #     car.future_waypoints = self.get_future_trajectory(car)
 
             # self.plot_future_trajectory(car)
 
+    def corima_collision_predictor(self):
+        poses = []
+        type_ = "car"
+        velocity_1 = Velocity(0, 0.7)
+        position_1 = Position(car_1.pose.pose.pose.position.x, car_1.pose.pose.pose.position.y)
+        id_1 = "14"
+        velocity_2 = Velocity(0.6, 0)
+        position_2 = Position(car_2.pose.pose.pose.position.x, car_2.pose.pose.pose.position.y)
+        id_2 = "7"
+        pt_1 = DataPoint(id_1, position_1, velocity_1, type_)
+        pt_2 = DataPoint(id_2, position_2, velocity_2, type_)
+        poses.append(pt_1)
+        poses.append(pt_2)
+        result = predict_collisions(poses)
+        return result
 
     def main(self):
         time_taken = 0
 
         # register vehicles to the environment
         self.add(car_1)
-        # self.add(car_2)
-        # self.add(car_3)
+        self.add(car_2)
+        self.add(car_3)
 
         while not rospy.is_shutdown():
             start = time.time()
 
             # print current position of the vehicle
             self.plot_current_position()
+
+            result = self.corima_collision_predictor()
+            print(result)
                 
             # update the environment info and move
             if not car_1.reached_end:
                 self.update(car_1)
                 self.move(car_1)
+            # print(result)
 
-            # if not car_2.reached_end:
-            #     self.update(car_2)
-            #     self.move(car_2)
+            if not car_2.reached_end:
+                self.update(car_2)
+                self.move(car_2)
 
             # if not car_3.reached_end:
             #     self.update(car_3)
@@ -555,12 +577,12 @@ class Subscriber:
             time_taken += end-start
 
             # plotting tools
-            plt.xlim(-13, 13)
-            plt.ylim(-13, 13)
-            plt.xlabel("X")
-            plt.ylabel("Y")
-            plt.title("Trajectories of the moving vehicles")
-            plt.pause(0.000000001)
+            # plt.xlim(-13, 13)
+            # plt.ylim(-13, 13)
+            # plt.xlabel("X")
+            # plt.ylabel("Y")
+            # plt.title("Trajectories of the moving vehicles")
+            # plt.pause(0.000000001)
 
             print("Loop execution time", end-start)
             print("time elapsed:", time_taken)
