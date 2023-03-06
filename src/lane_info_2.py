@@ -1,9 +1,8 @@
 # ! /usr/bin/env python3
 
-import rospy
 import numpy as np 
 import matplotlib.pyplot as plt
-from geometry_msgs.msg import Point
+from shapely import Point
 import dubins
 
 def get_dubins(start, end, theta0, theta1, step_size = 0.01):
@@ -19,10 +18,7 @@ def get_dubins(start, end, theta0, theta1, step_size = 0.01):
 	for i in range(len(configurations)):
 		x = np.append(x, configurations[i][0])
 		y = np.append(y, configurations[i][1])
-		if np.pi <= configurations[i][2] <= 2*np.pi:
-			yaw = np.append(yaw, 2*np.pi-configurations[i][2])
-		else:
-			yaw = np.append(yaw, configurations[i][2])
+		yaw = np.append(yaw, configurations[i][2])
 	
 	return x, y, yaw
 
@@ -39,10 +35,7 @@ def get_straight_dubins(start, end, theta0, theta1, step_size = 0.01):
 	for i in range(len(configurations)):
 		x = np.append(x, configurations[i][0])
 		y = np.append(y, configurations[i][1])
-		if np.pi <= configurations[i][2] <= 2*np.pi:
-			yaw = np.append(yaw, 2*np.pi-configurations[i][2])
-		else:
-			yaw = np.append(yaw, configurations[i][2])
+		yaw = np.append(yaw, configurations[i][2])
 
 	return x, y, yaw
 
@@ -105,13 +98,13 @@ x3, y3, yaw3 = get_straight_dubins([-2.5, -0.9], [-13, -0.9], np.pi, np.pi)   		
 x4, y4, yaw4 = get_straight_dubins([-13, 0.9], [-2.5, 0.9], 0, 0)      	  			# up
 
 x5, y5, yaw5 = get_straight_dubins([-0.9, -13], [-0.9, -2.5], np.pi/2, np.pi/2) 	# left
-x6, y6, yaw6 = get_straight_dubins([0.9, -2.5], [0.9, -13], -np.pi/2, -np.pi/2) 	# left
+x6, y6, yaw6 = get_straight_dubins([0.9, -2.5], [0.9, -13], 1.5*np.pi, 1.5*np.pi) 	# left
 
 x7, y7, yaw7 = get_straight_dubins([-0.9, 2.5], [-0.9, 13], np.pi/2, np.pi/2) 		# right
-x8, y8, yaw8 = get_straight_dubins([0.9, 13], [0.9, 2.5], -np.pi/2, -np.pi/2) 		# right
+x8, y8, yaw8 = get_straight_dubins([0.9, 13], [0.9, 2.5], 1.5*np.pi, 1.5*np.pi) 		# right
 
 # intersection information
-x9, y9, yaw9 = get_dubins([2.5, -0.9], [0.9, -2.5], np.pi, -np.pi/2)				# down to left
+x9, y9, yaw9 = get_dubins([2.5, -0.9], [0.9, -2.5], np.pi, 1.5*np.pi)				# down to left
 x10, y10, yaw10 = get_dubins([2.5, -0.9], [-2.5, -0.9], np.pi, np.pi)				# down to up
 x11, y11, yaw11 = get_dubins([2.5, -0.9], [-0.9, 2.5], np.pi, np.pi/2)				# down to right
 
@@ -121,11 +114,11 @@ x14, y14, yaw14 = get_dubins([-0.9, -2.5], [2.5, 0.9], np.pi/2, 0)					# left to
 
 x15, y15, yaw15 = get_dubins([-2.5, 0.9], [-0.9, 2.5], 0, np.pi/2)					# up to right
 x16, y16, yaw16 = get_dubins([-2.5, 0.9], [2.5, 0.9], 0, 0)							# up to down
-x17, y17, yaw17 = get_dubins([-2.5, 0.9], [0.9, -2.5], 0, -np.pi/2)					# up to left
+x17, y17, yaw17 = get_dubins([-2.5, 0.9], [0.9, -2.5], 0, 1.5*np.pi)					# up to left
 
-x18, y18, yaw18 = get_dubins([0.9, 2.5], [2.5, 0.9], -np.pi/2, 0)					# right to down
-x19, y19, yaw19 = get_dubins([0.9, 2.5], [0.9, -2.5], -np.pi/2, -np.pi/2)			# right to left
-x20, y20, yaw20 = get_dubins([0.9, 2.5], [-2.5, -0.9], -np.pi/2, np.pi)				# right to up
+x18, y18, yaw18 = get_dubins([0.9, 2.5], [2.5, 0.9], 1.5*np.pi, 0)					# right to down
+x19, y19, yaw19 = get_dubins([0.9, 2.5], [0.9, -2.5], 1.5*np.pi, 1.5*np.pi)			# right to left
+x20, y20, yaw20 = get_dubins([0.9, 2.5], [-2.5, -0.9], 1.5*np.pi, np.pi)				# right to up
 
 # lane information
 lane_1 = [arr_to_point(x1, y1), yaw1]
