@@ -49,10 +49,8 @@ def animate(ego_trajectory: UncertainTrajectory, other_trajectories: list[Uncert
     from matplotlib.animation import FuncAnimation
     from matplotlib.pyplot import figure, show, title, xlabel, xlim, ylabel, ylim, scatter, pause, clf
 
-    fig = figure(14, figsize=(20, 30))
+    fig = figure(14, figsize=(20, 20))
     axes = fig.gca()
-
-    artists = []
 
     for agent_idx, trajectory in enumerate(other_trajectories):
         for traj_idx in range(len(trajectory.positions)):
@@ -81,7 +79,7 @@ def animate(ego_trajectory: UncertainTrajectory, other_trajectories: list[Uncert
         if traj_idx % 5 == 0:
             if len(ego_trajectory.positions) == 0:
                 continue
-            is_ego = True
+            is_ego = False      #True, true if we want to add color to the patch
             color = "green"
             zorder = 0
 
@@ -101,8 +99,8 @@ def animate(ego_trajectory: UncertainTrajectory, other_trajectories: list[Uncert
     scatter(ego_trajectory.positions[0][0], ego_trajectory.positions[0][1], color="black", zorder=5)
     
     title("Gaussian sizes")
-    xlim([-15.0, 15.0])
-    ylim([-15.0, 15.0])
+    xlim([-20.0, 20.0])
+    ylim([-20.0, 20.0])
     ylabel("y-position in m")
     xlabel("x-position in m")
 
