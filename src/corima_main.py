@@ -324,7 +324,7 @@ class Subscriber:
             #     print(car.id, ": go straight")
             # else:
             #     print(car.id, ": turn right")
-            idx = 2
+            idx = 0
             chosen_route = next_routes[idx]
             merging_route = get_linking_route(chosen_route)
             car.location = self.stack_lanes(car.location, chosen_route)
@@ -340,9 +340,6 @@ class Subscriber:
                 car.car_route = car_route_
                 car.car_yaw = yaw_route_
 
-                # car.future_waypoints = self.get_future_trajectory(car)
-
-                # self.plot_future_trajectory(car)
         else:
             car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
             car.car_route = car_route_
@@ -353,21 +350,17 @@ class Subscriber:
                 self.stop(car)
                 self.EOL(car)
                 car.reached_end = True
-            # else:
-            #     car.future_waypoints = self.get_future_trajectory(car)
-
-            # self.plot_future_trajectory(car)
 
     def corima_collision_predictor(self):
         poses = []
         type_ = "car"
-        velocity_1 = Velocity(0, 0.7)
+        velocity_1 = Velocity(0, v_1)
         position_1 = Position(car_1.pose.pose.pose.position.x, car_1.pose.pose.pose.position.y)
-        id_1 = "14"
+        id_1 = car_1.id
         route_1 = car_1.car_route
-        velocity_2 = Velocity(0.6, 0)
+        velocity_2 = Velocity(v_2, 0)
         position_2 = Position(car_2.pose.pose.pose.position.x, car_2.pose.pose.pose.position.y)
-        id_2 = "7"
+        id_2 = car_2.id
         route_2 = car_2.car_route
         pt_1 = DataPoint(id_1, position_1, velocity_1, route_1, type_)
         pt_2 = DataPoint(id_2, position_2, velocity_2, route_2, type_)
@@ -410,14 +403,6 @@ class Subscriber:
             
             end = time.time()
             time_taken += end-start
-
-            # plotting tools
-            # plt.xlim(-13, 13)
-            # plt.ylim(-13, 13)
-            # plt.xlabel("X")
-            # plt.ylabel("Y")
-            # plt.title("Trajectories of the moving vehicles")
-            # plt.pause(0.000000001)
 
             print("Loop execution time", end-start)
             print("time elapsed:", time_taken)
