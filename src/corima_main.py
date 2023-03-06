@@ -23,14 +23,6 @@ from corima_wrapper.model import Position, Velocity
 
 class Subscriber:
     def __init__(self):
-        # variables
-        self.interp_back_path = 1000                    # interpolate back to path after this # of steps
-        self.plan_t_m = 5                               # planning horizon
-        self.dt_m = 0.1                                 # time step update
-        self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
-        self.tol = 0.1                                  # tolerance value for proximity check
-        self.vision_radius = 3                          # check only nearby cars
-      
         # subscribers
         self.car_1_sub = message_filters.Subscriber('/car_1/odom', Odometry)
         self.car_2_sub = message_filters.Subscriber('/car_2/odom', Odometry)
@@ -182,15 +174,6 @@ class Subscriber:
     def EOL(self, car):                         # vehicle has reached the goal point
         self.removal(car)
 
-    def plot_current_position(self):
-        car_1_pos = car_1.pose.pose.pose.position
-        car_2_pos = car_2.pose.pose.pose.position
-        car_3_pos = car_3.pose.pose.pose.position
-
-        plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
-        plt.plot(car_2_pos.x, car_2_pos.y, 'c*')
-        plt.plot(car_3_pos.x, car_3_pos.y, 'g*')
-
     def closest_pt_idx(self, x, y, lane):
         # finding the closest index on lane from point(x,y)
         closest_index = 0
@@ -254,7 +237,7 @@ class Subscriber:
             car.location = self.stack_lanes(car.location, merging_route)
         return arriving
     
-    def update(self, car):
+    def update(self, car, predictions):
         if self.arriving_near_intersection(car, car.pose.pose.pose.position, [0, 0]) and not car.at_junction:
             # get route from the current position of the vehicle
             possible_lanes = get_turning_routes(car.location)
@@ -262,11 +245,13 @@ class Subscriber:
                 car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, lane)
                 car.car_route = car_route_
                 car.car_yaw = yaw_route_
+            predictions.append(self.register_to_corima(car))
 
         else:
             car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
             car.car_route = car_route_
             car.car_yaw = yaw_route_
+            predictions.append(self.register_to_corima(car))
 
             if len(car_route_) <= 2:
                 print("reached the end point")
@@ -285,40 +270,6 @@ class Subscriber:
         point = DataPoint(id, position, velocity, route, type_)
         return point
 
-    def corima_collision_predictor(self):
-        poses = []
-        type_ = "car"
-
-        yaw_1 = car_1.car_yaw[0]
-        velocity_1 = Velocity(v_1*np.cos(yaw_1), v_1*np.sin(yaw_1))
-        position_1 = Position(car_1.pose.pose.pose.position.x, car_1.pose.pose.pose.position.y)
-        id_1 = car_1.id
-        route_1 = car_1.car_route
-
-        yaw_2 = car_2.car_yaw[0]
-        velocity_2 = Velocity(v_2*np.cos(yaw_2), v_2*np.sin(yaw_2))
-        position_2 = Position(car_2.pose.pose.pose.position.x, car_2.pose.pose.pose.position.y)
-        id_2 = car_2.id
-        route_2 = car_2.car_route
-
-        yaw_3 = car_3.car_yaw[0]
-        velocity_3 = Velocity(v_3*np.cos(yaw_3), v_3*np.sin(yaw_3))
-        position_3 = Position(car_3.pose.pose.pose.position.x, car_3.pose.pose.pose.position.y)
-        id_3 = car_3.id
-        route_3 = car_3.car_route
-
-        pt_1 = DataPoint(id_1, position_1, velocity_1, route_1, type_)
-        pt_2 = DataPoint(id_2, position_2, velocity_2, route_2, type_)
-        pt_3 = DataPoint(id_3, position_3, velocity_3, route_3, type_)
-        poses.append(pt_1)
-        poses.append(pt_2)
-        poses.append(pt_3)
-
-        print(yaw_1, yaw_2, yaw_3)
-
-        result = predict_collisions(poses)
-        return result
-
     def main(self):
         time_taken = 0
 
@@ -329,23 +280,17 @@ class Subscriber:
 
         while not rospy.is_shutdown():
             start = time.time()
-            
-            # print current position of the vehicle
-            # self.plot_current_position()
-
-            # update the environment info
-            self.update(car_1)
-            self.update(car_2)
-            self.update(car_3)
 
             predictions = []
+
+            # update the environment info
             for car in env.vehicle_states:
                 if not car.reached_end:
-                    predictions.append(self.register_to_corima(car))
+                    self.update(car, predictions)
                 else:
                     self.stop(car)
-                    self.EOL(car)
-
+                    # self.EOL(car)
+            
             # replace in real world
             if len(predictions) == 1:
                 break
@@ -408,7 +353,7 @@ if __name__ == '__main__':
         # car 2 information
         pos_car_2 = Point(9.0, -0.9, 0.0)
         yaw_car_2 = 3.14
-        v_2 = 0.5
+        v_2 = 0.6
         lin_vel_2 = Vector3(v_2, 0.0, 0.0)
         ang_vel_2 = Vector3(0.0, 0.0, 0.0)
         q_2 = quaternion_from_euler(0, 0, yaw_car_2)
@@ -434,7 +379,7 @@ if __name__ == '__main__':
         yaw_car_3 = 0.0
         v_3 = 0.7
         lin_vel_3 = Vector3(v_3, 0.0, 0.0)
-        ang_vel_3 = Vector3(0.0, 0.0, 0.0)
+        ang_vel_3 = Vector3(0.05, 0.0, 0.0)
         q_3 = quaternion_from_euler(0, 0, yaw_car_3)
         car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
         car_3_twist = Twist(lin_vel_3, ang_vel_3)
