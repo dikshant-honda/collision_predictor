@@ -91,8 +91,8 @@ def predict_collisions(
 
         events = calculate_overlaps(uncertain_ego_trajectory, uncertain_trajectories)
         probability = compute_survival(events, delta_t=delta_t)
-        # result.append((ego, probability))
-        result.append(probability)
+        result.append((ego.id, probability))
+        # result.append(probability)
 
         # getting the risks as a list, is it the risk with respect to other vehicle. how can i define my own risk value.
         animate(uncertain_ego_trajectory, uncertain_trajectories)
