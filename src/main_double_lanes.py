@@ -373,16 +373,16 @@ class Subscriber:
         car_2_pos = car_2.pose.pose.pose.position
         car_3_pos = car_3.pose.pose.pose.position
 
-        plt.plot(car_1_pos.y, -car_1_pos.x, 'r*')
-        plt.plot(car_2_pos.y, -car_2_pos.x, 'c*')
-        plt.plot(car_3_pos.y, -car_3_pos.x, 'g*')
+        plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
+        plt.plot(car_2_pos.x, car_2_pos.y, 'c*')
+        plt.plot(car_3_pos.x, car_3_pos.y, 'g*')
 
     def plot_future_trajectory(self, car):
         self.point_to_arr_write(car.id, car.future_waypoints)
         x, y = plotter(car.id)
 
         # plot trajectories
-        plt.plot(y, -x, '-')
+        plt.plot(x, y, '-')
 
     def get_turning_routes(self, original_lane):
         if original_lane == lane_1:
