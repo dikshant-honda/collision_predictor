@@ -311,20 +311,20 @@ class Subscriber:
                 print("coming towards the intersection, sample multiple trajectories")
             arriving = True
             return arriving
-        if 2.4 < dist < 2.5 and not car.at_junction:
+        if 2.0 < dist < 2.5 and not car.at_junction:
             print("*******************************************************")
-            print("reached intersection, sample one of the trajectory")
+            print(car.id, "reached at the intersection, sample one of the trajectory")
             print("*******************************************************")
             car.at_junction = True
             next_routes = get_turning_routes(car.location)
-            idx = np.random.randint(0,3)
-            if idx == 0:
-                print(car.id, ": turn left")
-            elif idx == 1:
-                print(car.id, ": go straight")
-            else:
-                print(car.id, ": turn right")
-            idx = 0
+            # idx = np.random.randint(0,3)
+            # if idx == 0:
+            #     print(car.id, ": turn left")
+            # elif idx == 1:
+            #     print(car.id, ": go straight")
+            # else:
+            #     print(car.id, ": turn right")
+            idx = 2
             chosen_route = next_routes[idx]
             merging_route = get_linking_route(chosen_route)
             car.location = self.stack_lanes(car.location, chosen_route)
@@ -348,11 +348,11 @@ class Subscriber:
             car.car_route = car_route_
             car.car_yaw = yaw_route_
 
-            # if len(car_route_) <= 2:
-            #     print("reached the end point")
-            #     self.stop(car)
-            #     self.EOL(car)
-            #     car.reached_end = True
+            if len(car_route_) <= 2:
+                print("reached the end point")
+                self.stop(car)
+                self.EOL(car)
+                car.reached_end = True
             # else:
             #     car.future_waypoints = self.get_future_trajectory(car)
 
@@ -386,36 +386,41 @@ class Subscriber:
 
         while not rospy.is_shutdown():
             start = time.time()
-   
-            # update the environment info and move
-            if not car_1.reached_end:
-                self.update(car_1)
-                self.move(car_1)
-            # print(result)
-
-            if not car_2.reached_end:
-                self.update(car_2)
-                self.move(car_2)
-
-            # if not car_3.reached_end:
-            #     self.update(car_3)
-            #     self.move(car_3)
-
-            # if self.collision(car_1.future_waypoints, car_2.future_waypoints):
-            #     print("possibility of collision")
-            #     self.stop(car_2)
             
-            # if self.collision(car_1.future_waypoints, car_3.future_waypoints):
-            #     print("possibility of collision")
-            #     self.stop(car_3)
-
-            # if self.collision(car_2.future_waypoints, car_3.future_waypoints):
-            #     print("possibility of collision")
-            #     self.stop(car_2)
-
             # print current position of the vehicle
-            self.plot_current_position()
+            # self.plot_current_position()
+
+            # update the environment info
+            self.update(car_1)
+            self.update(car_2)
+
+            if car_1.reached_end or car_2.reached_end:
+                break
+
+            # predict collision probability
             result = self.corima_collision_predictor()
+            if result[0][0] > 0.01:
+                self.stop(car_1)
+                self.move(car_2)
+            else:
+                self.move(car_1)
+                self.move(car_2)
+   
+            # # update the environment info and move
+            # if not car_1.reached_end:
+            #     self.update(car_1)
+            #     # self.move(car_1)
+            # # print(result)
+
+            # if not car_2.reached_end:
+            #     self.update(car_2)
+            #     self.move(car_2)
+
+            # result = self.corima_collision_predictor()
+            # if result[0][0] > 0.01:
+            #     self.stop(car_1)
+            # else:
+            #     self.move(car_1)
             print(result)
             
             end = time.time()
