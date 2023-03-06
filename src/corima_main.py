@@ -80,83 +80,6 @@ class Subscriber:
 
         return lane_line_list, lane_s_map
 
-    # compute the closest points on the route
-    def closest_points(self, ind_closest, path, x, y):
-        if ind_closest == len(path) - 1:
-            use_previous = True
-        elif ind_closest == 0:
-            use_previous = False
-        else:
-            dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, x, y)
-            dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, x, y)
-
-            if dist_prev <= dist_next:
-                use_previous = True
-            else:
-                use_previous = False
-
-        if use_previous:
-            p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
-            p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
-            prev_idx = ind_closest - 1
-        else:
-            p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
-            p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
-            prev_idx = ind_closest
-        
-        return p1, p2, prev_idx
-
-    # adding on theta to get the yaw of the vehicle
-    def get_frenet_with_theta(self, x, y, path, s_map):
-        if path == None:
-            print("Empty map. Cannot return Frenet coordinates")
-            return 0.0, 0.0, 0.0
-
-        ind_closest = closest_point_ind(path, x, y)
-
-        # Determine the indices of the 2 closest points
-        if ind_closest < len(path):
-            p1, p2, prev_idx = self.closest_points(ind_closest, path, x, y)
-            # Get the point in the local coordinate with center p1
-            theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
-            local_p = global_to_local(p1, theta, Point2D(x,y))
-
-            # Get the coordinates in the Frenet frame
-            p_s = s_map[prev_idx] + local_p.x
-            p_d = local_p.y
-
-        else:
-            print("Incorrect index")
-            return 0.0, 0.0, 0.0
-
-        return p_s, p_d, theta
-
-    # Transform from Frenet s,d coordinates to Cartesian x,y
-    def get_xy(self, s, d, path, s_map):
-        if path == None or s_map == None:
-            print("Empty path. Cannot compute Cartesian coordinates")
-            return 0.0, 0.0
-
-        # If the value is out of the actual path send a warning
-        if s < 0.0 or s > s_map[-1]:
-            if s < 0.0:
-                prev_point = 0
-            else:
-                prev_point = len(s_map) -2
-        else:
-            # Find the previous point
-            idx = bisect.bisect_left(s_map, s)
-            prev_point = idx - 1
-
-        p1 = path[prev_point]
-        p2 = path[prev_point + 1]
-
-        # Transform from local to global
-        theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
-        p_xy = local_to_global(p1, theta, Point2D(s - s_map[prev_point], d))
-
-        return p_xy.x, p_xy.y
-
     def publishers(self, car, move):
         if car.id == "car_1":
             pub1.publish(move)
@@ -184,7 +107,7 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI(P=14.14, I = 1000)
+            pi = PI(P=7.7, I = 0.0)
             yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
@@ -266,7 +189,7 @@ class Subscriber:
 
         plt.plot(car_1_pos.x, car_1_pos.y, 'r*')
         plt.plot(car_2_pos.x, car_2_pos.y, 'c*')
-        # plt.plot(car_3_pos.x, car_3_pos.y, 'g*')
+        plt.plot(car_3_pos.x, car_3_pos.y, 'g*')
 
     def closest_pt_idx(self, x, y, lane):
         # finding the closest index on lane from point(x,y)
@@ -324,7 +247,7 @@ class Subscriber:
             #     print(car.id, ": go straight")
             # else:
             #     print(car.id, ": turn right")
-            idx = 0
+            idx = 2
             chosen_route = next_routes[idx]
             merging_route = get_linking_route(chosen_route)
             car.location = self.stack_lanes(car.location, chosen_route)
@@ -354,18 +277,34 @@ class Subscriber:
     def corima_collision_predictor(self):
         poses = []
         type_ = "car"
-        velocity_1 = Velocity(0, v_1)
+
+        yaw_1 = car_1.car_yaw[0]
+        velocity_1 = Velocity(v_1*np.cos(yaw_1), v_1*np.sin(yaw_1))
         position_1 = Position(car_1.pose.pose.pose.position.x, car_1.pose.pose.pose.position.y)
         id_1 = car_1.id
         route_1 = car_1.car_route
-        velocity_2 = Velocity(v_2, 0)
+
+        yaw_2 = car_2.car_yaw[0]
+        velocity_2 = Velocity(v_2*np.cos(yaw_2), v_2*np.sin(yaw_2))
         position_2 = Position(car_2.pose.pose.pose.position.x, car_2.pose.pose.pose.position.y)
         id_2 = car_2.id
         route_2 = car_2.car_route
+
+        yaw_3 = car_3.car_yaw[0]
+        velocity_3 = Velocity(v_3*np.cos(yaw_3), v_3*np.sin(yaw_3))
+        position_3 = Position(car_3.pose.pose.pose.position.x, car_3.pose.pose.pose.position.y)
+        id_3 = car_3.id
+        route_3 = car_3.car_route
+
         pt_1 = DataPoint(id_1, position_1, velocity_1, route_1, type_)
         pt_2 = DataPoint(id_2, position_2, velocity_2, route_2, type_)
+        pt_3 = DataPoint(id_3, position_3, velocity_3, route_3, type_)
         poses.append(pt_1)
         poses.append(pt_2)
+        poses.append(pt_3)
+
+        print(yaw_1, yaw_2, yaw_3)
+
         result = predict_collisions(poses)
         return result
 
@@ -386,20 +325,26 @@ class Subscriber:
             # update the environment info
             self.update(car_1)
             self.update(car_2)
+            self.update(car_3)
 
-            if car_1.reached_end or car_2.reached_end:
+            if car_1.reached_end or car_2.reached_end or car_3.reached_end:
                 self.stop(car_1)
                 self.stop(car_2)
+                self.stop(car_3)
                 break
 
             # predict collision probability
             result = self.corima_collision_predictor()
-            if result[0][0] > 0.01:
-                self.stop(car_1)
-                self.move(car_2)
-            else:
-                self.move(car_1)
-                self.move(car_2)
+            
+            for i in range(len(env.vehicle_states)-1):
+                if max(result[i][1]) > 0.01:
+                    self.stop(env.vehicle_states[i])
+                else:
+                    self.move(env.vehicle_states[i])
+
+            # self.move(car_1)
+            # self.move(car_2)
+            self.move(car_3)
             
             end = time.time()
             time_taken += end-start
@@ -441,7 +386,7 @@ if __name__ == '__main__':
         # car 2 information
         pos_car_2 = Point(9.0, -0.9, 0.0)
         yaw_car_2 = 3.14
-        v_2 = 0.6
+        v_2 = 0.5
         lin_vel_2 = Vector3(v_2, 0.0, 0.0)
         ang_vel_2 = Vector3(0.0, 0.0, 0.0)
         q_2 = quaternion_from_euler(0, 0, yaw_car_2)
