@@ -251,13 +251,14 @@ class Subscriber:
             car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
             car.car_route = car_route_
             car.car_yaw = yaw_route_
-            predictions.append(self.register_to_corima(car))
 
             if len(car_route_) <= 2:
                 print("reached the end point")
                 self.stop(car)
                 self.EOL(car)
                 car.reached_end = True
+            else:
+                predictions.append(self.register_to_corima(car))
 
     def register_to_corima(self, car):
         type_ = "car"
