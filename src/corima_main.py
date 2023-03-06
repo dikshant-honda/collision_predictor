@@ -395,6 +395,8 @@ class Subscriber:
             self.update(car_2)
 
             if car_1.reached_end or car_2.reached_end:
+                self.stop(car_1)
+                self.stop(car_2)
                 break
 
             # predict collision probability
@@ -405,23 +407,6 @@ class Subscriber:
             else:
                 self.move(car_1)
                 self.move(car_2)
-   
-            # # update the environment info and move
-            # if not car_1.reached_end:
-            #     self.update(car_1)
-            #     # self.move(car_1)
-            # # print(result)
-
-            # if not car_2.reached_end:
-            #     self.update(car_2)
-            #     self.move(car_2)
-
-            # result = self.corima_collision_predictor()
-            # if result[0][0] > 0.01:
-            #     self.stop(car_1)
-            # else:
-            #     self.move(car_1)
-            print(result)
             
             end = time.time()
             time_taken += end-start
