@@ -107,7 +107,7 @@ class Subscriber:
             _, _, init_yaw = euler_from_quaternion([x, y, z, w])
 
             # PI controller for yaw correction
-            pi = PI(P=7.7, I = 0.0)
+            pi = PI(P=7.7, I = 10.0)
             yaw_desired = yaw_path[ind_closest]
             feedback = self.correct_angle(init_yaw)
             ang_error = yaw_desired - feedback
@@ -240,14 +240,14 @@ class Subscriber:
             print("*******************************************************")
             car.at_junction = True
             next_routes = get_turning_routes(car.location)
-            # idx = np.random.randint(0,3)
-            # if idx == 0:
-            #     print(car.id, ": turn left")
-            # elif idx == 1:
-            #     print(car.id, ": go straight")
-            # else:
-            #     print(car.id, ": turn right")
-            idx = 2
+            idx = np.random.randint(0,3)
+            if idx == 0:
+                print(car.id, ": turn left")
+            elif idx == 1:
+                print(car.id, ": go straight")
+            else:
+                print(car.id, ": turn right")
+            idx = 2     # for testing
             chosen_route = next_routes[idx]
             merging_route = get_linking_route(chosen_route)
             car.location = self.stack_lanes(car.location, chosen_route)
@@ -273,6 +273,17 @@ class Subscriber:
                 self.stop(car)
                 self.EOL(car)
                 car.reached_end = True
+
+    def register_to_corima(self, car):
+        type_ = "car"
+        yaw = car.car_yaw[0]
+        v = np.sqrt(car.twist.linear.x**2 + car.twist.linear.y**2)
+        velocity = Velocity(v*np.cos(yaw), v*np.sin(yaw))
+        position = Position(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y)
+        id = car.id
+        route = car.car_route
+        point = DataPoint(id, position, velocity, route, type_)
+        return point
 
     def corima_collision_predictor(self):
         poses = []
@@ -327,23 +338,34 @@ class Subscriber:
             self.update(car_2)
             self.update(car_3)
 
-            if car_1.reached_end or car_2.reached_end or car_3.reached_end:
-                self.stop(car_1)
-                self.stop(car_2)
-                self.stop(car_3)
+            predictions = []
+            for car in env.vehicle_states:
+                if not car.reached_end:
+                    predictions.append(self.register_to_corima(car))
+                else:
+                    self.stop(car)
+                    self.EOL(car)
+
+            # replace in real world
+            if len(predictions) == 1:
                 break
 
             # predict collision probability
-            result = self.corima_collision_predictor()
+            # result = [[car.id, [prob1, prob2, ...]]]
+            result = predict_collisions(predictions)
             
-            for i in range(len(env.vehicle_states)-1):
-                if max(result[i][1]) > 0.01:
-                    self.stop(env.vehicle_states[i])
+            # replace this by alert alarms
+            # for time being, stop car_1 and give priority to 3 between 2 and 3
+            if max(result[0][1]) > 0.01:
+                self.stop(car_1)
+                if result[1][1][1] > 0.01:
+                    self.stop(car_2)
                 else:
-                    self.move(env.vehicle_states[i])
+                    self.move(car_2)
+            else:
+                self.move(car_1)
+                self.move(car_2)
 
-            # self.move(car_1)
-            # self.move(car_2)
             self.move(car_3)
             
             end = time.time()
