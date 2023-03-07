@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 import rospy
-import math
 import time
 import numpy as np
 import message_filters
@@ -11,8 +10,7 @@ from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWith
 from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
-from lane_info_2 import *
-from pid_planner import PI
+from lane_info_2 import LaneInfo
 from controller import Controller
 from corima_wrapper.predict_collisions import predict_collisions
 from corima_wrapper.model import DataPoint
@@ -98,19 +96,9 @@ class Subscriber:
                 min_dist = dist
                 closest_index = i
         return closest_index
-
-    def stack_lanes(self, prev_lane, next_lane):
-        if len(next_lane) == 0:
-            return prev_lane
-        prev_arr_x, prev_arr_y = point_to_arr(prev_lane)
-        next_arr_x, next_arr_y = point_to_arr(next_lane)
-        lane_x = np.hstack((prev_arr_x, next_arr_x))
-        lane_y = np.hstack((prev_arr_y, next_arr_y))
-        lane = [arr_to_point(lane_x, lane_y), np.hstack((prev_lane[1], next_lane[1]))]
-        return lane
     
     def get_route(self, pos, original_lane, next_lane):
-        lane = self.stack_lanes(original_lane, next_lane)
+        lane = lanes.stack_lanes(original_lane, next_lane)
         idx = self.closest_pt_idx(pos.x, pos.y, lane)
         car_route_ = []
         yaw_route_ = []
@@ -136,7 +124,7 @@ class Subscriber:
             print(car.id, "reached at the intersection, sample one of the trajectory")
             print("*******************************************************")
             car.at_junction = True
-            next_routes = get_turning_routes(car.location)
+            next_routes = lanes.get_turning_routes(car.location)
             idx = np.random.randint(0,3)
             if idx == 0:
                 print(car.id, ": turn left")
@@ -146,15 +134,15 @@ class Subscriber:
                 print(car.id, ": turn right")
             idx = 2     # for testing
             chosen_route = next_routes[idx]
-            merging_route = get_linking_route(chosen_route)
-            car.location = self.stack_lanes(car.location, chosen_route)
-            car.location = self.stack_lanes(car.location, merging_route)
+            merging_route = lanes.get_linking_route(chosen_route)
+            car.location = lanes.stack_lanes(car.location, chosen_route)
+            car.location = lanes.stack_lanes(car.location, merging_route)
         return arriving
     
     def update(self, car, predictions):
         if self.arriving_near_intersection(car, car.pose.pose.pose.position, [0, 0]) and not car.at_junction:
             # get route from the current position of the vehicle
-            possible_lanes = get_turning_routes(car.location)
+            possible_lanes = lanes.get_turning_routes(car.location)
             for lane in possible_lanes:
                 car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, lane)
                 car.car_route = car_route_
@@ -246,6 +234,7 @@ class Subscriber:
 
 if __name__ == '__main__':
     try:
+        lanes = LaneInfo()
         # registering the vehicles
         # car 1 information
         pos_car_1 = Point(-0.9, -10.0, 0.0)
@@ -267,7 +256,7 @@ if __name__ == '__main__':
         future_waypoints_1 = []
         reached_end_1 = False
         at_junction_1 = False
-        location_1 = lane_5
+        location_1 = lanes.lane_5
         car_1_route_ = []
         car_1_yaw_ = []
 
@@ -291,7 +280,7 @@ if __name__ == '__main__':
         future_waypoints_2 = []
         reached_end_2 = False
         at_junction_2 = False
-        location_2 = lane_1
+        location_2 = lanes.lane_1
         car_2_route_ = []
         car_2_yaw_ = []
 
@@ -315,7 +304,7 @@ if __name__ == '__main__':
         future_waypoints_3 = []
         reached_end_3 = False
         at_junction_3 = False
-        location_3 = lane_4
+        location_3 = lanes.lane_4
         car_3_route_ = []
         car_3_yaw_ = []
 
