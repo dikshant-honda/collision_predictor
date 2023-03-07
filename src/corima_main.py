@@ -57,6 +57,14 @@ class Subscriber:
         car_3.past_vel.append(v_3)
         car_3.past_d.pop(0)
         car_3.past_d.append(car_3.d)
+    
+    def publishers(self, car, move):
+        if car.id == "car_1":
+            pub1.publish(move)
+        if car.id == "car_2":
+            pub2.publish(move)
+        if car.id == "car_3":
+            pub3.publish(move)
 
     def stop(self, car):
         print("!!! Stop:", car.id, "!!!")
@@ -176,6 +184,12 @@ class Subscriber:
         route = car.car_route
         point = DataPoint(id, position, velocity, route, type_)
         return point
+    
+    def move(self, car):
+        # move one step using PI yaw controller
+        car, twist = self.control.step(car)
+        # publish the twist message
+        self.publishers(car, twist)
 
     def main(self):
         time_taken = 0
@@ -213,10 +227,10 @@ class Subscriber:
                 if result[1][1][1] > 0.01:
                     self.stop(car_2)
                 else:
-                    self.control.move(car_2)
+                    self.move(car_2)
             else:
-                self.control.move(car_1)
-                self.control.move(car_2)
+                self.move(car_1)
+                self.move(car_2)
 
             self.move(car_3)
             
@@ -319,9 +333,15 @@ if __name__ == '__main__':
         interaction = False
         env = Environment(no_of_vehicles, vehicle_states, register, deregister, interaction)
 
-        # rospy.init_node('predictor', anonymous=True)
-        sub = Subscriber()
-        # rospy.spin()
+        # nodes for controlling the motion of the vehicles
+        rospy.init_node('control', anonymous=True)
+        pub1 = rospy.Publisher('/car_1/cmd_vel', Twist, queue_size=10)
+        pub2 = rospy.Publisher('/car_2/cmd_vel', Twist, queue_size=10)
+        pub3 = rospy.Publisher('/car_3/cmd_vel', Twist, queue_size=10)
+
+        sub = Subscriber() 
+
+        rospy.spin()
 
     except rospy.ROSInterruptException:
         pass
