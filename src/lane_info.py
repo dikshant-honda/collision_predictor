@@ -1,225 +1,159 @@
 # ! /usr/bin/env python3
 
 import numpy as np 
-import matplotlib.pyplot as plt
-# from Bezier import Bezier
-# from scipy.interpolate import CubicSpline
-from geometry_msgs.msg import Point
+from shapely import Point
 import dubins
 
-def get_lanes(start, end, steps=100):
-    x = np.linspace(start[0], end[0], steps)
-    y = np.linspace(start[1], end[1], steps)
-    return x, y
+class LaneInfo:
+	def __init__(self) -> None:
+		# ---------------- defining all the lanes ----------------
 
-def get_spline(start, end, theta0, theta1, steps=100): 
-    # change the format of input to the function to point
-	t = np.linspace(0, 1, steps) 
+		# straight lines information
+		x1, y1, yaw1 = self.get_straight_dubins([13, -0.9], [2.5, -0.9], np.pi, np.pi)     		# down
+		x2, y2, yaw2 = self.get_straight_dubins([2.5, 0.9], [13, 0.9], 0, 0)             		# down 
 
-	dx0 = np.cos(theta0) 
-	dy0 = np.sin(theta0)
-	dx1 = np.cos(theta1) 
-	dy1 = np.sin(theta1)
+		x3, y3, yaw3 = self.get_straight_dubins([-2.5, -0.9], [-13, -0.9], np.pi, np.pi)   		# up
+		x4, y4, yaw4 = self.get_straight_dubins([-13, 0.9], [-2.5, 0.9], 0, 0)      	  			# up
 
-	t0 = 0
-	t1 = 1
+		x5, y5, yaw5 = self.get_straight_dubins([-0.9, -13], [-0.9, -2.5], np.pi/2, np.pi/2) 	# left
+		x6, y6, yaw6 = self.get_straight_dubins([0.9, -2.5], [0.9, -13], 1.5*np.pi, 1.5*np.pi) 	# left
 
-	Ax = np.asarray([[1, t0,   t0**2,   t0**3],  # x  @ 0
-					[0, 1,  2*t0,    3*t0**2],  # x' @ 0
-					[1, t1,   t1**2,   t1**3],  # x  @ 1
-					[0, 1,  2*t1,    3*t1**2]]) # x' @ 1
+		x7, y7, yaw7 = self.get_straight_dubins([-0.9, 2.5], [-0.9, 13], np.pi/2, np.pi/2) 		# right
+		x8, y8, yaw8 = self.get_straight_dubins([0.9, 13], [0.9, 2.5], 1.5*np.pi, 1.5*np.pi) 		# right
 
-	X = np.asarray([start[0], dx0, end[0], dx1]).transpose()
-	bx = np.linalg.solve(Ax, X)
+		# intersection information
+		x9, y9, yaw9 = self.get_dubins([2.5, -0.9], [0.9, -2.5], np.pi, 1.5*np.pi)				# down to left
+		x10, y10, yaw10 = self.get_dubins([2.5, -0.9], [-2.5, -0.9], np.pi, np.pi)				# down to up
+		x11, y11, yaw11 = self.get_dubins([2.5, -0.9], [-0.9, 2.5], np.pi, np.pi/2)				# down to right
 
-	Ay = np.asarray([[1, t0,   t0**2,   t0**3],  # x  @ 0
-					[0, 1,  2*t0,    3*t0**2],  # x' @ 0
-					[1, t1,   t1**2,   t1**3],  # x  @ 1
-					[0, 1,  2*t1,    3*t1**2]]) # x' @ 1
-	Y = np.asarray([start[1], dy0, end[1], dy1]).transpose()
-	by = np.linalg.solve(Ay, Y)
+		x12, y12, yaw12 = self.get_dubins([-0.9, -2.5], [-2.5, -0.9], np.pi/2, np.pi)			# left to up
+		x13, y13, yaw13 = self.get_dubins([-0.9, -2.5], [-0.9, 2.5], np.pi/2, np.pi/2)			# left to right
+		x14, y14, yaw14 = self.get_dubins([-0.9, -2.5], [2.5, 0.9], np.pi/2, 0)					# left to down
 
-	x = np.dot(np.vstack([np.ones_like(t), t, t**2, t**3]).transpose(),bx)
-	y = np.dot(np.vstack([np.ones_like(t), t, t**2, t**3]).transpose(),by)
+		x15, y15, yaw15 = self.get_dubins([-2.5, 0.9], [-0.9, 2.5], 0, np.pi/2)					# up to right
+		x16, y16, yaw16 = self.get_dubins([-2.5, 0.9], [2.5, 0.9], 0, 0)							# up to down
+		x17, y17, yaw17 = self.get_dubins([-2.5, 0.9], [0.9, -2.5], 0, 1.5*np.pi)					# up to left
 
-	return x, y
+		x18, y18, yaw18 = self.get_dubins([0.9, 2.5], [2.5, 0.9], 1.5*np.pi, 0)					# right to down
+		x19, y19, yaw19 = self.get_dubins([0.9, 2.5], [0.9, -2.5], 1.5*np.pi, 1.5*np.pi)			# right to left
+		x20, y20, yaw20 = self.get_dubins([0.9, 2.5], [-2.5, -0.9], 1.5*np.pi, np.pi)				# right to up
 
-def get_dubins(start, end, theta0, theta1, step_size = 0.02):
-	q0 = (start[0], start[1], theta0)
-	q1 = (end[0], end[1], theta1)
+		# lane information
+		self.lane_1 = [self.arr_to_point(x1, y1), yaw1]
+		self.lane_2 = [self.arr_to_point(x2, y2), yaw2]
+		self.lane_3 = [self.arr_to_point(x3, y3), yaw3]
+		self.lane_4 = [self.arr_to_point(x4, y4), yaw4]
+		self.lane_5 = [self.arr_to_point(x5, y5), yaw5]
+		self.lane_6 = [self.arr_to_point(x6, y6), yaw6]
+		self.lane_7 = [self.arr_to_point(x7, y7), yaw7]
+		self.lane_8 = [self.arr_to_point(x8, y8), yaw8]
+		self.lane_9 = [self.arr_to_point(x9, y9), yaw9]
+		self.lane_10 = [self.arr_to_point(x10, y10), yaw10]
+		self.lane_11 = [self.arr_to_point(x11, y11), yaw11]
+		self.lane_12 = [self.arr_to_point(x12, y12), yaw12]
+		self.lane_13 = [self.arr_to_point(x13, y13), yaw13]
+		self.lane_14 = [self.arr_to_point(x14, y14), yaw14]
+		self.lane_15 = [self.arr_to_point(x15, y15), yaw15]
+		self.lane_16 = [self.arr_to_point(x16, y16), yaw16]
+		self.lane_17 = [self.arr_to_point(x17, y17), yaw17]
+		self.lane_18 = [self.arr_to_point(x18, y18), yaw18]
+		self.lane_19 = [self.arr_to_point(x19, y19), yaw19]
+		self.lane_20 = [self.arr_to_point(x20, y20), yaw20]
+	
+	def get_dubins(self, start, end, theta0, theta1, step_size = 0.01):
+		q0 = (start[0], start[1], theta0)
+		q1 = (end[0], end[1], theta1)
 
-	turning_radius = 0.7
+		turning_radius = 1.55
+		path = dubins.shortest_path(q0, q1, turning_radius)
+		
+		configurations, _ = path.sample_many(step_size)
 
-	path = dubins.shortest_path(q0, q1, turning_radius)
-	configurations, _ = path.sample_many(step_size)
+		x, y, yaw = np.array([]), np.array([]), np.array([])
+		for i in range(len(configurations)):
+			x = np.append(x, configurations[i][0])
+			y = np.append(y, configurations[i][1])
+			yaw = np.append(yaw, configurations[i][2])
+		
+		return x, y, yaw
 
-	x, y, yaw = [], [], []
-	for i in range(len(configurations)):
-		x.append(configurations[i][0])
-		y.append(configurations[i][1])
-		if np.pi <= configurations[i][2] <= 2*np.pi:
-			yaw.append(2*np.pi-configurations[i][2])
-		else:
-			yaw.append(configurations[i][2])
+	def get_straight_dubins(self, start, end, theta0, theta1, step_size = 0.01):
+		q0 = (start[0], start[1], theta0)
+		q1 = (end[0], end[1], theta1)
 
-	return x, y, yaw
+		turning_radius = 0.0001
 
-def get_straight_dubins(start, end, theta0, theta1, step_size = 0.02):
-	q0 = (start[0], start[1], theta0)
-	q1 = (end[0], end[1], theta1)
+		path = dubins.shortest_path(q0, q1, turning_radius)
+		configurations, _ = path.sample_many(step_size)
 
-	turning_radius = 0.0001
+		x, y, yaw = np.array([]), np.array([]), np.array([])
+		for i in range(len(configurations)):
+			x = np.append(x, configurations[i][0])
+			y = np.append(y, configurations[i][1])
+			yaw = np.append(yaw, configurations[i][2])
 
-	path = dubins.shortest_path(q0, q1, turning_radius)
-	configurations, _ = path.sample_many(step_size)
+		return x, y, yaw
 
-	x, y, yaw = [], [], []
-	for i in range(len(configurations)):
-		x.append(configurations[i][0])
-		y.append(configurations[i][1])
-		if np.pi <= configurations[i][2] <= 2*np.pi:
-			yaw.append(2*np.pi-configurations[i][2])
-		else:
-			yaw.append(configurations[i][2])
+	def arr_to_point(self, x, y):
+		point_arr = []
+		for i in range(len(x)):
+			point_arr.append(Point(x[i], y[i], 0))
+		return point_arr
 
-	return x, y, yaw
+	def point_to_arr(self, lane):
+		arr_x, arr_y = [], []
+		for i in range(len(lane[0])):
+			arr_x.append(lane[0][i].x)
+			arr_y.append(lane[0][i].y)
+		return arr_x, arr_y
+	
+	def stack_lanes(self, prev_lane, next_lane):
+		if len(next_lane) == 0:
+			return prev_lane
+		prev_arr_x, prev_arr_y = self.point_to_arr(prev_lane)
+		next_arr_x, next_arr_y = self.point_to_arr(next_lane)
+		lane_x = np.hstack((prev_arr_x, next_arr_x))
+		lane_y = np.hstack((prev_arr_y, next_arr_y))
+		lane = [self.arr_to_point(lane_x, lane_y), np.hstack((prev_lane[1], next_lane[1]))]
+		return lane
 
-#  straight lanes
-# x1, y1 = get_lanes([-6.3,-1.0],[-6.3,-8])     # down right
-# x2, y2 = get_lanes([-6.3,8], [-6.3,1])      # down left
-# x3, y3 = get_lanes([-5,0], [-1,0])      # down center
-# x4, y4 = get_lanes([0,5], [0,1])        # center left
-# x5, y5 = get_lanes([0,-1], [0,-5])       # center right
-# x6, y6 = get_lanes([1,0], [5.3,0])      # up center
-# x7, y7 = get_lanes([6.5,-0.5], [10,-4]) # up right
-# x8, y8 = get_lanes([6.5,0.5], [10,4])   # up left
+	def get_turning_routes(self, original_lane):
+		if original_lane == self.lane_1:
+			return [self.lane_9, self.lane_10, self.lane_11]
+		if original_lane == self.lane_5:
+			return [self.lane_12, self.lane_13, self.lane_14]
+		if original_lane == self.lane_4:
+			return [self.lane_15, self.lane_16, self.lane_17]
+		if original_lane == self.lane_8:
+			return [self.lane_18, self.lane_19, self.lane_20]
+		
+	def get_linking_route(self, turning_route):
+		if turning_route == self.lane_9:
+			merging_route = self.lane_6
+		if turning_route == self.lane_10:
+			merging_route = self.lane_3
+		if turning_route == self.lane_11:
+			merging_route = self.lane_7
+		if turning_route == self.lane_12:
+			merging_route = self.lane_3
+		if turning_route == self.lane_13:
+			merging_route = self.lane_7
+		if turning_route == self.lane_14:
+			merging_route = self.lane_2
+		if turning_route == self.lane_15:
+			merging_route = self.lane_7
+		if turning_route == self.lane_16:
+			merging_route = self.lane_2
+		if turning_route == self.lane_17:
+			merging_route = self.lane_6
+		if turning_route == self.lane_18:
+			merging_route = self.lane_2
+		if turning_route == self.lane_19:
+			merging_route = self.lane_6
+		if turning_route == self.lane_20:
+			merging_route = self.lane_3
+		return merging_route
 
-x1, y1, yaw1 = get_straight_dubins([-6.3,-8], [-6.3,-1], np.pi/2, np.pi/2)     # down right
-x2, y2, yaw2 = get_straight_dubins([-6.3,8], [-6.3,1], -np.pi/2, -np.pi/2)      # down left
-x3, y3, yaw3 = get_straight_dubins([-5,0], [-1,0], 0, 0)      # down center
-x4, y4, yaw4 = get_straight_dubins([0,5], [0,1], -np.pi/2, -np.pi/2)        # center left
-x5, y5, yaw5 = get_straight_dubins([0,-1], [0,-5], -np.pi/2, -np.pi/2)       # center right
-x6, y6, yaw6 = get_straight_dubins([1,0], [5.3,0], 0, 0)      # up center
-x7, y7, yaw7 = get_straight_dubins([6.5,-0.5], [10,-4], np.pi/4, np.pi/4) # up right
-x8, y8, yaw8 = get_straight_dubins([6.5,0.5], [10,4], -np.pi/4, -np.pi/4)   # up left
-
-# splines
-# # T intersection
-# x9, y9 = get_spline([-6.3,-1.0], [-5,0], np.pi/2,np.pi/6)
-# x10, y10 = get_spline([-6.3,-1], [-6.3,1], np.pi/2, -np.pi/2)
-# x11, y11 = get_spline([-6.3,1], [-5,0], -np.pi/2, np.pi/6)
-
-# # X intersection
-# x12, y12 = get_spline([-1,0], [0,1], 0, np.pi/2)
-# x13, y13 = get_spline([-1,0], [0,-1], 0, -np.pi/2)
-# x14, y14 = get_spline([-1,0], [1,0], 0, 0)
-# x15, y15 = get_spline([0,-1], [1,0], np.pi/2, 0)
-# x16, y16 = get_spline([0,1], [0,-1], -np.pi/2, -np.pi/2)
-# x17, y17 = get_spline([0,1], [1,0], -np.pi/2, 0)
-
-# # Y intersection
-# x18, y18 = get_spline([5.3,0], [6.5, 0.5], 0, np.pi/4)
-# x19, y19 = get_spline([6.5,-0.5], [5.3,0], 0, np.pi/4+np.pi/2)
-# x20, y20 = get_spline([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
-
-# dubins
-x9, y9, yaw9 = get_dubins([-6.3,-1.0], [-5,0], np.pi/2, 0)
-x10, y10, yaw10 = get_dubins([-6.3,-1], [-6.3,1], np.pi/2, np.pi/2)
-x11, y11, yaw11 = get_dubins([-6.3,1], [-5,0], -np.pi/2, 0)
-
-# X intersection
-x12, y12, yaw12 = get_dubins([-1,0], [0,1], 0, np.pi/2)
-x13, y13, yaw13 = get_dubins([-1,0], [0,-1], 0, -np.pi/2)
-x14, y14, yaw14 = get_dubins([-1,0], [1,0], 0, 0)
-x15, y15, yaw15 = get_dubins([0,-1], [1,0], np.pi/2, 0)
-x16, y16, yaw16 = get_dubins([0,1], [0,-1], -np.pi/2, -np.pi/2)
-x17, y17, yaw17 = get_dubins([0,1], [1,0], -np.pi/2, 0)
-
-# Y intersection
-x18, y18, yaw18 = get_dubins([5.3,0], [6.5, 0.5], 0, np.pi/4)
-x19, y19, yaw19 = get_dubins([5.3,0], [6.5,-0.5], 0, -np.pi/4)
-x20, y20, yaw20 = get_dubins([6.5,0.5], [6.5,-0.5], -(np.pi/4+np.pi/2), -np.pi/4)
-
-# vehicle trajectories
-# car 1 path
-x_car_1 = np.hstack((x3, x14, x6, x18, x8))
-y_car_1 = np.hstack((y3, y14, y6, y18, y8))  
-car_yaw_1 =  np.hstack((yaw3, yaw14, yaw6, yaw18, yaw8))
-
-# car 2 path 
-x_car_2 = np.hstack((x7[::-1], x19[::-1], x6[::-1], x14[::-1], x3[::-1]))
-y_car_2 = np.hstack((y7[::-1], y19[::-1], y6[::-1], y14[::-1], y3[::-1]))
-car_yaw_2 = np.hstack((np.add(yaw7, np.pi/2), np.add(yaw19, np.pi/4+np.pi/2), np.add(yaw6, np.pi), np.add(yaw14, np.pi), np.add(yaw3, np.pi)))
-
-# car 3 path
-x_car_3 = np.hstack((x4, x17, x6, x18, x8))
-y_car_3 = np.hstack((y4, y17, y6, y18, y8))
-car_yaw_3 = np.hstack((np.add(yaw4, np.pi), np.add(yaw17[::-1], 3*np.pi/2), yaw6, yaw18, yaw8))
-
-# car 4 path
-x_car_4 = np.hstack((x5[::-1], x13[::-1], x3[::-1], x11[::-1], x2[::-1]))
-y_car_4 = np.hstack((y5[::-1], y13[::-1], y3[::-1], y11[::-1], y2[::-1]))
-car_yaw_4 = np.hstack((yaw5, np.add(yaw13, np.pi/2), np.add(yaw3, np.pi), np.add(yaw11, np.pi/2), yaw2))
-
-# car 5 path
-x_car_5 = np.hstack((x1, x9, x3, x12, x4[::-1]))
-y_car_5 = np.hstack((y1, y9, y3, y12, y4[::-1]))
-car_yaw_5 = np.hstack((yaw1, yaw9, yaw3, yaw12, yaw4[::-1]))
-
-# converting car path into geometry_msgs/Point
-car_1_route = []
-for i in range(len(x_car_1)):
-    car_1_route.append(Point(x_car_1[i], y_car_1[i], 0))
-
-car_2_route = []
-for i in range(len(x_car_2)):
-    car_2_route.append(Point(x_car_2[i], y_car_2[i], 0))
-
-car_3_route = []
-for i in range(len(x_car_3)):
-    car_3_route.append(Point(x_car_3[i], y_car_3[i], 0))
-
-car_4_route = []
-for i in range(len(x_car_4)):
-    car_4_route.append(Point(x_car_4[i], y_car_4[i], 0))
-
-car_5_route = []
-for i in range(len(x_car_5)):
-    car_5_route.append(Point(x_car_5[i], y_car_5[i], 0))
-
-# plotting
-# plt.plot(x1, y1, 'k')
-# plt.plot(x2, y2, 'k')  
-# plt.plot(x3, y3, 'k')  
-# plt.plot(x4, y4, 'k')  
-# plt.plot(x5, y5, 'k')  
-# plt.plot(x6, y6, 'k')  
-# plt.plot(x7, y7, 'k')  
-# plt.plot(x8, y8, 'k')
-
-# plt.plot(x9, y9, 'b--')  
-# plt.plot(x10, y10, 'b--')  
-# plt.plot(x11, y11, 'b--')
-# plt.plot(x12, y12, 'b--')
-# plt.plot(x13, y13, 'b--')
-# plt.plot(x14, y14, 'b--')
-# plt.plot(x15, y15, 'b--')
-# plt.plot(x16, y16, 'b--')
-# plt.plot(x17, y17, 'b--')
-# plt.plot(x18, y18, 'b--')
-# plt.plot(x19, y19, 'b--')
-# plt.plot(x20, y20, 'b--')
-
-# plt.plot(x_car_1, y_car_1)
-# plt.plot(x_car_2, y_car_2)
-# plt.plot(x_car_3, y_car_3)
-# plt.plot(x_car_4, y_car_4)
-# plt.plot(x_car_5, y_car_5)
-
-# print(x_car_1, y_car_1, yaw_car_1)
-# print(x_car_2, y_car_2, yaw_car_2)
-# print(x_car_3, y_car_3, yaw_car_3)
-# print(x_car_4, y_car_4, car_yaw_4)
-# print(x_car_5, y_car_5, yaw_car_5)
-
-# plt.show()
+if __name__ == '__main__':
+	# defining the lane info object
+	lanes = LaneInfo()

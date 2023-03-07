@@ -10,7 +10,7 @@ from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWith
 from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
-from lane_info_2 import LaneInfo
+from lane_info import LaneInfo
 from controller import Controller
 from corima_wrapper.predict_collisions import predict_collisions
 from corima_wrapper.model import DataPoint
