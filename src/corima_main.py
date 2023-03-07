@@ -11,6 +11,7 @@ from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
 from lane_info import LaneInfo
+from vehicle_info import VehicleInfo
 from controller import Controller
 from corima_wrapper.predict_collisions import predict_collisions
 from corima_wrapper.model import DataPoint
@@ -36,7 +37,7 @@ class Subscriber:
         car_1.pose = veh_1
         car_1.twist = veh_1.twist.twist
         car_1.past_vel.pop(0)
-        car_1.past_vel.append(v_1)
+        car_1.past_vel.append(0.7)
         car_1.past_d.pop(0)
         car_1.past_d.append(car_1.d)
 
@@ -44,7 +45,7 @@ class Subscriber:
         car_2.pose = veh_2
         car_2.twist = veh_2.twist.twist
         car_2.past_vel.pop(0)
-        car_2.past_vel.append(v_2)
+        car_2.past_vel.append(0.6)
         car_2.past_d.pop(0)
         car_2.past_d.append(car_2.d)
 
@@ -52,7 +53,7 @@ class Subscriber:
         car_3.pose = veh_3
         car_3.twist = veh_3.twist.twist
         car_3.past_vel.pop(0)
-        car_3.past_vel.append(v_3)
+        car_3.past_vel.append(0.7)
         car_3.past_d.pop(0)
         car_3.past_d.append(car_3.d)
     
@@ -234,8 +235,15 @@ class Subscriber:
 
 if __name__ == '__main__':
     try:
+        # get lane info
         lanes = LaneInfo()
-        # registering the vehicles
+
+        # get  vehicle info
+        # vehicles = VehicleInfo()
+
+        # car_1 = vehicles.car_1
+        # car_2 = vehicles.car_2
+        # car_3 = vehicles.car_3
         # car 1 information
         pos_car_1 = Point(-0.9, -10.0, 0.0)
         yaw_car_1 = 1.57
@@ -312,6 +320,7 @@ if __name__ == '__main__':
         car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
         car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
         car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
+
 
         # environment setup
         no_of_vehicles = 0
