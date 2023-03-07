@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import rospy
 import math
 import numpy as np
 from std_msgs.msg import Header
@@ -11,8 +12,14 @@ from pid_planner import PI
 
 class Controller:
     def __init__(self):
-        # subscribers
-        pass
+        # nodes for controlling the motion of the vehicles
+        rospy.init_node('control', anonymous=True)
+        self.pub1 = rospy.Publisher('/car_1/cmd_vel', Twist, queue_size=10)
+        self.pub2 = rospy.Publisher('/car_2/cmd_vel', Twist, queue_size=10)
+        self.pub3 = rospy.Publisher('/car_3/cmd_vel', Twist, queue_size=10)
+
+        rospy.spin()
+        # pass
 
     # converting ther nav_path message type to list for ease in accessibility
     # generating s_map from the start point till end point for transforms
@@ -74,11 +81,19 @@ class Controller:
             angle = angle + 2*np.pi
         
         return angle
+    
+    def publishers(self, car, move):
+        if car.id == "car_1":
+            self.pub1.publish(move)
+        if car.id == "car_2":
+            self.pub2.publish(move)
+        if car.id == "car_3":
+            self.pub3.publish(move)
 
     def move(self, car):
         path, _  = self.get_lane_and_s_map(car.car_route)
         x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
-        ind_closest = self.closest_point_indclosest_point_ind(path, x_pos, y_pos)        
+        ind_closest = self.closest_point_ind(path, x_pos, y_pos)        
         yaw_path = car.car_yaw
         # still on the lane
         if ind_closest < len(path)-1:
@@ -102,14 +117,18 @@ class Controller:
             move = Twist(linear, angular)
             car.stop = False
 
-        # # stop after reaching the end of lane
-        # else:
-        #     linear = Vector3(0, 0, 0)
-        #     angular = Vector3(0, 0, 0)
-        #     move = Twist(linear, angular)
-        #     car.stop = True
-        #     # self.EOL(car)
+        # stop after reaching the end of lane
+        else:
+            linear = Vector3(0, 0, 0)
+            angular = Vector3(0, 0, 0)
+            move = Twist(linear, angular)
 
         # publish the move message
-        # self.publishers(car, move)
-        return move
+        self.publishers(car, move)
+    
+if __name__ == '__main__':
+    try:
+        control = Controller()
+
+    except rospy.ROSInterruptException:
+        pass
