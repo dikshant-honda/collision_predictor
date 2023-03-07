@@ -3,9 +3,7 @@
 import rospy
 import math
 import time
-import os
 import numpy as np
-import matplotlib.pyplot as plt
 import message_filters
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
@@ -13,10 +11,8 @@ from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWith
 from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
-from geometry_utils import *
 from lane_info_2 import *
 from pid_planner import PI
-from plotter import plotter
 from corima_wrapper.predict_collisions import predict_collisions
 from corima_wrapper.model import DataPoint
 from corima_wrapper.model import Position, Velocity
@@ -245,7 +241,7 @@ class Subscriber:
                 car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, lane)
                 car.car_route = car_route_
                 car.car_yaw = yaw_route_
-            predictions.append(self.register_to_corima(car))
+            predictions.append(self.register_to_corima(car))    # indent to check in all directions
 
         else:
             car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
