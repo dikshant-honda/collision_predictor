@@ -5,10 +5,10 @@ import time
 import numpy as np
 import message_filters
 from std_msgs.msg import Header
-from nav_msgs.msg import Odometry, Path
-from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance, Quaternion
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Point, Twist, Pose, Vector3, PoseWithCovariance, Quaternion
 from collision_predictor.msg import Environment, VehicleState
-from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from tf.transformations import quaternion_from_euler
 from frenet import *
 from lane_info import LaneInfo
 from vehicle_info import VehicleInfo
