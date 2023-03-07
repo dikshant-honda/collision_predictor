@@ -4,7 +4,7 @@ import rospy
 import math
 import numpy as np
 from std_msgs.msg import Header
-from nav_msgs.msg import Odometry, Path
+from nav_msgs.msg import Path
 from geometry_msgs.msg import Twist, Pose, PoseStamped, Vector3
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from frenet import *
@@ -12,14 +12,7 @@ from pid_planner import PI
 
 class Controller:
     def __init__(self):
-        # nodes for controlling the motion of the vehicles
-        rospy.init_node('control', anonymous=True)
-        self.pub1 = rospy.Publisher('/car_1/cmd_vel', Twist, queue_size=10)
-        self.pub2 = rospy.Publisher('/car_2/cmd_vel', Twist, queue_size=10)
-        self.pub3 = rospy.Publisher('/car_3/cmd_vel', Twist, queue_size=10)
-
-        rospy.spin()
-        # pass
+        pass
 
     # converting ther nav_path message type to list for ease in accessibility
     # generating s_map from the start point till end point for transforms
@@ -81,16 +74,8 @@ class Controller:
             angle = angle + 2*np.pi
         
         return angle
-    
-    def publishers(self, car, move):
-        if car.id == "car_1":
-            self.pub1.publish(move)
-        if car.id == "car_2":
-            self.pub2.publish(move)
-        if car.id == "car_3":
-            self.pub3.publish(move)
 
-    def move(self, car):
+    def step(self, car):
         path, _  = self.get_lane_and_s_map(car.car_route)
         x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
         ind_closest = self.closest_point_ind(path, x_pos, y_pos)        
@@ -123,12 +108,4 @@ class Controller:
             angular = Vector3(0, 0, 0)
             move = Twist(linear, angular)
 
-        # publish the move message
-        self.publishers(car, move)
-    
-if __name__ == '__main__':
-    try:
-        control = Controller()
-
-    except rospy.ROSInterruptException:
-        pass
+        return car, move
