@@ -34,7 +34,7 @@ class VehicleInfo:
         reached_end = False
         at_junction = False
         location = lane
-        route_car_map = lane[0]
-        yaw_car_map = lane[1]
+        route_car_map = []
+        yaw_car_map = []
 
         return VehicleState(id, odom_car, lin_vel, stop, future_waypoints, route_car_map, yaw_car_map, reached_end, at_junction, location)
