@@ -94,7 +94,7 @@ class Controller:
             pi.update(-ang_error)
             omega = pi.output
             
-            v = np.mean(car.past_vel) 
+            v = car.vel 
 
             # twist message to be published
             linear = Vector3(v, 0, 0)
