@@ -35,27 +35,15 @@ class Subscriber:
     def callback(self, veh_1, veh_2, veh_3):
         # car 1 updates
         car_1.pose = veh_1
-        car_1.twist = veh_1.twist.twist
-        car_1.past_vel.pop(0)
-        car_1.past_vel.append(0.7)
-        car_1.past_d.pop(0)
-        car_1.past_d.append(car_1.d)
+        # car_1.twist = veh_1.twist.twist
 
         # car 2 updates
         car_2.pose = veh_2
-        car_2.twist = veh_2.twist.twist
-        car_2.past_vel.pop(0)
-        car_2.past_vel.append(0.6)
-        car_2.past_d.pop(0)
-        car_2.past_d.append(car_2.d)
+        # car_2.twist = veh_2.twist.twist
 
         # car 3 updates
         car_3.pose = veh_3
-        car_3.twist = veh_3.twist.twist
-        car_3.past_vel.pop(0)
-        car_3.past_vel.append(0.7)
-        car_3.past_d.pop(0)
-        car_3.past_d.append(car_3.d)
+        # car_3.twist = veh_3.twist.twist
     
     def publishers(self, car, move):
         if car.id == "car_1":
@@ -166,7 +154,7 @@ class Subscriber:
     def register_to_corima(self, car):
         type_ = "car"
         yaw = car.car_yaw[0]
-        v = np.sqrt(car.twist.linear.x**2 + car.twist.linear.y**2)
+        v = np.sqrt(car.vel)
         velocity = Velocity(v*np.cos(yaw), v*np.sin(yaw))
         position = Position(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y)
         id = car.id
@@ -254,9 +242,9 @@ if __name__ == '__main__':
         car_1_pose = Pose(pos_car_1, Quaternion(q_1[0], q_1[1], q_1[2], q_1[3]))
         car_1_twist = Twist(lin_vel_1, ang_vel_1)
         s_car_1 = 0 
-        d_car_1 = 0.0
-        past_vel_1 = [v_1]*10
-        past_d_1 = [d_car_1]*10
+        # d_car_1 = 0.0
+        # past_vel_1 = [v_1]*10
+        # past_d_1 = [d_car_1]*10
         covariance_1 = [[0 for _ in range(6)] for _ in range(6)]
         car_1_pose_with_covariance = PoseWithCovariance(car_1_pose, covariance_1)
         car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
@@ -278,9 +266,9 @@ if __name__ == '__main__':
         car_2_pose = Pose(pos_car_2, Quaternion(q_2[0], q_2[1], q_2[2], q_2[3]))
         car_2_twist = Twist(lin_vel_2, ang_vel_2)
         s_car_2 = 0 
-        d_car_2 = 0.0
-        past_vel_2 = [v_2]*10
-        past_d_2 = [d_car_2]*10
+        # d_car_2 = 0.0
+        # past_vel_2 = [v_2]*10
+        # past_d_2 = [d_car_2]*10
         covariance_2 = [[0 for _ in range(6)] for _ in range(6)]
         car_2_pose_with_covariance = PoseWithCovariance(car_2_pose, covariance_2)
         car_2_odom = Odometry(Header, "base_footprint", car_2_pose_with_covariance, car_2_twist) 
@@ -302,9 +290,9 @@ if __name__ == '__main__':
         car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
         car_3_twist = Twist(lin_vel_3, ang_vel_3)
         s_car_3 = 0 
-        d_car_3 = 0.0
-        past_vel_3 = [v_3]*10
-        past_d_3 = [d_car_3]*10
+        # d_car_3 = 0.0
+        # past_vel_3 = [v_3]*10
+        # past_d_3 = [d_car_3]*10
         covariance_3 = [[0 for _ in range(6)] for _ in range(6)]
         car_3_pose_with_covariance = PoseWithCovariance(car_3_pose, covariance_3)
         car_3_odom = Odometry(Header, "base_footprint", car_3_pose_with_covariance, car_3_twist) 
@@ -317,9 +305,9 @@ if __name__ == '__main__':
         car_3_yaw_ = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
-        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
+        car_1 = VehicleState("car_1", car_1_odom, v_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
+        car_2 = VehicleState("car_2", car_2_odom, v_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
+        car_3 = VehicleState("car_3", car_3_odom, v_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
 
 
         # environment setup
