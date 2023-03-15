@@ -9,6 +9,7 @@ from py_msgs.geometry_msgs import *
 from update_pos import *
 
 # last updated on: 2023/03/15
+# not in use anymore
 
 '''
 USAGE:
