@@ -35,7 +35,7 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <arg name="model" default="$(find collision_predictor)/robot.urdf.xacro"/>
+  <arg name="model" default="$(find collision_predictor)/robot/robot.urdf.xacro"/>
 
   <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
 
