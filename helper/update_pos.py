@@ -7,17 +7,20 @@ from py_msgs.traffic_msgs import *
 from py_msgs.nav_msgs import *
 from py_msgs.geometry_msgs import *
 
+# last updated on: 2023/03/15
+# not in use anymore
+
+'''
+USAGE:
+updating the position in the python environment
+'''
+
 '''
 note:
 1. reduce "d" more gradually, store the past d_vals, compute d_avg from there to get the
 average deviation from the center line
 2. assume that the driver will tend to come back to the center lane so reduce by some 
 factor of d_avg after few time steps
-
-TO DO:
-1. change the s-path by the entire trajectory in FOV and get lane route from there
-2. update the predict trajectory vehicles, offset from center(d) from the idea mentioned above
-3. change the s=ut dynamics and try to get the vehicle towards the lane
 '''
 
 def get_lane_and_s_map(x1, y1):
@@ -103,27 +106,27 @@ np_m = int(plan_t_m/dt_m)
 # velocity obtained from vehicles.twist.twist.linear.x
 v = 0.5                   # change later
 
-# # main function
-# if __name__ == '__main__':
-#     # path
-#     x, y = get_spline(0,3,0,3,np.pi/2,np.pi/4)
-#     x_,y_ = get_spline(3,6,3,0,np.pi/2,np.pi/4)
-#     x = x + x_
-#     y = y + y_
-#     plt.plot(x, y, 'g')
+# main function
+if __name__ == '__main__':
+    # path
+    x, y = get_spline(0,3,0,3,np.pi/2,np.pi/4)
+    x_,y_ = get_spline(3,6,3,0,np.pi/2,np.pi/4)
+    x = x + x_
+    y = y + y_
+    plt.plot(x, y, 'g')
 
-#     current_waypoint = [3.04, 3.05]
+    current_waypoint = [3.04, 3.05]
 
-#     # replace by collision check
-#     horizon = 0
-#     while horizon < 114:
-#         lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
-#         future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map)
-#         current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
-#         # update these waypoints as ros messages -> geometry_msgs.pose.position
-#         # later provide this information on ros traffic messages
-#         horizon += 1
-#         plt.plot(future_x, future_y, 'r--')
-#         plt.plot(current_waypoint[0], current_waypoint[1], 'b*')
-#         plt.pause(0.2)
-    # plt.show()
+    # replace by collision check
+    horizon = 0
+    while horizon < 114:
+        lane_line_list, lane_s_map = get_lane_and_s_map(x, y)
+        future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map)
+        current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
+        # update these waypoints as ros messages -> geometry_msgs.pose.position
+        # later provide this information on ros traffic messages
+        horizon += 1
+        plt.plot(future_x, future_y, 'r--')
+        plt.plot(current_waypoint[0], current_waypoint[1], 'b*')
+        plt.pause(0.2)
+    plt.show()

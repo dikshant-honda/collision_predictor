@@ -6,6 +6,13 @@ from bisect import bisect
 from operator import itemgetter
 import sys
 
+# last updated on: 2023/03/15
+
+'''
+USAGE:
+basic python script for collision avoidance simulation
+'''
+
 '''
 TO DO: 
 -> modify the stopping condition
@@ -22,11 +29,11 @@ TO DO:
 1. think about the motion of the traffic participants in both direction             # DONE
 2. adding vehicles with angular velocities                                          # DONE             
 3. adding bounds of the vehicle motion                                              # DONE
-4. changing the vehicle from a point object to a box
+4. changing the vehicle from a point object to a box                                # DONE
 5. adding uncertainities into the velocity profile of the traffic participants      # DONE
 6. add more traffic participants and check their collision probability              # DONE
-7. simulate everything on the gazebo                
-8. fusion from camera and radar data            
+7. simulate everything on the gazebo                                                # DONE               
+8. fusion from camera and radar data                                                # PENDING...
 -> plotting
 1. plotting the velocity profiles                                                   # DONE
 2. add road boundaries                                                              # DONE
@@ -36,8 +43,7 @@ TO DO:
 3. improve the collision function                                                   # DONE
 4. add noise function                                                               # DONE
 5. change position to list instead of individual int                                # DONE
-6. improve the way of adding the vehicle    
-7. add a vehicle registry class or function                 
+6. improve the way of adding the vehicle                                            # DONE
 -> MPQP additions
 1. convert the frame into frenet frame                                              # DONE
 2. smarter way of calculating the collision point                                   # DONE            

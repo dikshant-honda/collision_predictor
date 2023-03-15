@@ -7,10 +7,14 @@ from py_msgs.traffic_msgs import *
 from py_msgs.nav_msgs import *
 from py_msgs.geometry_msgs import *
 
+# last updated on: 2023/03/15
+
 '''
+USAGE:
 this script is used for testing the conversion from cartesian to frenet to cartesian
 '''
-def xy_to_frenet(x1, y1): #, current_waypoint, destination_waypoint):
+
+def xy_to_frenet(x1, y1):
     # return frenet coordinates from cartesian coordinates
     pose_arr = []
     # x_g, y_g = get_spline(current_waypoint[0],destination_waypoint[0],current_waypoint[1],destination_waypoint[1],np.pi/2,np.pi/4)
@@ -63,9 +67,6 @@ lane_center2, id2 = register_lane(x2, y2, count+1)
 lane_center3, id3 = register_lane(x3, y3, count+2)
 lane_center4, id4 = register_lane(x4, y4, count+3)
 
-# figure out
-# lane_info = lane_publisher.publish_all_lanes()  # get lanes info without carla
-
 x, y = get_spline(0,3,0,3,np.pi/2,np.pi/4)
 x_,y_ = get_spline(3,6,3,0,np.pi/2,np.pi/4)
 x = x + x_
@@ -73,7 +74,7 @@ y = y + y_
 
 current_waypoint = [3.04, 3.05]
 destination_waypoint = [8.45, 2.875]
-s, d, lane_line, s_map = xy_to_frenet(x, y)#, current_waypoint, destination_waypoint)
+s, d, lane_line, s_map = xy_to_frenet(x, y)
 x_test, y_test = frenet_to_xy_test(s, d, lane_line, s_map)
 plt.plot(x, y)
 plt.plot(d, s)

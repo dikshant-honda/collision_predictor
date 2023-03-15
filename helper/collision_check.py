@@ -8,20 +8,11 @@ from py_msgs.nav_msgs import *
 from py_msgs.geometry_msgs import *
 from update_pos import *
 
+# last updated on: 2023/03/15
+
 '''
-TO DO:
-1. change the line intersection function because:
-a. line intersection isn't the best way to check the collision because it will not take
-   into account the vehicles which are moving across the junction (check memo).
-b. it will also not work when the vehicle future trajectories are in spline form
-2. improve the initial few lines of line intersection function, redundantly define
-3. update the current_waypoint in geometry_msgs.pose.position
-4. make a separate class or dictionary for vehicle dynamic data like its pos and vel
-5. check the usage of interp_back_path, what if the vehicle doesn't want to follow the
-   center lane. 
-6. figure out a better way to initialize the future_traj variable
-7. again maintain a class for the future trajectory of the vehicles, maybe a maintain a
-   proper class for each vehicle dynamics
+USAGE:
+this file is used for testing the intersection of future trajectories. current implementation doesn't use it!
 '''
 
 def lineIntersection(traj_1, traj_2):
@@ -63,7 +54,6 @@ def get_future_trajectory(x, y, current_waypoint, v):
     future_x, future_y = PredictTrajectoryVehicles(current_waypoint[0], current_waypoint[1], lane_line_list, lane_s_map, v)
     current_waypoint = move(current_waypoint[0], current_waypoint[1], v, dt_m, lane_line_list)
     # update these waypoints as ros messages -> geometry_msgs.pose.position
-    # later provide this information on ros traffic messages
 
     return [future_x, future_y], current_waypoint
 
@@ -88,7 +78,7 @@ if __name__ == '__main__':
     plt.plot(x2, y2, 'k')
 
     # velocity obtained from vehicles.twist.twist.linear.x
-    v_1 = 0.9                   # change later
+    v_1 = 0.9
     v_2 = 0.5
 
     current_waypoint_1 = [3.04, 3.05]

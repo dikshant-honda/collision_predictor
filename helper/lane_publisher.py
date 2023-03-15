@@ -8,8 +8,12 @@ from py_msgs.std_msgs import *
 from py_msgs.tf import *
 from collections import namedtuple
 
+# last updated on: 2023/03/15
+# not in use anymore
+
 '''
-note: get ideas from here and use it in route.py file. remove this file later
+USAGE:
+testing the lane publishing
 '''
 
 LaneInfo = namedtuple('LaneInfo', ['start_wp', 'target_wp', 'merging_wp','speed_limit'])
@@ -33,12 +37,12 @@ class lane_publisher:
             key_st_pt = "scenario/start_point_lane" + str(lane_vals)
             key_tg_pt = "scenario/target_point_lane" + str(lane_vals)
             key_mg_pt = "scenario/merging_point_lane" + str(lane_vals)
-            # key_mg_s_pt = "scenario/merge_start_point_lane" + str(lane_vals)
-            # key_mg_e_pt = "scenario/merge_end_point_lane" + str(lane_vals)
-            # key_sl = "scenario/speed_limit_lane" + str(lane_vals)
-            # key_al = "scenario/acc_limits_lane" + str(lane_vals)
-            # key_jl = "scenario/jerk_limits_lane" + str(lane_vals)
-            # key_sb_pt = "scenario/stop_bar_point_lane" + str(lane_vals)
+            key_mg_s_pt = "scenario/merge_start_point_lane" + str(lane_vals)
+            key_mg_e_pt = "scenario/merge_end_point_lane" + str(lane_vals)
+            key_sl = "scenario/speed_limit_lane" + str(lane_vals)
+            key_al = "scenario/acc_limits_lane" + str(lane_vals)
+            key_jl = "scenario/jerk_limits_lane" + str(lane_vals)
+            key_sb_pt = "scenario/stop_bar_point_lane" + str(lane_vals)
 
             start_pt = key_st_pt        # rospy.get_param
             if not start_pt:
@@ -59,10 +63,10 @@ class lane_publisher:
 
             # can be specified using ros-params
             spd_lim_val = 5.0
-            # acc_min = -2.0
-            # acc_max = 2.0
-            # jrk_min = -1.5
-            # jrk_max = 1.5
+            acc_min = -2.0
+            acc_max = 2.0
+            jrk_min = -1.5
+            jrk_max = 1.5
             self.lane_info_dict[lane_vals] = LaneInfo(start_wp=start_pt, target_wp=target_pt, merging_wp=merge_pt, speed_limit=spd_lim_val)
 
             # if lane_vals == target_lane_val:

@@ -3,6 +3,13 @@
 import rospy
 from geometry_msgs.msg import Twist
 
+# last updated on: 2023/03/15
+
+'''
+USAGE:
+testing moving the custom bot
+'''
+
 def update_pos(pub, lin_vel, ang_vel):
     move = Twist()
     move.linear.x = lin_vel

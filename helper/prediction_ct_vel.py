@@ -7,8 +7,15 @@ from py_msgs.nav_msgs import *
 from std_msgs import *
 from lane_publisher import *
 
+# last updated on: 2023/03/15
+# not in use anymore
+
 '''
-TO DO:
+USAGE:
+python based script for predicting future trajectory in Frenet coordinate system based on constant velocity assumption
+'''
+
+'''
 => variable names
 1. lane center callback: determining the center of the lanes
 2. prediction array: type of traffic message

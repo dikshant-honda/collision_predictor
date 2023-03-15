@@ -4,10 +4,11 @@ from py_msgs.nav_msgs import Path
 from typing import List
 from scipy.signal import butter, filtfilt
 
+# last updated on: 2023/03/15
+
 '''
-note: 
-1. explore all these functions for better collision check part
-2, explore more compute_speed_based_on_curvature for computing speed and how to use it
+USAGE:
+geometry tools for ease access in python based setup
 '''
 
 class Point2D:

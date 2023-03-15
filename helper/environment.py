@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 
 width = 2
 
+# last updated on: 2023/03/15
+# not in use anymore
+
 '''
-TO DO:
-1. think of the intersection, how to sample trajectories along it
-2. make a more complex environment involving agent coming from all directions
-3. add the pedestrian path and add pedestrian to it
-4. add the lane road to nav_msgs.Path() variable
+USAGE:
+python script for generating environment
 '''
 
 def get_straight(x0, y0, x1, y1, theta, steps=100):
@@ -82,39 +82,13 @@ if __name__ == '__main__':
     lane_center3, id3 = register_lane(x3, y3, count+2)
     lane_center4, id4 = register_lane(x4, y4, count+4)
 
-    # plotting
-    # plt.plot(x1, y1, 'b--', markersize=1)
-    # plt.plot(x1, bound1_1, 'k')
-    # plt.plot(x1, bound1_2, 'k')
-    # plt.plot(x2, y2, 'b--', markersize=1)
-    # plt.plot(bound2_1, y2, 'k')
-    # plt.plot(bound2_2, y2, 'k')
-    # plt.plot(x3, y3, 'b--', markersize=1)
-    # plt.plot(x3, bound3_1, 'k')
-    # plt.plot(x3, bound3_2, 'k')
-    # plt.plot(x4, y4, 'b--', markersize=1)
-    # plt.plot(bound4_1, y4, 'k')
-    # plt.plot(bound4_2, y4, 'k')
-
-    # x, y = get_spline(0,10,0,10,np.pi/2,np.pi/2)
-    # x_,y_ = get_spline(10,15,10,0,np.pi/2,np.pi/2)
-    # x1 = x + x_
-    # y1 = y + y_
-    # plt.plot(x1, y1, 'g')
-
-    # x, y = get_spline(0,10,0,10,-np.pi/2,-np.pi/2)
-    # x_,y_ = get_spline(10,15,10,0,-np.pi/2,-np.pi/2)
-    # x2 = x + x_
-    # y2 = y + y_
-    # plt.plot(x2, y2, 'k')
-
-    # new environment
-
     # center lanes
     # sinusoidal curves
     x_sin = np.linspace(-5,6.4,500)
     y_sin = 5*np.sin(x_sin/4)
     y_sin_ = -5*np.sin(x_sin/4)
+
+    #plotting
     plt.plot(x_sin, y_sin, 'k')
     plt.plot(x_sin, y_sin_, 'k')
 

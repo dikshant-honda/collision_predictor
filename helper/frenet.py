@@ -3,10 +3,13 @@ import math
 import bisect
 from geometry_utils import *
 
+# last updated on: 2023/03/15
+
 '''
-note: use the get_frenet_with_theta to get the yaw of the vehicle in local frame,
-think about this and find out a way to store the theta of the vehicle
+USAGE:
+helper functions for converting to frenet from cartesian and vice-versa
 '''
+
 def global_to_local(ref_orig, orientation, p):
     # converting the global frame to local frame for helping frenet transform
     delta = Point2D(p.x - ref_orig.x, p.y - ref_orig.y)
@@ -192,7 +195,7 @@ def dist_to_line(p1, p2, p):
     return abs(d)
 
 '''
-past functions converted from cpp, not required anymore!
+past functions converted from cpp(mpqp algorithm) , not required anymore!
 '''
 path_m = Point2D(0,0)
 path_s_m = []

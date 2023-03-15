@@ -6,6 +6,13 @@ from geometry_msgs.msg import Twist, Point, Vector3, Pose, PoseWithCovariance, Q
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 
+# last updated on: 2023/03/15
+
+'''
+USAGE:
+testing the custom odom publisher
+'''
+
 # main function
 if __name__ == '__main__':
     rospy.init_node('init_odom_pose')
