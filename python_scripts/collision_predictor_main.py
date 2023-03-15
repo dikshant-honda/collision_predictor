@@ -7,6 +7,11 @@ from py_msgs.geometry_msgs import *
 from py_msgs.tf import *
 from frenet import *
 
+'''
+USAGE:
+main script for simulation testing in python
+'''
+
 class Vehicle:
     count = 0
     ids = []
