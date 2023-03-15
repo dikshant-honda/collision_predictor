@@ -5,7 +5,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Twist, Pose, Vector3, PoseWithCovariance, Quaternion
 from collision_predictor.msg import  VehicleState
 from tf.transformations import quaternion_from_euler
-from lane_info import LaneInfo
+from env_info.lane_info import LaneInfo
 
 class VehicleInfo:
     def __init__(self) -> None:

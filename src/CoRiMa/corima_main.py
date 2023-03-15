@@ -9,8 +9,8 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Twist, Pose, Vector3, PoseWithCovariance, Quaternion
 from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler
-from helper.frenet import *
-from lane_info import LaneInfo
+from helper.frenet import distance
+from env_info.lane_info import LaneInfo
 from vehicle_info import VehicleInfo
 from controllers.controller import Controller
 from corima_wrapper.predict_collisions import predict_collisions
