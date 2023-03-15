@@ -1,6 +1,8 @@
 from py_msgs.std_msgs import *
 from py_msgs.geometry_msgs import *
 
+# ros nav_msgs dataclasses
+
 class Path:
     def __init__(self, header, poses):
         self.header = Header(header.seq, header.stamp, header.frame_id)

@@ -1,6 +1,8 @@
 import math
 import numpy as np 
  
+ # ros tf_msgs conversion functions
+
 def quaternion_from_euler(roll, pitch, yaw):
   """
   Convert an Euler angle to a quaternion.

@@ -2,12 +2,7 @@ import std_msgs
 import nav_msgs
 import geometry_msgs
 
-'''
-TO DO: 
-1. recheck every function and use it as ros messages properly
-2. remove redundant information about the acc and jerk limits for time being
-3. use vehicle state as the class to store the information of the vehicle
-'''
+# traffic msgs dataclasses for python based simulation usage. not required anymore!
 
 class Point2D:
     def __init__(self,x_init,y_init):
