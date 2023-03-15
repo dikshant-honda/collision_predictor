@@ -1,5 +1,4 @@
 import time
-from frenet import distance
 
 class PI:
     def __init__(self, P = 0.90, I = 100000, current_time = None):
