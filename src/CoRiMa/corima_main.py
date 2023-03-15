@@ -323,13 +323,13 @@ if __name__ == '__main__':
         car_3_yaw_ = []
 
         # initialize the vehicles
-        # car_1 = VehicleState("car_1", car_1_odom, v_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
-        # car_2 = VehicleState("car_2", car_2_odom, v_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
-        # car_3 = VehicleState("car_3", car_3_odom, v_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
+        car_1 = VehicleState("car_1", car_1_odom, v_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
+        car_2 = VehicleState("car_2", car_2_odom, v_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
+        car_3 = VehicleState("car_3", car_3_odom, v_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
 
-        car_1 = get_vehicle_state("car_1", [-0.9, 10.0], 1.57, 0.7, 0.0, lanes.lane_5)
-        car_2 = get_vehicle_state("car_2", [9.0, -0.9], 3.14, 0.6, 0.0, lanes.lane_1)
-        car_3 = get_vehicle_state("car_3", [-10.0, 0.9], 0.0, 0.7, 0.0, lanes.lane_4)
+        # car_1 = get_vehicle_state("car_1", [-0.9, 10.0], 1.57, 0.7, 0.0, lanes.lane_5)
+        # car_2 = get_vehicle_state("car_2", [9.0, -0.9], 3.14, 0.6, 0.0, lanes.lane_1)
+        # car_3 = get_vehicle_state("car_3", [-10.0, 0.9], 0.0, 0.7, 0.0, lanes.lane_4)
 
         # environment setup
         no_of_vehicles = 0
