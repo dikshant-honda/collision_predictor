@@ -190,27 +190,27 @@ class Subscriber:
                     # self.EOL(car)
             
             # replace in real world
-            if len(predictions) == 1:
+            if len(predictions) == 1:        
                 break
-
-            # predict collision probability
-            # result = [[car.id, [prob1, prob2, ...]]]
-            result = predict_collisions(predictions)
-            
-            # replace this by alert alarms
-            # for time being, stop car_1 and give priority to 3 between 2 and 3
-            if max(result[0][1]) > 0.01:
-                self.stop(car_1)
-                if result[1][1][1] > 0.01:
-                    self.stop(car_2)
-                else:
-                    self.move(car_2)
             else:
-                self.move(car_1)
-                self.move(car_2)
+                # predict collision probability
+                # result = [[car.id, [prob1, prob2, ...]]]
+                result = predict_collisions(predictions)
+                
+                # replace this by alert alarms
+                # for time being, stop car_1 and give priority to 3 between 2 and 3
+                if max(result[0][1]) > 0.01:
+                    self.stop(car_1)
+                    if result[1][1][1] > 0.01:
+                        self.stop(car_2)
+                    else:
+                        self.move(car_2)
+                else:
+                    self.move(car_1)
+                    self.move(car_2)
 
-            self.move(car_3)
-            
+                self.move(car_3)
+                
             end = time.time()
             time_taken += end-start
 
