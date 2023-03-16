@@ -6,6 +6,7 @@ import time
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import itertools
 import message_filters
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry, Path
@@ -24,7 +25,7 @@ class Subscriber:
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
-        self.tol = 1.5                                  # tolerance value for proximity check
+        self.tol = 1.4                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
         self.intersection_vision = 4                    # check cars arriving near intersection
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
@@ -310,6 +311,11 @@ class Subscriber:
 
             self.plot_future_trajectory(car)
 
+    def predict_collision(self):
+        for first_car, second_car in itertools.combinations(env.vehicle_states, 2):
+            if self.collision(first_car.future_waypoints, second_car.future_waypoints):
+                print("collision between", first_car.id, "and", second_car.id)
+                self.stop(second_car)
 
     def main(self):
         time_taken = 0
@@ -333,17 +339,7 @@ class Subscriber:
                 else:
                     self.stop(car)
 
-            if self.collision(car_1.future_waypoints, car_2.future_waypoints):
-                print("possibility of collision between car 1 and car 2")
-                self.stop(car_2)
-            
-            if self.collision(car_1.future_waypoints, car_3.future_waypoints):
-                print("possibility of collision between car 1 and car 3")
-                self.stop(car_3)
-
-            if self.collision(car_2.future_waypoints, car_3.future_waypoints):
-                print("possibility of collision between car 2 and car 3")
-                self.stop(car_2)
+            self.predict_collision()
 
             end = time.time()
             time_taken += end-start
