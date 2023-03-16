@@ -11,7 +11,7 @@ from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler
 from helper.frenet import distance
 from env_info.lane_info import LaneInfo
-from vehicle_info import VehicleInfo
+# from vehicle_info import VehicleInfo
 from controllers.controller import Controller
 from corima_wrapper.predict_collisions import predict_collisions
 from corima_wrapper.model import DataPoint
@@ -257,7 +257,7 @@ if __name__ == '__main__':
         lanes = LaneInfo()
 
         # get  vehicle info
-        vehicles = VehicleInfo()
+        # vehicles = VehicleInfo()
 
         # car_1 = vehicles.car_1
         # car_2 = vehicles.car_2
