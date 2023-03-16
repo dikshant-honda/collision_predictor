@@ -16,7 +16,7 @@ from controllers.controller import Controller
 from helper.frenet import *
 from env_info.lane_info import LaneInfo
 from controllers.pid_planner import PI
-from plotter import plotter
+from Frenet.plotter import plotter
 
 class Subscriber:
     def __init__(self):
@@ -42,141 +42,24 @@ class Subscriber:
         
         self.main()
 
-    # converting ther nav_path message type to list for ease in accessibility
-    # generating s_map from the start point till end point for transforms
-    def path_to_list(self, nav_path):
-        path_list = []
-        distance_acum = 0.0
-        s_map = []
-        prev_p = None
-        for pose in nav_path.poses:
-            x = pose.pose.position.x
-            y = pose.pose.position.y
-            path_list.append(Point2D(x, y))
-            if prev_p != None:
-                distance_acum += distance(prev_p.x, prev_p.y, x, y)
-            s_map.append(distance_acum)
-            prev_p = Point2D(x, y)
-        return path_list, s_map
-
-    # get the s_map and lane info
-    def get_lane_and_s_map(self, route):
-        x, y = [], []
-        for i in  range(len(route)):
-            x.append(route[i].x)
-            y.append(route[i].y)
-        
-        pose_arr = []
-        lane_route = []
-        for i in range(len(x)):
-            lane_route.append([x[i], y[i]])
-        
-        for i in range(len(lane_route)-1):
-            point = Point2D(lane_route[i][0], lane_route[i][1])
-            yaw = math.atan2((lane_route[i+1][1]-lane_route[i][1]),(lane_route[i+1][0]-lane_route[i][0]))
-            quat = quaternion_from_euler(0,0,yaw)
-            poses = PoseStamped(Header, Pose(point, quat))
-            pose_arr.append(poses)
-        path_route = Path(Header, pose_arr)
-        lane_line_list, lane_s_map = self.path_to_list(path_route)
-
-        return lane_line_list, lane_s_map
-
-    # compute the closest points on the route
-    def closest_points(self, ind_closest, path, x, y):
-        if ind_closest == len(path) - 1:
-            use_previous = True
-        elif ind_closest == 0:
-            use_previous = False
-        else:
-            dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, x, y)
-            dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, x, y)
-
-            if dist_prev <= dist_next:
-                use_previous = True
-            else:
-                use_previous = False
-
-        if use_previous:
-            p1 = Point2D(path[ind_closest - 1].x, path[ind_closest - 1].y)
-            p2 = Point2D(path[ind_closest].x, path[ind_closest].y)
-            prev_idx = ind_closest - 1
-        else:
-            p1 = Point2D(path[ind_closest].x, path[ind_closest].y)
-            p2 = Point2D(path[ind_closest + 1].x, path[ind_closest + 1].y)
-            prev_idx = ind_closest
-        
-        return p1, p2, prev_idx
-
-    # adding on theta to get the yaw of the vehicle
-    def get_frenet_with_theta(self, x, y, path, s_map):
-        if path == None:
-            print("Empty map. Cannot return Frenet coordinates")
-            return 0.0, 0.0, 0.0
-
-        ind_closest = closest_point_ind(path, x, y)
-
-        # Determine the indices of the 2 closest points
-        if ind_closest < len(path):
-            p1, p2, prev_idx = self.closest_points(ind_closest, path, x, y)
-            # Get the point in the local coordinate with center p1
-            theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
-            local_p = global_to_local(p1, theta, Point2D(x,y))
-
-            # Get the coordinates in the Frenet frame
-            p_s = s_map[prev_idx] + local_p.x
-            p_d = local_p.y
-
-        else:
-            print("Incorrect index")
-            return 0.0, 0.0, 0.0
-
-        return p_s, p_d, theta
-
-    # Transform from Frenet s,d coordinates to Cartesian x,y
-    def get_xy(self, s, d, path, s_map):
-        if path == None or s_map == None:
-            print("Empty path. Cannot compute Cartesian coordinates")
-            return 0.0, 0.0
-
-        # If the value is out of the actual path send a warning
-        if s < 0.0 or s > s_map[-1]:
-            if s < 0.0:
-                prev_point = 0
-            else:
-                prev_point = len(s_map) -2
-        else:
-            # Find the previous point
-            idx = bisect.bisect_left(s_map, s)
-            prev_point = idx - 1
-
-        p1 = path[prev_point]
-        p2 = path[prev_point + 1]
-
-        # Transform from local to global
-        theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
-        p_xy = local_to_global(p1, theta, Point2D(s - s_map[prev_point], d))
-
-        return p_xy.x, p_xy.y
-
     # future waypoints
     def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
-        s, d_curr, _ = self.get_frenet_with_theta(init_x, init_y, path, s_map)
+        s, d_curr, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
         d = (d_curr + d) / 2                    # average of all the deviations from center
         future_waypoints = []
         for t in range(self.np_m):
             if t < self.interp_back_path:
                 d_val = d - ((t*d) / self.interp_back_path)
-                new_x, new_y = self.get_xy(s+v*self.dt_m*t, d_val, path, s_map)
+                new_x, new_y = get_xy(s+v*self.dt_m*t, d_val, path, s_map)
             else:
-                new_x, new_y = self.get_xy(s+v*self.dt_m*t, 0, path, s_map)
+                new_x, new_y = get_xy(s+v*self.dt_m*t, 0, path, s_map)
             future_waypoints.append(Point(new_x, new_y, 0.0))
         return future_waypoints, d
 
     # getting the future trajectory
     def get_future_trajectory(self, car): 
-        v = np.mean(car.past_vel)
-        d = np.mean(car.past_d)
+        v = car.vel
+        d = 0
         lane_line_list, lane_s_map = self.get_lane_and_s_map(car.car_route)
         future_waypoints, d = self.PredictTrajectoryVehicles(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
         car.d = d
@@ -190,53 +73,59 @@ class Subscriber:
         if car.id == "car_3":
             pub3.publish(move)
 
-    def correct_angle(self, angle):
-        if angle > np.pi:
-            angle = angle - 2*np.pi
-        elif angle < -np.pi:
-            angle = angle + 2*np.pi
+    # def correct_angle(self, angle):
+    #     if angle > np.pi:
+    #         angle = angle - 2*np.pi
+    #     elif angle < -np.pi:
+    #         angle = angle + 2*np.pi
         
-        return angle
+    #     return angle
+
+    # def move(self, car):
+    #     # if car not in env.vehicle_states:
+    #     #     self.add(car)
+    #     path, _  = self.get_lane_and_s_map(car.car_route)
+    #     x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
+    #     ind_closest = closest_point_ind(path, x_pos, y_pos)        
+    #     yaw_path = car.car_yaw
+    #     # still on the lane
+    #     if ind_closest < len(path)-1:
+    #         x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
+    #         _, _, init_yaw = euler_from_quaternion([x, y, z, w])
+
+    #         # PI controller for yaw correction
+    #         pi = PI(P=1.4, I = 0)
+    #         yaw_desired = yaw_path[ind_closest]
+    #         feedback = self.correct_angle(init_yaw)
+    #         ang_error = yaw_desired - feedback
+    #         ang_error = self.correct_angle(ang_error)
+    #         pi.update(-ang_error)
+    #         omega = pi.output
+            
+    #         v = np.mean(car.past_vel) 
+
+    #         # twist message to be published
+    #         linear = Vector3(v, 0, 0)
+    #         angular = Vector3(0, 0, omega)
+    #         move = Twist(linear, angular)
+    #         car.stop = False
+
+    #     # stop after reaching the end of lane
+    #     else:
+    #         linear = Vector3(0, 0, 0)
+    #         angular = Vector3(0, 0, 0)
+    #         move = Twist(linear, angular)
+    #         car.stop = True
+    #         # self.EOL(car)
+
+    #     # publish the move message
+    #     self.publishers(car, move)
 
     def move(self, car):
-        # if car not in env.vehicle_states:
-        #     self.add(car)
-        path, _  = self.get_lane_and_s_map(car.car_route)
-        x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
-        ind_closest = closest_point_ind(path, x_pos, y_pos)        
-        yaw_path = car.car_yaw
-        # still on the lane
-        if ind_closest < len(path)-1:
-            x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
-            _, _, init_yaw = euler_from_quaternion([x, y, z, w])
-
-            # PI controller for yaw correction
-            pi = PI(P=1.4, I = 0)
-            yaw_desired = yaw_path[ind_closest]
-            feedback = self.correct_angle(init_yaw)
-            ang_error = yaw_desired - feedback
-            ang_error = self.correct_angle(ang_error)
-            pi.update(-ang_error)
-            omega = pi.output
-            
-            v = np.mean(car.past_vel) 
-
-            # twist message to be published
-            linear = Vector3(v, 0, 0)
-            angular = Vector3(0, 0, omega)
-            move = Twist(linear, angular)
-            car.stop = False
-
-        # stop after reaching the end of lane
-        else:
-            linear = Vector3(0, 0, 0)
-            angular = Vector3(0, 0, 0)
-            move = Twist(linear, angular)
-            car.stop = True
-            # self.EOL(car)
-
-        # publish the move message
-        self.publishers(car, move)
+        # move one step using PI yaw controller
+        car, twist = self.control.step(car)
+        # publish the twist message
+        self.publishers(car, twist)
 
     # time synchronized callback
     def callback(self, veh_1, veh_2, veh_3):
