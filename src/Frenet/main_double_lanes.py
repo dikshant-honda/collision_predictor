@@ -325,57 +325,26 @@ class Subscriber:
             # print current position of the vehicle
             self.plot_current_position()
 
-            # update the environment info
-            # for car in env.vehicle_states:
-            #     if not car.reached_end:
-            #         self.update(car)
-            #     else:
-            #         self.stop(car)
-                
             # update the environment info and move
-            if not car_1.reached_end:
-                self.update(car_1)
-                self.move(car_1)
-
-            if not car_2.reached_end:
-                self.update(car_2)
-                self.move(car_2)
-
-            if not car_3.reached_end:
-                self.update(car_3)
-                self.move(car_3)
+            for car in env.vehicle_states:
+                if not car.reached_end:
+                    self.update(car)
+                    self.move(car)
+                else:
+                    self.stop(car)
 
             if self.collision(car_1.future_waypoints, car_2.future_waypoints):
                 print("possibility of collision between car 1 and car 2")
-                self.update(car_1)
-                self.move(car_1)
                 self.stop(car_2)
             
             if self.collision(car_1.future_waypoints, car_3.future_waypoints):
                 print("possibility of collision between car 1 and car 3")
-                self.update(car_1)
-                self.move(car_1)
                 self.stop(car_3)
 
             if self.collision(car_2.future_waypoints, car_3.future_waypoints):
                 print("possibility of collision between car 2 and car 3")
                 self.stop(car_2)
-                self.update(car_3)
-                self.move(car_3)
 
-            # if self.collision(car_1.future_waypoints, car_2.future_waypoints):
-            #     self.stop(car_1)
-            #     if self.collision(car_2.future_waypoints, car_3.future_waypoints):
-            #         self.stop(car_2)
-            #     else:
-            #         self.move(car_2)
-            
-            # else:
-            #     self.move(car_1)
-            #     self.move(car_2)
-
-            # self.move(car_3)
-            
             end = time.time()
             time_taken += end-start
 
