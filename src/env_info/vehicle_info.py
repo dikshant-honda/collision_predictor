@@ -5,16 +5,15 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Twist, Pose, Vector3, PoseWithCovariance, Quaternion
 from collision_predictor.msg import  VehicleState
 from tf.transformations import quaternion_from_euler
-from env_info.lane_info import LaneInfo
+from env_info.lane_info import *
 
 class VehicleInfo:
     def __init__(self) -> None:
         # --------------- defining all the vehicles -------------
-        lanes = LaneInfo()
         # registering the vehicles
-        self.car_1 = self.get_vehicle_state("car_1", [-0.9, -10.0], 1.57, 0.7, 0.0, lanes.lane_5)
-        self.car_2 = self.get_vehicle_state("car_2", [9.0, -0.9], 3.14, 0.6, 0.0, lanes.lane_1)
-        self.car_3 = self.get_vehicle_state("car_3", [-10.0, 0.9], 0.0, 0.7, 0.0, lanes.lane_4)
+        self.car_1 = self.get_vehicle_state("car_1", [-0.9, -10.0], 1.57, 0.7, 0.0, lane_5)
+        self.car_2 = self.get_vehicle_state("car_2", [9.0, -0.9], 3.14, 0.6, 0.0, lane_1)
+        self.car_3 = self.get_vehicle_state("car_3", [-10.0, 0.9], 0.0, 0.7, 0.0, lane_4)
 
     def get_vehicle_state(self, id, pos, yaw, lin_vel, ang_vel, lane):
         # self.id = id
