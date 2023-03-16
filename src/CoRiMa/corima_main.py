@@ -223,10 +223,6 @@ class Subscriber:
                 print("Execution Done")
                 break
 
-# class VehicleInformation():
-#     def __init__(self) -> None:
-#         pass
-
 def get_vehicle_state(id, pos, yaw, lin_vel, ang_vel, lane):
     # self.id = id
     pos_car = Point(pos[0], pos[1], 0.0)
