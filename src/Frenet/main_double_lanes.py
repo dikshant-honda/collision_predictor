@@ -12,10 +12,10 @@ from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import Point, Twist, Pose, PoseStamped, Vector3, PoseWithCovariance, Quaternion
 from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
-from frenet import *
-from geometry_utils import *
-from lane_info_2 import *
-from pid_planner import PI
+from controllers.controller import Controller
+from helper.frenet import *
+from env_info.lane_info import LaneInfo
+from controllers.pid_planner import PI
 from plotter import plotter
 
 class Subscriber:
@@ -37,6 +37,9 @@ class Subscriber:
         self.ts = message_filters.ApproximateTimeSynchronizer([self.car_1_sub, self.car_2_sub, self.car_3_sub], 10, 0.1)
         self.ts.registerCallback(self.callback)
 
+        # controller for handling dynamics of the vehicles
+        self.control = Controller()
+        
         self.main()
 
     # converting ther nav_path message type to list for ease in accessibility
@@ -239,27 +242,12 @@ class Subscriber:
     def callback(self, veh_1, veh_2, veh_3):
         # car 1 updates
         car_1.pose = veh_1
-        car_1.twist = veh_1.twist.twist
-        car_1.past_vel.pop(0)
-        car_1.past_vel.append(v_1)
-        car_1.past_d.pop(0)
-        car_1.past_d.append(car_1.d)
 
         # car 2 updates
         car_2.pose = veh_2
-        car_2.twist = veh_2.twist.twist
-        car_2.past_vel.pop(0)
-        car_2.past_vel.append(v_2)
-        car_2.past_d.pop(0)
-        car_2.past_d.append(car_2.d)
 
         # car 3 updates
         car_3.pose = veh_3
-        car_3.twist = veh_3.twist.twist
-        car_3.past_vel.pop(0)
-        car_3.past_vel.append(v_3)
-        car_3.past_d.pop(0)
-        car_3.past_d.append(car_3.d)
 
     def stop(self, car):
         print("!!! Stop:", car.id, "!!!")
@@ -384,43 +372,6 @@ class Subscriber:
         # plot trajectories
         plt.plot(x, y, '-')
 
-    def get_turning_routes(self, original_lane):
-        if original_lane == lane_1:
-            return [lane_9, lane_10, lane_11]
-        if original_lane == lane_5:
-            return [lane_12, lane_13, lane_14]
-        if original_lane == lane_4:
-            return [lane_15, lane_16, lane_17]
-        if original_lane == lane_8:
-            return [lane_18, lane_19, lane_20]
-        
-    def get_linking_route(self, turning_route):
-        if turning_route == lane_9:
-            merging_route = lane_6
-        if turning_route == lane_10:
-            merging_route = lane_3
-        if turning_route == lane_11:
-            merging_route = lane_7
-        if turning_route == lane_12:
-            merging_route = lane_3
-        if turning_route == lane_13:
-            merging_route = lane_7
-        if turning_route == lane_14:
-            merging_route = lane_2
-        if turning_route == lane_15:
-            merging_route = lane_7
-        if turning_route == lane_16:
-            merging_route = lane_2
-        if turning_route == lane_17:
-            merging_route = lane_6
-        if turning_route == lane_18:
-            merging_route = lane_2
-        if turning_route == lane_19:
-            merging_route = lane_6
-        if turning_route == lane_20:
-            merging_route = lane_3
-        return merging_route
-
     def closest_pt_idx(self, x, y, lane):
         # finding the closest index on lane from point(x,y)
         closest_index = 0
@@ -432,18 +383,8 @@ class Subscriber:
                 closest_index = i
         return closest_index
 
-    def stack_lanes(self, prev_lane, next_lane):
-        if len(next_lane) == 0:
-            return prev_lane
-        prev_arr_x, prev_arr_y = point_to_arr(prev_lane)
-        next_arr_x, next_arr_y = point_to_arr(next_lane)
-        lane_x = np.hstack((prev_arr_x, next_arr_x))
-        lane_y = np.hstack((prev_arr_y, next_arr_y))
-        lane = [arr_to_point(lane_x, lane_y), np.hstack((prev_lane[1], next_lane[1]))]
-        return lane
-    
     def get_route(self, pos, original_lane, next_lane):
-        lane = self.stack_lanes(original_lane, next_lane)
+        lane = lanes.stack_lanes(original_lane, next_lane)
         idx = self.closest_pt_idx(pos.x, pos.y, lane)
         car_route_ = []
         yaw_route_ = []
@@ -469,7 +410,7 @@ class Subscriber:
             print("reached intersection, sample one of the trajectory")
             print("*******************************************************")
             car.at_junction = True
-            next_routes = self.get_turning_routes(car.location)
+            next_routes = lanes.get_turning_routes(car.location)
             idx = np.random.randint(0,3)
             if idx == 0:
                 print(car.id, ": turn left")
@@ -478,15 +419,15 @@ class Subscriber:
             else:
                 print(car.id, ": turn right")
             chosen_route = next_routes[idx]
-            merging_route = self.get_linking_route(chosen_route)
-            car.location = self.stack_lanes(car.location, chosen_route)
-            car.location = self.stack_lanes(car.location, merging_route)
+            merging_route = lanes.get_linking_route(chosen_route)
+            car.location = lanes.stack_lanes(car.location, chosen_route)
+            car.location = lanes.stack_lanes(car.location, merging_route)
         return arriving
     
     def update(self, car):
         if self.arriving_near_intersection(car, car.pose.pose.pose.position, [0, 0]) and not car.at_junction:
             # get route from the current position of the vehicle
-            possible_lanes = self.get_turning_routes(car.location)
+            possible_lanes = lanes.get_turning_routes(car.location)
             for lane in possible_lanes:
                 car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, lane)
                 car.car_route = car_route_
@@ -570,6 +511,9 @@ class Subscriber:
 
 if __name__ == '__main__':
     try:
+        # get lane info
+        lanes = LaneInfo()
+
         # registering the vehicles
         # car 1 information
         pos_car_1 = Point(-0.9, -10.0, 0.0)
@@ -580,10 +524,6 @@ if __name__ == '__main__':
         q_1 = quaternion_from_euler(0, 0, yaw_car_1)
         car_1_pose = Pose(pos_car_1, Quaternion(q_1[0], q_1[1], q_1[2], q_1[3]))
         car_1_twist = Twist(lin_vel_1, ang_vel_1)
-        s_car_1 = 0 
-        d_car_1 = 0.0
-        past_vel_1 = [v_1]*10
-        past_d_1 = [d_car_1]*10
         covariance_1 = [[0 for _ in range(6)] for _ in range(6)]
         car_1_pose_with_covariance = PoseWithCovariance(car_1_pose, covariance_1)
         car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
@@ -591,7 +531,7 @@ if __name__ == '__main__':
         future_waypoints_1 = []
         reached_end_1 = False
         at_junction_1 = False
-        location_1 = lane_5
+        location_1 = lanes.lane_5
         car_1_route_ = []
         car_1_yaw_ = []
 
@@ -604,10 +544,6 @@ if __name__ == '__main__':
         q_2 = quaternion_from_euler(0, 0, yaw_car_2)
         car_2_pose = Pose(pos_car_2, Quaternion(q_2[0], q_2[1], q_2[2], q_2[3]))
         car_2_twist = Twist(lin_vel_2, ang_vel_2)
-        s_car_2 = 0 
-        d_car_2 = 0.0
-        past_vel_2 = [v_2]*10
-        past_d_2 = [d_car_2]*10
         covariance_2 = [[0 for _ in range(6)] for _ in range(6)]
         car_2_pose_with_covariance = PoseWithCovariance(car_2_pose, covariance_2)
         car_2_odom = Odometry(Header, "base_footprint", car_2_pose_with_covariance, car_2_twist) 
@@ -615,7 +551,7 @@ if __name__ == '__main__':
         future_waypoints_2 = []
         reached_end_2 = False
         at_junction_2 = False
-        location_2 = lane_1
+        location_2 = lanes.lane_1
         car_2_route_ = []
         car_2_yaw_ = []
 
@@ -624,14 +560,10 @@ if __name__ == '__main__':
         yaw_car_3 = 0.0
         v_3 = 0.7
         lin_vel_3 = Vector3(v_3, 0.0, 0.0)
-        ang_vel_3 = Vector3(0.0, 0.0, 0.0)
+        ang_vel_3 = Vector3(0.05, 0.0, 0.0)
         q_3 = quaternion_from_euler(0, 0, yaw_car_3)
         car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
         car_3_twist = Twist(lin_vel_3, ang_vel_3)
-        s_car_3 = 0 
-        d_car_3 = 0.0
-        past_vel_3 = [v_3]*10
-        past_d_3 = [d_car_3]*10
         covariance_3 = [[0 for _ in range(6)] for _ in range(6)]
         car_3_pose_with_covariance = PoseWithCovariance(car_3_pose, covariance_3)
         car_3_odom = Odometry(Header, "base_footprint", car_3_pose_with_covariance, car_3_twist) 
@@ -639,14 +571,14 @@ if __name__ == '__main__':
         future_waypoints_3 = []
         reached_end_3 = False
         at_junction_3 = False
-        location_3 = lane_4
+        location_3 = lanes.lane_4
         car_3_route_ = []
         car_3_yaw_ = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, car_1_twist, past_vel_1, d_car_1, past_d_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
-        car_2 = VehicleState("car_2", car_2_odom, car_2_twist, past_vel_2, d_car_2, past_d_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
-        car_3 = VehicleState("car_3", car_3_odom, car_3_twist, past_vel_3, d_car_3, past_d_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
+        car_1 = VehicleState("car_1", car_1_odom, v_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
+        car_2 = VehicleState("car_2", car_2_odom, v_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
+        car_3 = VehicleState("car_3", car_3_odom, v_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
 
         # environment setup
         no_of_vehicles = 0
