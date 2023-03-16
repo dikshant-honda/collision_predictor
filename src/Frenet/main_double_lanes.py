@@ -42,17 +42,42 @@ class Subscriber:
         
         self.main()
 
+    # get the s_map and lane info
+    def get_lane_and_s_map(self, route):
+        x, y = [], []
+        for i in  range(len(route)):
+            x.append(route[i].x)
+            y.append(route[i].y)
+        
+        pose_arr = []
+        lane_route = []
+        for i in range(len(x)):
+            lane_route.append([x[i], y[i]])
+        
+        for i in range(len(lane_route)-1):
+            point = Point2D(lane_route[i][0], lane_route[i][1])
+            yaw = math.atan2((lane_route[i+1][1]-lane_route[i][1]),(lane_route[i+1][0]-lane_route[i][0]))
+            quat = quaternion_from_euler(0,0,yaw)
+            poses = PoseStamped(Header, Pose(point, quat))
+            pose_arr.append(poses)
+        # adding the last point
+        pose_arr.append(PoseStamped(Header, Pose(Point2D(lane_route[-1][0], lane_route[-1][1]), quat)))
+        path_route = Path(Header, pose_arr)
+        lane_line_list, lane_s_map = path_to_list(path_route)
+
+        return lane_line_list, lane_s_map
+    
     # future waypoints
     def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
-        s, d_curr, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
+        s, d_curr, _, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
         d = (d_curr + d) / 2                    # average of all the deviations from center
         future_waypoints = []
         for t in range(self.np_m):
             if t < self.interp_back_path:
                 d_val = d - ((t*d) / self.interp_back_path)
-                new_x, new_y = get_xy(s+v*self.dt_m*t, d_val, path, s_map)
+                new_x, new_y, _ = get_xy(s+v*self.dt_m*t, d_val, path, s_map)
             else:
-                new_x, new_y = get_xy(s+v*self.dt_m*t, 0, path, s_map)
+                new_x, new_y, _ = get_xy(s+v*self.dt_m*t, 0, path, s_map)
             future_waypoints.append(Point(new_x, new_y, 0.0))
         return future_waypoints, d
 
@@ -62,7 +87,7 @@ class Subscriber:
         d = 0
         lane_line_list, lane_s_map = self.get_lane_and_s_map(car.car_route)
         future_waypoints, d = self.PredictTrajectoryVehicles(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
-        car.d = d
+        # car.d = d
         return future_waypoints
 
     def publishers(self, car, move):
