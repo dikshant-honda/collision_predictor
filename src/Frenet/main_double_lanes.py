@@ -15,7 +15,6 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from controllers.controller import Controller
 from helper.frenet import *
 from env_info.lane_info import LaneInfo
-from controllers.pid_planner import PI
 from Frenet.plotter import plotter
 
 class Subscriber:
@@ -25,7 +24,7 @@ class Subscriber:
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
-        self.tol = 0.1                                  # tolerance value for proximity check
+        self.tol = 1.5                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
         self.intersection_vision = 4                    # check cars arriving near intersection
         self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
@@ -97,54 +96,6 @@ class Subscriber:
             pub2.publish(move)
         if car.id == "car_3":
             pub3.publish(move)
-
-    # def correct_angle(self, angle):
-    #     if angle > np.pi:
-    #         angle = angle - 2*np.pi
-    #     elif angle < -np.pi:
-    #         angle = angle + 2*np.pi
-        
-    #     return angle
-
-    # def move(self, car):
-    #     # if car not in env.vehicle_states:
-    #     #     self.add(car)
-    #     path, _  = self.get_lane_and_s_map(car.car_route)
-    #     x_pos, y_pos = car.pose.pose.pose.position.x, car.pose.pose.pose.position.y
-    #     ind_closest = closest_point_ind(path, x_pos, y_pos)        
-    #     yaw_path = car.car_yaw
-    #     # still on the lane
-    #     if ind_closest < len(path)-1:
-    #         x, y, z, w = car.pose.pose.pose.orientation.x, car.pose.pose.pose.orientation.y, car.pose.pose.pose.orientation.z, car.pose.pose.pose.orientation.w
-    #         _, _, init_yaw = euler_from_quaternion([x, y, z, w])
-
-    #         # PI controller for yaw correction
-    #         pi = PI(P=1.4, I = 0)
-    #         yaw_desired = yaw_path[ind_closest]
-    #         feedback = self.correct_angle(init_yaw)
-    #         ang_error = yaw_desired - feedback
-    #         ang_error = self.correct_angle(ang_error)
-    #         pi.update(-ang_error)
-    #         omega = pi.output
-            
-    #         v = np.mean(car.past_vel) 
-
-    #         # twist message to be published
-    #         linear = Vector3(v, 0, 0)
-    #         angular = Vector3(0, 0, omega)
-    #         move = Twist(linear, angular)
-    #         car.stop = False
-
-    #     # stop after reaching the end of lane
-    #     else:
-    #         linear = Vector3(0, 0, 0)
-    #         angular = Vector3(0, 0, 0)
-    #         move = Twist(linear, angular)
-    #         car.stop = True
-    #         # self.EOL(car)
-
-    #     # publish the move message
-    #     self.publishers(car, move)
 
     def move(self, car):
         # move one step using PI yaw controller
@@ -263,13 +214,6 @@ class Subscriber:
             car.at_lanes = True
             car.at_junction = False
 
-    def update_env(self, env):
-        # printing environment information
-        self.at_intersection(car_1)
-        self.at_intersection(car_2)
-        # print(self.car_at_junction)
-        print("current number of moving vehicles:", env.vehicles)
-
     def plot_current_position(self):
         car_1_pos = car_1.pose.pose.pose.position
         car_2_pos = car_2.pose.pose.pose.position
@@ -303,7 +247,7 @@ class Subscriber:
         car_route_ = []
         yaw_route_ = []
         horizon = 0
-        while idx < len(lane[0]) and horizon < 300:
+        while idx < len(lane[0]) and horizon < 500:
             car_route_.append(Point(lane[0][idx].x, lane[0][idx].y, 0))
             yaw_route_.append(lane[1][idx])
             horizon += 1
@@ -319,9 +263,9 @@ class Subscriber:
                 print("coming towards the intersection, sample multiple trajectories")
             arriving = True
             return arriving
-        if 2.4 < dist < 2.5 and not car.at_junction:
+        if 2.0 < dist < 2.5 and not car.at_junction:
             print("*******************************************************")
-            print("reached intersection, sample one of the trajectory")
+            print(car.id, "reached intersection, sample one of the trajectory")
             print("*******************************************************")
             car.at_junction = True
             next_routes = lanes.get_turning_routes(car.location)
@@ -332,6 +276,7 @@ class Subscriber:
                 print(car.id, ": go straight")
             else:
                 print(car.id, ": turn right")
+            # idx = 2     # for testing
             chosen_route = next_routes[idx]
             merging_route = lanes.get_linking_route(chosen_route)
             car.location = lanes.stack_lanes(car.location, chosen_route)
@@ -356,14 +301,14 @@ class Subscriber:
             car.car_yaw = yaw_route_
 
             if len(car_route_) <= 2:
-                print("reached the end point")
+                print(car.id, "reached the end point")
                 self.stop(car)
                 self.EOL(car)
                 car.reached_end = True
             else:
                 car.future_waypoints = self.get_future_trajectory(car)
 
-            # self.plot_future_trajectory(car)
+            self.plot_future_trajectory(car)
 
 
     def main(self):
@@ -379,6 +324,13 @@ class Subscriber:
 
             # print current position of the vehicle
             self.plot_current_position()
+
+            # update the environment info
+            # for car in env.vehicle_states:
+            #     if not car.reached_end:
+            #         self.update(car)
+            #     else:
+            #         self.stop(car)
                 
             # update the environment info and move
             if not car_1.reached_end:
@@ -394,16 +346,35 @@ class Subscriber:
                 self.move(car_3)
 
             if self.collision(car_1.future_waypoints, car_2.future_waypoints):
-                print("possibility of collision")
+                print("possibility of collision between car 1 and car 2")
+                self.update(car_1)
+                self.move(car_1)
                 self.stop(car_2)
             
             if self.collision(car_1.future_waypoints, car_3.future_waypoints):
-                print("possibility of collision")
+                print("possibility of collision between car 1 and car 3")
+                self.update(car_1)
+                self.move(car_1)
                 self.stop(car_3)
 
             if self.collision(car_2.future_waypoints, car_3.future_waypoints):
-                print("possibility of collision")
+                print("possibility of collision between car 2 and car 3")
                 self.stop(car_2)
+                self.update(car_3)
+                self.move(car_3)
+
+            # if self.collision(car_1.future_waypoints, car_2.future_waypoints):
+            #     self.stop(car_1)
+            #     if self.collision(car_2.future_waypoints, car_3.future_waypoints):
+            #         self.stop(car_2)
+            #     else:
+            #         self.move(car_2)
+            
+            # else:
+            #     self.move(car_1)
+            #     self.move(car_2)
+
+            # self.move(car_3)
             
             end = time.time()
             time_taken += end-start
