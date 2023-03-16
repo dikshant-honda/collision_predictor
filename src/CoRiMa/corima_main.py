@@ -11,7 +11,7 @@ from collision_predictor.msg import Environment, VehicleState
 from tf.transformations import quaternion_from_euler
 from helper.frenet import distance
 from env_info.lane_info import LaneInfo
-# from vehicle_info import VehicleInfo
+from env_info.vehicle_info import VehicleInfo
 from controllers.controller import Controller
 from corima_wrapper.predict_collisions import predict_collisions
 from corima_wrapper.model import DataPoint
@@ -143,8 +143,6 @@ class Subscriber:
             car.car_route = car_route_
             car.car_yaw = yaw_route_
 
-            # print(car_route_)
-
             if len(car_route_) <= 2:
                 print("reached the end point")
                 self.stop(car)
@@ -177,7 +175,7 @@ class Subscriber:
         self.add(car_1)
         self.add(car_2)
         self.add(car_3)
-
+        
         while not rospy.is_shutdown():
             start = time.time()
 
@@ -223,110 +221,86 @@ class Subscriber:
                 print("Execution Done")
                 break
 
-def get_vehicle_state(id, pos, yaw, lin_vel, ang_vel, lane):
-    # self.id = id
-    pos_car = Point(pos[0], pos[1], 0.0)
-    yaw_car = yaw
-    lin_vel_car = Vector3(lin_vel, 0, 0)
-    ang_vel_car = Vector3(0, 0, ang_vel)
-    quat = quaternion_from_euler(0, 0, yaw_car)
-    pose_car = Pose(pos_car, Quaternion(quat[0], quat[1], quat[2], quat[3]))
-    twist_car = Twist(lin_vel_car, ang_vel_car)
-    # s_car = 0 
-    covariance_car = [[0 for _ in range(6)] for _ in range(6)]
-    pose_with_covariance_car = PoseWithCovariance(pose_car, covariance_car)
-    odom_car = Odometry(Header, "base_footprint", pose_with_covariance_car, twist_car) 
-    stop = False  
-    future_waypoints = []
-    reached_end = False
-    at_junction = False
-    location = lane
-    route_car_map = lane[0]
-    yaw_car_map = lane[1]
-
-    return VehicleState(id, odom_car, lin_vel, stop, future_waypoints, route_car_map, yaw_car_map, reached_end, at_junction, location)
-      
-
 if __name__ == '__main__':
     try:
         # get lane info
         lanes = LaneInfo()
 
         # get  vehicle info
-        # vehicles = VehicleInfo()
+        vehicles = VehicleInfo()
 
-        # car_1 = vehicles.car_1
-        # car_2 = vehicles.car_2
-        # car_3 = vehicles.car_3
-        # car 1 information
-        pos_car_1 = Point(-0.9, -10.0, 0.0)
-        yaw_car_1 = 1.57
-        v_1 = 0.7
-        lin_vel_1 = Vector3(v_1, 0.0, 0.0)
-        ang_vel_1 = Vector3(0.0, 0.0, 0.0)
-        q_1 = quaternion_from_euler(0, 0, yaw_car_1)
-        car_1_pose = Pose(pos_car_1, Quaternion(q_1[0], q_1[1], q_1[2], q_1[3]))
-        car_1_twist = Twist(lin_vel_1, ang_vel_1)
-        covariance_1 = [[0 for _ in range(6)] for _ in range(6)]
-        car_1_pose_with_covariance = PoseWithCovariance(car_1_pose, covariance_1)
-        car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
-        stop_1 = False  
-        future_waypoints_1 = []
-        reached_end_1 = False
-        at_junction_1 = False
-        location_1 = lanes.lane_5
-        car_1_route_ = []
-        car_1_yaw_ = []
+        car_1 = vehicles.car_1
+        car_2 = vehicles.car_2
+        car_3 = vehicles.car_3
+        # # car 1 information
+        # pos_car_1 = Point(-0.9, -10.0, 0.0)
+        # yaw_car_1 = 1.57
+        # v_1 = 0.7
+        # lin_vel_1 = Vector3(v_1, 0.0, 0.0)
+        # ang_vel_1 = Vector3(0.0, 0.0, 0.0)
+        # q_1 = quaternion_from_euler(0, 0, yaw_car_1)
+        # car_1_pose = Pose(pos_car_1, Quaternion(q_1[0], q_1[1], q_1[2], q_1[3]))
+        # car_1_twist = Twist(lin_vel_1, ang_vel_1)
+        # covariance_1 = [[0 for _ in range(6)] for _ in range(6)]
+        # car_1_pose_with_covariance = PoseWithCovariance(car_1_pose, covariance_1)
+        # car_1_odom = Odometry(Header, "base_footprint", car_1_pose_with_covariance, car_1_twist) 
+        # stop_1 = False  
+        # future_waypoints_1 = []
+        # reached_end_1 = False
+        # at_junction_1 = False
+        # location_1 = lanes.lane_5
+        # car_1_route_ = []
+        # car_1_yaw_ = []
 
-        # car 2 information
-        pos_car_2 = Point(9.0, -0.9, 0.0)
-        yaw_car_2 = 3.14
-        v_2 = 0.6
-        lin_vel_2 = Vector3(v_2, 0.0, 0.0)
-        ang_vel_2 = Vector3(0.0, 0.0, 0.0)
-        q_2 = quaternion_from_euler(0, 0, yaw_car_2)
-        car_2_pose = Pose(pos_car_2, Quaternion(q_2[0], q_2[1], q_2[2], q_2[3]))
-        car_2_twist = Twist(lin_vel_2, ang_vel_2)
-        covariance_2 = [[0 for _ in range(6)] for _ in range(6)]
-        car_2_pose_with_covariance = PoseWithCovariance(car_2_pose, covariance_2)
-        car_2_odom = Odometry(Header, "base_footprint", car_2_pose_with_covariance, car_2_twist) 
-        stop_2 = False  
-        future_waypoints_2 = []
-        reached_end_2 = False
-        at_junction_2 = False
-        location_2 = lanes.lane_1
-        car_2_route_ = []
-        car_2_yaw_ = []
+        # # car 2 information
+        # pos_car_2 = Point(9.0, -0.9, 0.0)
+        # yaw_car_2 = 3.14
+        # v_2 = 0.6
+        # lin_vel_2 = Vector3(v_2, 0.0, 0.0)
+        # ang_vel_2 = Vector3(0.0, 0.0, 0.0)
+        # q_2 = quaternion_from_euler(0, 0, yaw_car_2)
+        # car_2_pose = Pose(pos_car_2, Quaternion(q_2[0], q_2[1], q_2[2], q_2[3]))
+        # car_2_twist = Twist(lin_vel_2, ang_vel_2)
+        # covariance_2 = [[0 for _ in range(6)] for _ in range(6)]
+        # car_2_pose_with_covariance = PoseWithCovariance(car_2_pose, covariance_2)
+        # car_2_odom = Odometry(Header, "base_footprint", car_2_pose_with_covariance, car_2_twist) 
+        # stop_2 = False  
+        # future_waypoints_2 = []
+        # reached_end_2 = False
+        # at_junction_2 = False
+        # location_2 = lanes.lane_1
+        # car_2_route_ = []
+        # car_2_yaw_ = []
 
-        # car 3 information
-        pos_car_3 = Point(-10.0, 0.9, 0.0)
-        yaw_car_3 = 0.0
-        v_3 = 0.7
-        lin_vel_3 = Vector3(v_3, 0.0, 0.0)
-        ang_vel_3 = Vector3(0.05, 0.0, 0.0)
-        q_3 = quaternion_from_euler(0, 0, yaw_car_3)
-        car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
-        car_3_twist = Twist(lin_vel_3, ang_vel_3)
-        covariance_3 = [[0 for _ in range(6)] for _ in range(6)]
-        car_3_pose_with_covariance = PoseWithCovariance(car_3_pose, covariance_3)
-        car_3_odom = Odometry(Header, "base_footprint", car_3_pose_with_covariance, car_3_twist) 
-        stop_3 = False  
-        future_waypoints_3 = []
-        reached_end_3 = False
-        at_junction_3 = False
-        location_3 = lanes.lane_4
-        car_3_route_ = []
-        car_3_yaw_ = []
+        # # car 3 information
+        # pos_car_3 = Point(-10.0, 0.9, 0.0)
+        # yaw_car_3 = 0.0
+        # v_3 = 0.7
+        # lin_vel_3 = Vector3(v_3, 0.0, 0.0)
+        # ang_vel_3 = Vector3(0.05, 0.0, 0.0)
+        # q_3 = quaternion_from_euler(0, 0, yaw_car_3)
+        # car_3_pose = Pose(pos_car_3, Quaternion(q_3[0], q_3[1], q_3[2], q_3[3]))
+        # car_3_twist = Twist(lin_vel_3, ang_vel_3)
+        # covariance_3 = [[0 for _ in range(6)] for _ in range(6)]
+        # car_3_pose_with_covariance = PoseWithCovariance(car_3_pose, covariance_3)
+        # car_3_odom = Odometry(Header, "base_footprint", car_3_pose_with_covariance, car_3_twist) 
+        # stop_3 = False  
+        # future_waypoints_3 = []
+        # reached_end_3 = False
+        # at_junction_3 = False
+        # location_3 = lanes.lane_4
+        # car_3_route_ = []
+        # car_3_yaw_ = []
 
         # initialize the vehicles
-        car_1 = VehicleState("car_1", car_1_odom, v_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
-        car_2 = VehicleState("car_2", car_2_odom, v_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
-        car_3 = VehicleState("car_3", car_3_odom, v_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
+        # car_1 = VehicleState("car_1", car_1_odom, v_1, stop_1, future_waypoints_1, car_1_route_, car_1_yaw_, reached_end_1, at_junction_1, location_1)
+        # car_2 = VehicleState("car_2", car_2_odom, v_2, stop_2, future_waypoints_2, car_2_route_, car_2_yaw_, reached_end_2, at_junction_2, location_2)
+        # car_3 = VehicleState("car_3", car_3_odom, v_3, stop_3, future_waypoints_3, car_3_route_, car_3_yaw_, reached_end_3, at_junction_3, location_3)
 
-        # car_1 = get_vehicle_state("car_1", [-0.9, 10.0], 1.57, 0.7, 0.0, lanes.lane_5)
+        # car_1 = get_vehicle_state("car_1", [-0.9, -10.0], 1.57, 0.7, 0.0, lanes.lane_5)
         # car_2 = get_vehicle_state("car_2", [9.0, -0.9], 3.14, 0.6, 0.0, lanes.lane_1)
         # car_3 = get_vehicle_state("car_3", [-10.0, 0.9], 0.0, 0.7, 0.0, lanes.lane_4)
-
+        
         # environment setup
         no_of_vehicles = 0
         vehicle_states = []
