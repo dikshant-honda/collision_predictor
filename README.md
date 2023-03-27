@@ -1,4 +1,22 @@
-# collision-predictor
+# Collision Prediction Analysis
+
+#### Collision prediction between the traffic vehicles monitored by a surveillance camera using two approaches:
+* Frenet Conversion System
+* CoRiMa Assistance System
+
+The above two approaches are tested on gazebo worlds using a custom robot.
+
+#### Notes:
+##### Folders information
+* *config* folder contains the custom robot configurations
+* *launch* folder contains the launch files for testing various gazebo models
+* *msg* folder contains the custom message types for ros integration
+* *py_msgs* folder contains custom ros messages for testing, they are not used in the main script
+* *python_scripts* folder contains information about testing the frenet conversion system using python only
+* *robot* folder contains the xacro file for the custom robot
+* *src* folder contains all the relevant codes for both approaches as discussed above
+* *worlds* folder contains the sdf files for different gazebo worlds
+
 
 ### Algorithm pseudo code:
 ```python
@@ -15,15 +33,3 @@ while not collision(future_traj_vehicle):
       revert these future trajectory points into cartesian coordinates: [(x1,y1), (x2,y2), ...,(xn,yn)]
       future_traj_veh[veh] = [(x1,y1), (x2,y2), ...,(xn,yn)]
 ```
-
-### Pending tasks:
-1. Limit the number of vehicles: for computation, register only the vehicles which are in vicinity of the ego vehicle => *DONE*
-2. Restart ego vehicle behavior: ego vehicle should start moving once the collision scenario is over => *DONE*
-3. Region of interest: change the ROI according to the situation, w.r.t. ego vehicle or intersection => *DONE*
-4. Vehicle that's not following the center lane => *DONE*
-5. Better way of generating SD maps from the past information => *DONE*
-6. Initialization of the future trajectories => *DONE*
-7. Dictionary of vehicle data updates => *DONE*
-8. Move along the trajectory rather than the normal kinematic behavior => *DONE* 
-9. Make relevant gazebo environment => *DONE*
-10. Add documentation for every files and their functions => *DONE*
