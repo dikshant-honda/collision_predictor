@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/dikshant/catkin_ws/src/collision_predictor/build/devel/setup.sh

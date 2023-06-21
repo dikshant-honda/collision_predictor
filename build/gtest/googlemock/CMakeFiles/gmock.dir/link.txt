@@ -1,0 +1,1 @@
+/usr/bin/g++-8 -fPIC -g -shared -Wl,-soname,libgmockd.so -o ../lib/libgmockd.so "CMakeFiles/gmock.dir/src/gmock-all.cc.o"  -Wl,-rpath,/home/dikshant/catkin_ws/src/collision_predictor/build/gtest/lib ../lib/libgtestd.so -lpthread 

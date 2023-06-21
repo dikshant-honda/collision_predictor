@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: collision_predictor
+Description: Description of collision_predictor
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: message_runtime std_msgs geometry_msgs nav_msgs
