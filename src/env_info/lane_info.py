@@ -47,6 +47,12 @@ class LaneInfo:
 		for i in range(len(x)):
 			point_arr.append(Point(x[i], y[i], z))
 		return point_arr
+	
+	def coords_arr_to_point(self, arr):
+		point_arr = []
+		for i in range(len(arr)):
+			point_arr.append(Point(arr[i][0], arr[i][1], arr[i][2]))
+		return point_arr
 
 	def point_to_arr(self, lane):
 		arr_x, arr_y = [], []
