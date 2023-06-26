@@ -42,10 +42,10 @@ class LaneInfo:
 
 		return x, y, yaw
 
-	def arr_to_point(self, x, y):
+	def arr_to_point(self, x, y, z=0):
 		point_arr = []
 		for i in range(len(x)):
-			point_arr.append(Point(x[i], y[i], 0))
+			point_arr.append(Point(x[i], y[i], z))
 		return point_arr
 
 	def point_to_arr(self, lane):
