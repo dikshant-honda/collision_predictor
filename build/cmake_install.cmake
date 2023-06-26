@@ -134,6 +134,10 @@ if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  include("/home/dikshant/catkin_ws/src/collision_predictor/build/catkin_generated/safe_execute_install.cmake")
+endif()
+
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/collision_predictor/msg" TYPE FILE FILES
     "/home/dikshant/catkin_ws/src/collision_predictor/msg/waypoint.msg"
     "/home/dikshant/catkin_ws/src/collision_predictor/msg/collision.msg"

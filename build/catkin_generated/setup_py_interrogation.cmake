@@ -1,0 +1,7 @@
+set(collision_predictor_SETUP_PY_SETUP_MODULE "distutils.core")
+set(collision_predictor_SETUP_PY_VERSION "0.0.0")
+set(collision_predictor_SETUP_PY_SCRIPTS "")
+set(collision_predictor_SETUP_PY_PACKAGES "collision_prediction")
+set(collision_predictor_SETUP_PY_PACKAGE_DIRS "src/collision_prediction")
+set(collision_predictor_SETUP_PY_MODULES "")
+set(collision_predictor_SETUP_PY_MODULE_DIRS "")

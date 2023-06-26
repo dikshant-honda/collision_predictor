@@ -932,6 +932,32 @@
 			"path" : "build/catkin_generated/ordered_paths.cmake"
 		},
 		{
+			"path" : "setup.py"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/catkin_generated/setup_py_interrogation.cmake"
+		},
+		{
+			"path" : "package.xml"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/catkin_generated/package.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/opt/ros/noetic/share/catkin/cmake/templates/__init__.py.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/opt/ros/noetic/share/catkin/cmake/templates/python_distutils_install.sh.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/opt/ros/noetic/share/catkin/cmake/templates/safe_execute_install.cmake.in"
+		},
+		{
 			"isExternal" : true,
 			"path" : "/opt/ros/noetic/share/genmsg/cmake/pkg-msg-paths.cmake.develspace.in"
 		},
