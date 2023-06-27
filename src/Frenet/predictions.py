@@ -13,7 +13,7 @@ from env_info.vehicle_info import VehicleInfo
 from Frenet.plotter import plotter
 
 class Predictions:
-    def __init__(self):
+    def __init__(self, env, lanes):
         # variables
         self.interp_back_path = 1000                    # interpolate back to path after this # of steps
         self.plan_t_m = 5                               # planning horizon
@@ -21,10 +21,8 @@ class Predictions:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 1.4                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-        self.intersection_vision = 4                    # check cars arriving near intersection
-        self.car_at_junction = {"X":[], "Y":[], "T":[]} # dictionary for storing the ids at the junction
-
-        self.main()
+        self.env = env
+        self.lanes = lanes
 
     # get the s_map and lane info
     def get_lane_and_s_map(self, route):
@@ -90,15 +88,15 @@ class Predictions:
         return False
 
     def add(self, car):
-        env.register = True
-        env.vehicles += 1
-        env.vehicle_states.append(car)
+        self.env.register = True
+        self.env.vehicles += 1
+        self.env.vehicle_states.append(car)
 
     def removal(self, car):
-        if car in env.vehicle_states:
-            env.deregister = True
-            env.vehicles -= 1
-            env.vehicle_states.remove(car)
+        if car in self.env.vehicle_states:
+            self.env.deregister = True
+            self.env.vehicles -= 1
+            self.env.vehicle_states.remove(car)
 
     def EOL(self, car):                         # vehicle has reached the goal point
         self.removal(car)
@@ -122,7 +120,7 @@ class Predictions:
         return closest_index
     
     def get_route(self, pos, original_lane, next_lane):
-        lane = lanes.stack_lanes(original_lane, next_lane)
+        lane = self.lanes.stack_lanes(original_lane, next_lane)
         idx = self.closest_pt_idx(pos.x, pos.y, lane)
         car_route_ = []
         yaw_route_ = []
@@ -135,90 +133,16 @@ class Predictions:
         return car_route_, yaw_route_
 
     def update(self, car):
-        if self.arriving_near_intersection(car, car.pose.pose.pose.position, [0, 0]) and not car.at_junction:
-            # get route from the current position of the vehicle
-            possible_lanes = lanes.get_turning_routes(car.location)
-            for lane in possible_lanes:
-                car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, lane)
-                car.car_route = car_route_
-                car.car_yaw = yaw_route_
+        possible_lanes = self.lanes.get_turning_routes(car.location)
+        for lane in possible_lanes:
+            route, _ = self.get_route(car.pose.pose.pose.position, car.location, lane)
+            car.car_route_ = route
+            car.car_yaw = None
 
-                car.future_waypoints = self.get_future_trajectory(car)
-
-        else:
-            car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
-            car.car_route = car_route_
-            car.car_yaw = yaw_route_
-
-            if len(car_route_) <= 2:
-                print(car.id, "reached the end point")
-                self.stop(car)
-                self.EOL(car)
-                car.reached_end = True
-            else:
-                car.future_waypoints = self.get_future_trajectory(car)
-
+            car.future_waypoints = self.get_future_trajectory(car)
 
     def predict_collision(self):
-        for first_car, second_car in itertools.combinations(env.vehicle_states, 2):
+        for first_car, second_car in itertools.combinations(self.env.vehicle_states, 2):
             # add the future waypoints here
             if self.collision(first_car.future_waypoints, second_car.future_waypoints):
                 print("collision between", first_car.id, "and", second_car.id)
-
-    def main(self):
-        time_taken = 0
-
-        while True:
-            start = time.time()
-
-            # print current position of the vehicle
-            self.plot_current_position()
-
-            # update the environment info and move
-            for car in env.vehicle_states:
-                if not car.reached_end:
-                    self.update(car)
-
-            self.predict_collision()
-
-            end = time.time()
-            time_taken += end-start
-
-            # plotting tools
-            plt.xlabel("X")
-            plt.ylabel("Y")
-            plt.title("Trajectories of the moving vehicles")
-            plt.pause(0.000000001)
-
-            print("Loop execution time", end-start)
-            print("time elapsed:", time_taken)
-            print("------------------------------------------")
-            if env.vehicles == 0:
-                print("Execution Done")
-                break   
-
-if __name__ == '__main__':
-    try:
-        # get lane info
-        lanes = LaneInfo()
-
-        # get  vehicle info
-        vehicles = VehicleInfo()
-
-        # environment setup
-        no_of_vehicles = 0
-        vehicle_states = []
-        # at_intersection = False
-        register = False
-        deregister = False 
-        interaction = False
-        env = Environment(no_of_vehicles, vehicle_states, register, deregister, interaction)
-
-        # directory for plotting the future trajectories of the vehicles
-        save_path = "/home/dikshant/catkin_ws/src/collision_predictor/src"
-
-        predict = Predictions()
-
-
-    except:
-        pass
