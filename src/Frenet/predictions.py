@@ -120,6 +120,19 @@ class Predictions:
                 min_dist = dist
                 closest_index = i
         return closest_index
+    
+    def get_route(self, pos, original_lane, next_lane):
+        lane = lanes.stack_lanes(original_lane, next_lane)
+        idx = self.closest_pt_idx(pos.x, pos.y, lane)
+        car_route_ = []
+        yaw_route_ = []
+        horizon = 0
+        while idx < len(lane[0]) and horizon < 500:
+            car_route_.append(Point(lane[0][idx].x, lane[0][idx].y, 0))
+            yaw_route_.append(lane[1][idx])
+            horizon += 1
+            idx += 1
+        return car_route_, yaw_route_
 
     def update(self, car):
         if self.arriving_near_intersection(car, car.pose.pose.pose.position, [0, 0]) and not car.at_junction:
@@ -132,7 +145,6 @@ class Predictions:
 
                 car.future_waypoints = self.get_future_trajectory(car)
 
-                self.plot_future_trajectory(car)
         else:
             car_route_, yaw_route_ = self.get_route(car.pose.pose.pose.position, car.location, [])
             car.car_route = car_route_
@@ -146,13 +158,12 @@ class Predictions:
             else:
                 car.future_waypoints = self.get_future_trajectory(car)
 
-            self.plot_future_trajectory(car)
 
     def predict_collision(self):
         for first_car, second_car in itertools.combinations(env.vehicle_states, 2):
+            # add the future waypoints here
             if self.collision(first_car.future_waypoints, second_car.future_waypoints):
                 print("collision between", first_car.id, "and", second_car.id)
-                self.stop(second_car)
 
     def main(self):
         time_taken = 0
