@@ -1,16 +1,10 @@
 #! /usr/bin/env python3
 
 import math
-import time
-import matplotlib.pyplot as plt
 import itertools
-from collision_predictor.msg import Environment
 from helper.frenet import *
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler
-from env_info.lane_info import LaneInfo
-from env_info.vehicle_info import VehicleInfo
-from Frenet.plotter import plotter
 
 class Predictions:
     def __init__(self, env, lanes):
@@ -100,13 +94,6 @@ class Predictions:
 
     def EOL(self, car):                         # vehicle has reached the goal point
         self.removal(car)
-
-    def plot_future_trajectory(self, car):
-        self.point_to_arr_write(car.id, car.future_waypoints)
-        x, y = plotter(car.id)
-
-        # plot trajectories
-        plt.plot(x, y, '-')
 
     def closest_pt_idx(self, x, y, lane):
         # finding the closest index on lane from point(x,y)
