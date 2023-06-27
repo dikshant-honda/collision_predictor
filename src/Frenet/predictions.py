@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import itertools
 from collision_predictor.msg import Environment
 from helper.frenet import *
+from std_msgs.msg import Header
+from tf.transformations import quaternion_from_euler
 from env_info.lane_info import LaneInfo
 from env_info.vehicle_info import VehicleInfo
 from Frenet.plotter import plotter
