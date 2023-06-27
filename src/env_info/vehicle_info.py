@@ -37,3 +37,20 @@ class VehicleInfo:
         yaw_car_map = []
 
         return VehicleState(id, odom_car, lin_vel, stop, future_waypoints, route_car_map, yaw_car_map, reached_end, at_junction, location)
+
+# class for integration purposes  
+class Vehicle:
+    def __init__(self) -> None:
+        pass
+
+    def vehicle_info(self, id, position, velocity, orientation, type, lane):
+        self.id = id
+        self.position = position    # [x, y, z]
+        self.velocity = velocity
+        self.orientation = orientation
+        self.type = type
+        self.current_lane = lane
+
+        # make new data type/class for storing the vehicle info
+        return 
+        
