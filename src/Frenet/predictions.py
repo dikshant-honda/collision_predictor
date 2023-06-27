@@ -5,6 +5,7 @@ import itertools
 from helper.frenet import *
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler
+from env_info.vehicle_info import Vehicle
 
 class Predictions:
     def __init__(self, env, lanes):
@@ -130,6 +131,5 @@ class Predictions:
 
     def predict_collision(self):
         for first_car, second_car in itertools.combinations(self.env.vehicle_states, 2):
-            # add the future waypoints here
             if self.collision(first_car.future_waypoints, second_car.future_waypoints):
                 print("collision between", first_car.id, "and", second_car.id)
