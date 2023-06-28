@@ -38,6 +38,16 @@ class VehicleInfo:
 
         return VehicleState(id, odom_car, lin_vel, stop, future_waypoints, route_car_map, yaw_car_map, reached_end, at_junction, location)
 
+# serve as a traffic data type 
+class Traffic:
+    def __init__(self, id, pos, vel, theta, type, lane) -> None:
+        self.id = id
+        self.position = pos
+        self.velocity = vel
+        self.orientation = theta
+        self.type = type
+        self.lane = lane
+
 # class for integration purposes  
 class Vehicle:
     def __init__(self) -> None:
@@ -51,6 +61,5 @@ class Vehicle:
         self.type = type
         self.current_lane = lane
 
-        # make new data type/class for storing the vehicle info
-        return 
+        return Traffic(id, position, velocity, orientation, type, lane)
         
