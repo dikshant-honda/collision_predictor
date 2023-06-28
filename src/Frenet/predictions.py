@@ -36,22 +36,22 @@ class Predictions:
                 new_x, new_y, _ = get_xy(s+v*self.dt_m*t, d_val, path, s_map)
             else:
                 new_x, new_y, _ = get_xy(s+v*self.dt_m*t, 0, path, s_map)
-            future_waypoints.append(Point(new_x, new_y, 0.0))
+            future_waypoints.append([new_x, new_y])
         return future_waypoints, d
 
     # getting the future trajectory
     def get_future_trajectory(self, veh): 
-        v = veh.vel
+        v = veh.velocity
         d = 0
-        lane_line_list, lane_s_map = self.get_lane_and_s_map(veh.car_route)
-        future_waypoints, d = self.PredictTrajectoryVehicles(veh.pose.pose.pose.position.x, veh.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
+        lane_line_list, lane_s_map = self.get_lane_and_s_map(veh.route)
+        future_waypoints, d = self.PredictTrajectoryVehicles(veh.pos[0], veh.pose[1], lane_line_list, lane_s_map, v, d)
         return future_waypoints
 
     # collision check by vicinity or point-wise check
     def collision(self, points1, points2):
         for i in range(len(points1)):
             for j in range(len(points2)):
-                if distance(points1[i].x, points1[i].y, points2[j].x, points2[j].y) < self.tol:
+                if distance(points1[i][0], points1[i][1], points2[j][0], points2[j][1]) < self.tol:
                     return True
         return False
 
@@ -74,41 +74,36 @@ class Predictions:
             env.counter -= 1
             env.vehicles.remove(car)
 
-    def EOL(self, car):                         # vehicle has reached the goal point
-        self.removal(car)
-
     def closest_pt_idx(self, x, y, lane):
         # finding the closest index on lane from point(x,y)
         closest_index = 0
         min_dist = 10000.0
         for i in range(len(lane[0])):
-            dist = distance(lane[0][i].x, lane[0][i].y, x, y)
+            dist = distance(lane[0][i][0], lane[0][i][1], x, y)
             if dist < min_dist:
                 min_dist = dist
                 closest_index = i
         return closest_index
     
-    def get_route(self, pos, lanes, original_lane, next_lane):
-        lane = lanes.stack_lanes(original_lane, next_lane)
-        idx = self.closest_pt_idx(pos.x, pos.y, lane)
-        car_route_ = []
-        yaw_route_ = []
+    def get_route(self, pos, lanes, curr_lane, next_lane):
+        lane = lanes.stack_lanes(curr_lane, next_lane)
+        idx = self.closest_pt_idx(pos[0], pos[1], lane)
+        route = []
         horizon = 0
         while idx < len(lane[0]) and horizon < 500:
-            car_route_.append(Point(lane[0][idx].x, lane[0][idx].y, 0))
-            yaw_route_.append(lane[1][idx])
+            route.append(lane[0][idx][0], lane[0][idx][1])
             horizon += 1
             idx += 1
-        return car_route_, yaw_route_
-
-    def update(self, car, lanes):
-        possible_lanes = lanes.get_turning_routes(car.location)
-        for lane in possible_lanes:
-            route, _ = self.get_route(car.pose.pose.pose.position, car.location, lane)
-            car.car_route_ = route
-            car.car_yaw = None
-
-            car.future_waypoints = self.get_future_trajectory(car)
+        return route
+    
+    # assign next possible movement and estimate future trajectory 
+    def update(self, veh, lanes):
+        possible_lanes = lanes.get_turning_routes(veh.location)
+        for next_lane in possible_lanes:
+            route = self.get_route(veh.pos, lanes, veh.location, lanes, next_lane)
+            veh.route = route
+            # get future coordinates
+            veh.future_waypoints = self.get_future_trajectory(veh)
 
     # updates the dynamics for this
     def predict_collision(self, env):
