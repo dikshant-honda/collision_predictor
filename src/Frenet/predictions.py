@@ -15,34 +15,21 @@ class Predictions:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 1.4                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-        self.env = env
-        self.lanes = lanes
+        self.env = env                                  # environment information
+        self.lanes = lanes                              # current lane status
 
-    # get the s_map and lane info
-    def get_lane_and_s_map(self, route):
-        x, y = [], []
-        for i in  range(len(route)):
-            x.append(route[i].x)
-            y.append(route[i].y)
-        
-        pose_arr = []
-        lane_route = []
-        for i in range(len(x)):
-            lane_route.append([x[i], y[i]])
-        
-        for i in range(len(lane_route)-1):
-            point = Point2D(lane_route[i][0], lane_route[i][1])
-            yaw = math.atan2((lane_route[i+1][1]-lane_route[i][1]),(lane_route[i+1][0]-lane_route[i][0]))
-            quat = quaternion_from_euler(0,0,yaw)
-            poses = PoseStamped(Header, Pose(point, quat))
-            pose_arr.append(poses)
-        # adding the last point
-        pose_arr.append(PoseStamped(Header, Pose(Point2D(lane_route[-1][0], lane_route[-1][1]), quat)))
-        path_route = Path(Header, pose_arr)
-        lane_line_list, lane_s_map = path_to_list(path_route)
-
-        return lane_line_list, lane_s_map
-    
+    # get s-d curve dynamics
+    def get_s_map(self, route):
+        s_map = []
+        accumulated_distance = 0.0
+        prev_point = None
+        for x, y in route:
+            if prev_point != None:
+                accumulated_distance += distance(prev_point[0], prev_point[1], x, y)
+            s_map.append(accumulated_distance)
+            prev_point = [x, y]
+        return route, s_map
+  
     # future waypoints
     def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
         s, d_curr, _, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
@@ -58,11 +45,11 @@ class Predictions:
         return future_waypoints, d
 
     # getting the future trajectory
-    def get_future_trajectory(self, car): 
-        v = car.vel
+    def get_future_trajectory(self, veh): 
+        v = veh.vel
         d = 0
-        lane_line_list, lane_s_map = self.get_lane_and_s_map(car.car_route)
-        future_waypoints, d = self.PredictTrajectoryVehicles(car.pose.pose.pose.position.x, car.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
+        lane_line_list, lane_s_map = self.get_lane_and_s_map(veh.car_route)
+        future_waypoints, d = self.PredictTrajectoryVehicles(veh.pose.pose.pose.position.x, veh.pose.pose.pose.position.y, lane_line_list, lane_s_map, v, d)
         return future_waypoints
 
     # collision check by vicinity or point-wise check
@@ -128,6 +115,7 @@ class Predictions:
 
             car.future_waypoints = self.get_future_trajectory(car)
 
+    # updates the dynamics for this
     def predict_collision(self):
         for first_car, second_car in itertools.combinations(self.env.vehicles, 2):
             if self.collision(first_car.future_waypoints, second_car.future_waypoints):
