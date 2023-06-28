@@ -124,7 +124,7 @@
 					"jsonFile" : "directory-gtest-Debug-40f9edd0af6c04d6f946.json",
 					"minimumCMakeVersion" : 
 					{
-						"string" : "2.8.8"
+						"string" : "3.0.2"
 					},
 					"parentIndex" : 0,
 					"projectIndex" : 1,
@@ -139,7 +139,7 @@
 					"jsonFile" : "directory-gtest.googlemock-Debug-8fd0af86403c015b5fbc.json",
 					"minimumCMakeVersion" : 
 					{
-						"string" : "2.6.4"
+						"string" : "3.0.2"
 					},
 					"parentIndex" : 1,
 					"projectIndex" : 2,
@@ -155,7 +155,7 @@
 					"jsonFile" : "directory-gtest.googletest-Debug-5804ba12edef54b53d36.json",
 					"minimumCMakeVersion" : 
 					{
-						"string" : "2.6.4"
+						"string" : "3.0.2"
 					},
 					"parentIndex" : 2,
 					"projectIndex" : 3,
@@ -654,7 +654,7 @@
 				{
 					"directoryIndex" : 2,
 					"id" : "gmock_main::@e3f94eedc5dc07131386",
-					"jsonFile" : "target-gmock_main-Debug-64997e9d9d2d425b4535.json",
+					"jsonFile" : "target-gmock_main-Debug-91bcc006f731c4fec762.json",
 					"name" : "gmock_main",
 					"projectIndex" : 2
 				},
