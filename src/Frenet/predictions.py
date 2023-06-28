@@ -5,7 +5,6 @@ import itertools
 from helper.frenet import *
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler
-from env_info.vehicle_info import Vehicle
 
 class Predictions:
     def __init__(self, env, lanes):
@@ -84,14 +83,14 @@ class Predictions:
 
     def add(self, car):
         self.env.register = True
-        self.env.vehicles += 1
-        self.env.vehicle_states.append(car)
+        self.env.counter += 1
+        self.env.vehicles.append(car)
 
     def removal(self, car):
-        if car in self.env.vehicle_states:
+        if car in self.env.vehicles:
             self.env.deregister = True
-            self.env.vehicles -= 1
-            self.env.vehicle_states.remove(car)
+            self.env.counter -= 1
+            self.env.vehicles.remove(car)
 
     def EOL(self, car):                         # vehicle has reached the goal point
         self.removal(car)
@@ -130,6 +129,6 @@ class Predictions:
             car.future_waypoints = self.get_future_trajectory(car)
 
     def predict_collision(self):
-        for first_car, second_car in itertools.combinations(self.env.vehicle_states, 2):
+        for first_car, second_car in itertools.combinations(self.env.vehicles, 2):
             if self.collision(first_car.future_waypoints, second_car.future_waypoints):
                 print("collision between", first_car.id, "and", second_car.id)
