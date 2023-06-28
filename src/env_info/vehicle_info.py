@@ -40,10 +40,11 @@ class VehicleInfo:
 
 # serve as a traffic data type for integration
 class Traffic:
-    def __init__(self, id, pos, vel, theta, type, lane) -> None:
+    def __init__(self, id, pos, vel, theta, type, location, future_waypoints) -> None:
         self.id = id
         self.position = pos
         self.velocity = vel
         self.orientation = theta
         self.type = type
-        self.lane = lane 
+        self.location = location
+        self.future_waypoints = future_waypoints 
