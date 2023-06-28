@@ -3,8 +3,6 @@
 import math
 import itertools
 from helper.frenet import *
-from std_msgs.msg import Header
-from tf.transformations import quaternion_from_euler
 
 class Predictions:
     def __init__(self, env, lanes):
