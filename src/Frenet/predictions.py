@@ -1,11 +1,10 @@
 #! /usr/bin/env python3
 
-import math
 import itertools
 from helper.frenet import *
 
 class Predictions:
-    def __init__(self, env, lanes):
+    def __init__(self):
         # variables
         self.interp_back_path = 1000                    # interpolate back to path after this # of steps
         self.plan_t_m = 5                               # planning horizon
@@ -13,8 +12,6 @@ class Predictions:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 1.4                                  # tolerance value for proximity check
         self.vision_radius = 3                          # check only nearby cars
-        self.env = env                                  # environment information
-        self.lanes = lanes                              # current lane status
 
     # get s-d curve dynamics
     def get_s_map(self, route):
@@ -66,16 +63,16 @@ class Predictions:
             return True
         return False
 
-    def add(self, car):
-        self.env.register = True
-        self.env.counter += 1
-        self.env.vehicles.append(car)
+    def add(self, car, env):
+        env.register = True
+        env.counter += 1
+        env.vehicles.append(car)
 
-    def removal(self, car):
+    def removal(self, car, env):
         if car in self.env.vehicles:
-            self.env.deregister = True
-            self.env.counter -= 1
-            self.env.vehicles.remove(car)
+            env.deregister = True
+            env.counter -= 1
+            env.vehicles.remove(car)
 
     def EOL(self, car):                         # vehicle has reached the goal point
         self.removal(car)
@@ -91,8 +88,8 @@ class Predictions:
                 closest_index = i
         return closest_index
     
-    def get_route(self, pos, original_lane, next_lane):
-        lane = self.lanes.stack_lanes(original_lane, next_lane)
+    def get_route(self, pos, lanes, original_lane, next_lane):
+        lane = lanes.stack_lanes(original_lane, next_lane)
         idx = self.closest_pt_idx(pos.x, pos.y, lane)
         car_route_ = []
         yaw_route_ = []
@@ -104,8 +101,8 @@ class Predictions:
             idx += 1
         return car_route_, yaw_route_
 
-    def update(self, car):
-        possible_lanes = self.lanes.get_turning_routes(car.location)
+    def update(self, car, lanes):
+        possible_lanes = lanes.get_turning_routes(car.location)
         for lane in possible_lanes:
             route, _ = self.get_route(car.pose.pose.pose.position, car.location, lane)
             car.car_route_ = route
@@ -114,7 +111,7 @@ class Predictions:
             car.future_waypoints = self.get_future_trajectory(car)
 
     # updates the dynamics for this
-    def predict_collision(self):
-        for first_car, second_car in itertools.combinations(self.env.vehicles, 2):
+    def predict_collision(self, env):
+        for first_car, second_car in itertools.combinations(env.vehicles, 2):
             if self.collision(first_car.future_waypoints, second_car.future_waypoints):
                 print("collision between", first_car.id, "and", second_car.id)
