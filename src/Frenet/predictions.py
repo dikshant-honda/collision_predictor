@@ -11,7 +11,6 @@ class Predictions:
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 1.4                                  # tolerance value for proximity check
-        self.vision_radius = 3                          # check only nearby cars
 
     # get s-d curve dynamics
     def get_s_map(self, route):
@@ -43,7 +42,7 @@ class Predictions:
     def get_future_trajectory(self, veh): 
         v = veh.velocity
         d = 0
-        lane_line_list, lane_s_map = self.get_lane_and_s_map(veh.route)
+        lane_line_list, lane_s_map = self.get_s_map(veh.route)
         future_waypoints, d = self.PredictTrajectoryVehicles(veh.pos[0], veh.pose[1], lane_line_list, lane_s_map, v, d)
         return future_waypoints
 
@@ -53,14 +52,6 @@ class Predictions:
             for j in range(len(points2)):
                 if distance(points1[i][0], points1[i][1], points2[j][0], points2[j][1]) < self.tol:
                     return True
-        return False
-
-    def inVicinity(self, car1, car2):
-        car1_pos = car1.pose.pose.pose.position
-        car2_pos = car2.pose.pose.pose.position
-        if distance(car1_pos.x, car1_pos.y, car2_pos.x, car2_pos.y) < self.vision_radius:
-            # print("start checking the future trajectories between", car1.id, "and", car2.id)
-            return True
         return False
 
     def add(self, car, env):
