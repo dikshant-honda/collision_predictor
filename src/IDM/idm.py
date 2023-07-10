@@ -58,12 +58,12 @@ init_gap = lead_initial_position - ego_initial_position
 ego_trajectory = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_initial_position, time_horizon, time_step)
 lead_trajectory = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_initial_position, time_horizon, time_step)
 
-print("Predicted Trajectory:")
-for t, (position, speed) in enumerate(ego_trajectory):
-    print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
+# print("Predicted Trajectory:")
+# for t, (position, speed) in enumerate(ego_trajectory):
+#     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
 
-for t, (position, speed) in enumerate(lead_trajectory):
-    print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
+# for t, (position, speed) in enumerate(lead_trajectory):
+#     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
 
 for t in range(10):
     gap = lead_trajectory[-1][0] - ego_trajectory[-1][0]
