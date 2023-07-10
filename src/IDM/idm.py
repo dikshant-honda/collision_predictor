@@ -1,4 +1,5 @@
 import math
+import matplotlib.pyplot as plt
 
 class IDM:
     def __init__(self, desired_speed=25, time_headway=1.5, min_gap=2, max_acceleration=1.5, comfortable_deceleration=1,
@@ -64,7 +65,13 @@ for t, (position, speed) in enumerate(ego_trajectory):
 for t, (position, speed) in enumerate(lead_trajectory):
     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
 
-for _ in range(10):
+for t in range(10):
     gap = lead_trajectory[-1][0] - ego_trajectory[-1][0]
     ego_trajectory = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_initial_position, time_horizon, time_step)
     lead_trajectory = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_initial_position, time_horizon, time_step)
+    
+    plt.plot(t, ego_trajectory[-1][0], "*")
+    plt.plot(t, lead_trajectory[-1][0], "-")
+    plt.pause(0.0001)
+
+plt.show()
