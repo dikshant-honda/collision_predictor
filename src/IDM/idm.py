@@ -1,5 +1,3 @@
-from filterpy.kalman import KalmanFilter
-import numpy as np
 import math
 
 class IDM:
@@ -30,7 +28,7 @@ def predict_trajectory(idm, initial_speed, initial_position, time_horizon, time_
     trajectory = [(position, speed)]
 
     for t in range(time_horizon):
-        acceleration = idm.calculate_acceleration(speed, 5, 1)  # Assuming no lead vehicle
+        acceleration = idm.calculate_acceleration(speed, 0, math.inf)  # Assuming no lead vehicle
         speed += acceleration * time_step
         position += speed * time_step
         trajectory.append((position, speed))
@@ -42,7 +40,7 @@ def predict_trajectory(idm, initial_speed, initial_position, time_horizon, time_
 idm = IDM()
 initial_speed = 20  # Initial speed of the vehicle
 initial_position = 0  # Initial position of the vehicle
-time_horizon = 5  # Time horizon for trajectory prediction (in seconds)
+time_horizon = 12  # Time horizon for trajectory prediction (in seconds)
 time_step = 0.1  # Time step for trajectory prediction (in seconds)
 
 trajectory = predict_trajectory(idm, initial_speed, initial_position, time_horizon, time_step)
