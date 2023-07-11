@@ -43,11 +43,15 @@ def predict_trajectory(idm, initial_speed, lead_speed, gap, initial_position, ti
 
     return trajectory, pos, time
 
-def plot(time, pos):
-    line.set_data(time, pos)
+def plot(x_pos, y_pos):
+    line.set_data(x_pos[0], y_pos)
+    line.set_data(x_pos[1], y_pos)
 
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 50)
+    ax.plot(x_pos[0][0], y_pos[0], "*")
+    ax.plot(x_pos[1][0], y_pos[0], "o")
+
+    ax.set_xlim(-1, 50)
+    ax.set_ylim(-1, 1)
 
     # Redraw the plot
     plt.draw()
@@ -100,7 +104,11 @@ if __name__ == '__main__':
         ego_pos_data.clear()
         lead_pos_data.clear()
 
-        plot(time, ego_pos)
-        plot(time, lead_pos)
+        data = [ego_pos, lead_pos]
+
+        plot(data, np.zeros((len(ego_pos))))
+
+        # plot(ego_pos, np.zeros((len(ego_pos))))
+        # plot(lead_pos, np.zeros((len(lead_pos))))
 
     plt.show()
