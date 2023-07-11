@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import matplotlib.pyplot as plt
 
 class IDM:
@@ -27,14 +28,16 @@ def predict_trajectory(idm, initial_speed, lead_speed, gap, initial_position, ti
     speed = initial_speed
     position = initial_position
     trajectory = [(position, speed)]
+    pos = [position]
 
     for _ in range(time_horizon):
         acceleration = idm.calculate_acceleration(speed, lead_speed, gap)  # Assuming no lead vehicle
         speed += acceleration * time_step
         position += speed * time_step
         trajectory.append((position, speed))
+        pos.append(position)
 
-    return trajectory
+    return trajectory, pos
 
 
 idm = IDM()
@@ -43,20 +46,20 @@ initial_position = 0  # Initial position of the vehicle
 time_horizon = 10  # Time horizon for trajectory prediction (in seconds)
 time_step = 0.1  # Time step for trajectory prediction (in seconds)
 
-trajectory = predict_trajectory(idm, initial_speed, 0, math.inf, initial_position, time_horizon, time_step)
+trajectory, pos = predict_trajectory(idm, initial_speed, 0, math.inf, initial_position, time_horizon, time_step)
 
 ego_vehicle = IDM()
 ego_vehicle_speed = 20
-ego_initial_position = 0
+ego_initial_position = 3
 
 lead_vehicle = IDM()
-lead_vehicle_speed = 30
+lead_vehicle_speed = 24
 lead_initial_position = 10
 
 # initial iteration
 init_gap = lead_initial_position - ego_initial_position
-ego_trajectory = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_initial_position, time_horizon, time_step)
-lead_trajectory = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_initial_position, time_horizon, time_step)
+ego_trajectory, ego_pos = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_initial_position, time_horizon, time_step)
+lead_trajectory, lead_pos = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_initial_position, time_horizon, time_step)
 
 # print("Predicted Trajectory:")
 # for t, (position, speed) in enumerate(ego_trajectory):
@@ -67,11 +70,17 @@ lead_trajectory = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.i
 
 for t in range(10):
     gap = lead_trajectory[-1][0] - ego_trajectory[-1][0]
-    ego_trajectory = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_initial_position, time_horizon, time_step)
-    lead_trajectory = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_initial_position, time_horizon, time_step)
+    ego_trajectory, ego_pos = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_pos[0], time_horizon, time_step)
+    lead_trajectory, lead_pos = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_pos[0], time_horizon, time_step)
     
-    plt.plot(t, ego_trajectory[-1][0], "*")
-    plt.plot(t, lead_trajectory[-1][0], "-")
-    plt.pause(0.0001)
+    # plt.plot(np.arange(0,1.1,0.1), ego_pos, "-", label = "ego vehicle predictions")
+    # plt.plot(np.arange(0,1.1,0.1), lead_pos, "-", label = "leading vehicle predictions")
+    # plt.legend()
+    # plt.title("IDM predictions")
+    # plt.pause(0.01)
 
+plt.plot(np.arange(0,1.1,0.1), ego_pos, "-", label = "ego vehicle predictions")
+plt.plot(np.arange(0,1.1,0.1), lead_pos, "-", label = "leading vehicle predictions")
+plt.legend()
+plt.title("IDM predictions")
 plt.show()
