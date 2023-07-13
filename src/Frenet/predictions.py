@@ -148,14 +148,30 @@ class Predictions:
             idx += 1
         return route
     
-    # assign next possible movement and estimate future trajectory 
-    def update(self, veh, lanes):
-        possible_lanes = lanes.get_turning_routes(veh.location)
-        for next_lane in possible_lanes:
-            route = self.get_route(veh.pos, lanes, veh.location, lanes, next_lane)
-            veh.route = route
-            # get future coordinates
-            veh.future_waypoints = self.get_future_trajectory(veh)
+    def update(
+            self, 
+            vehicle: Traffic, 
+            lanes: LaneInfo,
+            at_intersection: bool,
+        ) -> None:
+        """
+        Function to update the dynamics of the traffic agent. 
+        Assign new lane and future waypoints to the traffic agent.
+
+        args:
+            vehicle: traffic agent whose dynamics need to be updated
+            lanes: current lane and switching possibilty if it arrives at intersecton
+        """
+        if at_intersection:
+            possible_lanes = lanes.get_turning_routes(vehicle.location)
+            for next_lane in possible_lanes:
+                route = self.get_route(vehicle.position, lanes, vehicle.location, next_lane)
+                vehicle.location = route
+                vehicle.future_waypoints = self.get_future_trajectory(vehicle)
+        else:
+            route = self.get_route(vehicle.position, lanes, vehicle.location, [])
+            vehicle.location = route
+            vehicle.future_waypoints = self.get_future_trajectory(vehicle)
 
     # collision check by vicinity or point-wise check
     def collision(self, points1, points2):
