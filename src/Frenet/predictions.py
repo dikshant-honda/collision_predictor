@@ -1,10 +1,20 @@
 #! /usr/bin/env python3
 
+from dataclasses import dataclass
 import itertools
+import numpy as np
+from numpy.typing import NDArray
 from helper.frenet import *
 
+@dataclass(frozen=True)
 class Predictions:
-    def __init__(self):
+    interp_back_path: int
+    plan_t_m: int
+    dt_m: float
+    np_m: float
+    tol: float
+
+    def __init__(self) -> None:
         # variables
         self.interp_back_path = 1000                    # interpolate back to path after this # of steps
         self.plan_t_m = 5                               # planning horizon
@@ -12,31 +22,45 @@ class Predictions:
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
         self.tol = 1.4                                  # tolerance value for proximity check
 
-    # get s-d curve dynamics
-    def get_s_map(self, route):
-        s_map = []
+    def get_s_map(
+            self, 
+            route: NDArray,
+    ) -> NDArray:                   # update required
+        """
+        Function to get the s-map in Frenet coordinate system
+        It will accumulate the distance along the curve taking origin as the vehicle current position
+        """
+        s_map = np.array([], dtype = np.float64)
         accumulated_distance = 0.0
         prev_point = None
         for x, y in route:
             if prev_point != None:
                 accumulated_distance += distance(prev_point[0], prev_point[1], x, y)
-            s_map.append(accumulated_distance)
+            s_map = np.append(s_map, accumulated_distance)
             prev_point = [x, y]
-        return route, s_map
+        return np.array((route, s_map))
   
     # future waypoints
-    def PredictTrajectoryVehicles(self, init_x, init_y, path, s_map, v, d):   
+    def PredictTrajectoryVehicles(
+            self, 
+            init_x: np.float64, 
+            init_y: np.float64, 
+            path: NDArray, 
+            s_map: NDArray[np.float64], 
+            v: np.float64, 
+            d:np.float64,
+        ) -> NDArray:   
         s, d_curr, _, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
         d = (d_curr + d) / 2                    # average of all the deviations from center
-        future_waypoints = []
+        future_waypoints = np.array([], dtype=np.array([], dtype=np.float64))
         for t in range(self.np_m):
             if t < self.interp_back_path:
                 d_val = d - ((t*d) / self.interp_back_path)
                 new_x, new_y, _ = get_xy(s+v*self.dt_m*t, d_val, path, s_map)
             else:
                 new_x, new_y, _ = get_xy(s+v*self.dt_m*t, 0, path, s_map)
-            future_waypoints.append([new_x, new_y])
-        return future_waypoints, d
+            future_waypoints = np.append(future_waypoints, [new_x, new_y])
+        return future_waypoints
 
     # getting the future trajectory
     def get_future_trajectory(self, veh): 
