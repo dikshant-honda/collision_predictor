@@ -24,57 +24,69 @@ class Predictions:
 
     def get_s_map(
             self, 
-            route: NDArray,
-    ) -> NDArray:                   # update required
+            path: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """
         Function to get the s-map in Frenet coordinate system
         It will accumulate the distance along the curve taking origin as the vehicle current position
+        args: path: 2D array having the coordinates of the middle lane of the road 
         """
         s_map = np.array([], dtype = np.float64)
         accumulated_distance = 0.0
         prev_point = None
-        for x, y in route:
+        for x, y in path:
             if prev_point != None:
                 accumulated_distance += distance(prev_point[0], prev_point[1], x, y)
             s_map = np.append(s_map, accumulated_distance)
             prev_point = [x, y]
-        return np.array((route, s_map))
+        return s_map
   
-    # future waypoints
     def PredictTrajectoryVehicles(
             self, 
             init_x: np.float64, 
             init_y: np.float64, 
             path: NDArray, 
             s_map: NDArray[np.float64], 
-            v: np.float64, 
+            velocity: np.float64, 
             d:np.float64,
-        ) -> NDArray:   
+        ) -> NDArray[np.float64]:
+        """
+        Function to predict the future trajectory of the vehicle along the lanes
+
+        args:
+            init_x, init_y: current x,y coordinates of the car
+            path: middle lane coordinates
+            s_map: cumulative distance along the lanes
+            velocity: measured velocity of the vehicle from the perception 
+            d: offset from the center lane
+        """
         s, d_curr, _, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
-        d = (d_curr + d) / 2                    # average of all the deviations from center
-        future_waypoints = np.array([], dtype=np.array([], dtype=np.float64))
+        d = (d_curr + d) / 2      # average of all the deviations from center
+        future_waypoints_x = np.array([], dtype = np.float64)
+        future_waypoints_y = np.array([], dtype = np.float64)
         for t in range(self.np_m):
             if t < self.interp_back_path:
                 d_val = d - ((t*d) / self.interp_back_path)
-                new_x, new_y, _ = get_xy(s+v*self.dt_m*t, d_val, path, s_map)
+                new_x, new_y, _ = get_xy(s+velocity*self.dt_m*t, d_val, path, s_map)
             else:
-                new_x, new_y, _ = get_xy(s+v*self.dt_m*t, 0, path, s_map)
-            future_waypoints = np.append(future_waypoints, [new_x, new_y])
-        return future_waypoints
+                new_x, new_y, _ = get_xy(s+velocity*self.dt_m*t, 0, path, s_map)
+            future_waypoints_x = np.append(future_waypoints_x, new_x)
+            future_waypoints_y = np.append(future_waypoints_y, new_y)
+        return np.array((future_waypoints_x, future_waypoints_y))
 
     # getting the future trajectory
     def get_future_trajectory(self, veh): 
         v = veh.velocity
         d = 0
-        lane_line_list, lane_s_map = self.get_s_map(veh.route)
-        future_waypoints, d = self.PredictTrajectoryVehicles(veh.pos[0], veh.pose[1], lane_line_list, lane_s_map, v, d)
+        lane_s_map = self.get_s_map(veh.route)
+        future_waypoints = self.PredictTrajectoryVehicles(veh.pos[0], veh.pose[1], veh.route, lane_s_map, v, d)
         return future_waypoints
 
     # collision check by vicinity or point-wise check
     def collision(self, points1, points2):
         for i in range(len(points1)):
             for j in range(len(points2)):
-                if distance(points1[i][0], points1[i][1], points2[j][0], points2[j][1]) < self.tol:
+                if distance(points1[0][i], points1[1][i], points2[0][j], points2[1][j]) < self.tol:
                     return True
         return False
 
