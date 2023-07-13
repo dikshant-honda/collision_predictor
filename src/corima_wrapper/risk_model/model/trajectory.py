@@ -24,73 +24,11 @@ from .types import Position
 from .uncertainty_config import UncertaintyConfig
 from .velocity import Velocity
 
-import dubins
-
-# def get_dubins(start, end, theta0, theta1, step_size = 0.5):
-# 	q0 = (start[0], start[1], theta0)
-# 	q1 = (end[0], end[1], theta1)
-
-# 	turning_radius = 1.55
-# 	path = dubins.shortest_path(q0, q1, turning_radius)
-	
-# 	configurations, _ = path.sample_many(step_size)
-
-# 	x, y, yaw = np.array([]), np.array([]), np.array([])
-# 	for i in range(len(configurations)):
-# 		x = np.append(x, configurations[i][0])
-# 		y = np.append(y, configurations[i][1])
-# 		if np.pi <= configurations[i][2] <= 2*np.pi:
-# 			yaw = np.append(yaw, 2*np.pi-configurations[i][2])
-# 		else:
-# 			yaw = np.append(yaw, configurations[i][2])
-	
-# 	return x, y, yaw
-
-# def get_straight_dubins(start, end, theta0, theta1, step_size = 0.1):
-# 	q0 = (start[0], start[1], theta0)
-# 	q1 = (end[0], end[1], theta1)
-
-# 	turning_radius = 0.0001
-
-# 	path = dubins.shortest_path(q0, q1, turning_radius)
-# 	configurations, _ = path.sample_many(step_size)
-
-# 	x, y, yaw = np.array([]), np.array([]), np.array([])
-# 	for i in range(len(configurations)):
-# 		x = np.append(x, configurations[i][0])
-# 		y = np.append(y, configurations[i][1])
-# 		if np.pi <= configurations[i][2] <= 2*np.pi:
-# 			yaw = np.append(yaw, 2*np.pi-configurations[i][2])
-# 		else:
-# 			yaw = np.append(yaw, configurations[i][2])
-
-# 	return x, y, yaw
-
-# def arr_to_point(x, y):
-# 	point_arr = []
-# 	for i in range(len(x)):
-# 		point_arr.append(Point(x[i], y[i], 0))
-# 	return point_arr
-
 def rosPoint_to_shapelyPoint(points):
     ls = []
     for i in points:
         ls.append(Point(i.x, i.y, 0.0))
     return ls
-
-# def distance(x1, y1, x2, y2):
-#     return np.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
-
-# def closest_pt_idx(x, y, lane):
-#     # finding the closest index on lane from point(x,y)
-#     closest_index = 0
-#     min_dist = 10000.0
-#     for i in range(len(lane)):
-#         dist = distance(lane[i].x, lane[i].y, x, y)
-#         if dist < min_dist:
-#             min_dist = dist
-#             closest_index = i
-#     return closest_index
 
 @dataclass(frozen=True)
 class Trajectory:
