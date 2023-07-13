@@ -16,7 +16,7 @@ class Predictions:
 
     def __init__(self) -> None:
         # variables
-        self.interp_back_path = 1000                    # interpolate back to path after this # of steps
+        self.interp_back_path = 1000                    # interpolate back to path after this number of steps
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
         self.np_m = int(self.plan_t_m/self.dt_m)        # number of future waypoints
