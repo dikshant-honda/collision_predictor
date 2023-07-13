@@ -18,7 +18,6 @@ class Predictions:
     tol: float
 
     def __init__(self) -> None:
-        # variables
         self.interp_back_path = 1000                    # interpolate back to path after this number of steps
         self.plan_t_m = 5                               # planning horizon
         self.dt_m = 0.1                                 # time step update
@@ -173,16 +172,35 @@ class Predictions:
             vehicle.location = route
             vehicle.future_waypoints = self.get_future_trajectory(vehicle)
 
-    # collision check by vicinity or point-wise check
-    def collision(self, points1, points2):
+    def collision(
+            self, 
+            points1: NDArray, 
+            points2: NDArray,
+        ) -> bool:
+        """
+        Function to detect collision based on spatial proximity
+        *** update required : spatial proximity => TTC ***
+
+        args:
+            points1: first agent future waypoints
+            points2: second agent future waypoints
+        """
         for i in range(len(points1)):
             for j in range(len(points2)):
                 if distance(points1[0][i], points1[1][i], points2[0][j], points2[1][j]) < self.tol:
                     return True
         return False
 
-    # updates the dynamics for this
-    def predict_collision(self, env):
+    def predict_collision(
+            self, 
+            env: Environment,
+        ) -> None:
+        """
+        Function to check the collision between all the traffic participants in the environment
+
+        args:
+            env: entire information about the environment
+        """
         for first_car, second_car in itertools.combinations(env.vehicles, 2):
             if self.collision(first_car.future_waypoints, second_car.future_waypoints):
                 print("collision between", first_car.id, "and", second_car.id)
