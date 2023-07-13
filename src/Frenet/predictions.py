@@ -5,6 +5,7 @@ import itertools
 import numpy as np
 from numpy.typing import NDArray
 from helper.frenet import *
+from env_info.vehicle_info import Traffic
 
 @dataclass(frozen=True)
 class Predictions:
@@ -25,11 +26,13 @@ class Predictions:
     def get_s_map(
             self, 
             path: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        ) -> NDArray[np.float64]:
         """
-        Function to get the s-map in Frenet coordinate system
-        It will accumulate the distance along the curve taking origin as the vehicle current position
-        args: path: 2D array having the coordinates of the middle lane of the road 
+        Function to get the s-map in Frenet coordinate system.
+        It will accumulate the distance along the curve taking origin as the vehicle current position.
+        
+        args: 
+            path: 2D array having the coordinates of the middle lane of the road 
         """
         s_map = np.array([], dtype = np.float64)
         accumulated_distance = 0.0
@@ -42,13 +45,12 @@ class Predictions:
         return s_map
   
     def PredictTrajectoryVehicles(
-            self, 
-            init_x: np.float64, 
-            init_y: np.float64, 
+            self,
+            position: NDArray[np.float64],
             path: NDArray, 
             s_map: NDArray[np.float64], 
-            velocity: np.float64, 
-            d:np.float64,
+            velocity: float, 
+            d:float,
         ) -> NDArray[np.float64]:
         """
         Function to predict the future trajectory of the vehicle along the lanes
@@ -60,6 +62,7 @@ class Predictions:
             velocity: measured velocity of the vehicle from the perception 
             d: offset from the center lane
         """
+        init_x, init_y = position[0], position[1]
         s, d_curr, _, _ = get_frenet_with_theta(init_x, init_y, path, s_map)
         d = (d_curr + d) / 2      # average of all the deviations from center
         future_waypoints_x = np.array([], dtype = np.float64)
@@ -74,12 +77,22 @@ class Predictions:
             future_waypoints_y = np.append(future_waypoints_y, new_y)
         return np.array((future_waypoints_x, future_waypoints_y))
 
-    # getting the future trajectory
-    def get_future_trajectory(self, veh): 
-        v = veh.velocity
+    def get_future_trajectory(
+            self, 
+            vehicle: Traffic,
+        ) -> NDArray[np.float64]:
+        """
+        Function to obtain the future trajectory of the vehicle
+        
+        args:
+            vehicle: traffic type vehicle carrying all the relevant information 
+        """
+        position = vehicle.position
+        path = vehicle.possible_route 
+        velocity = vehicle.velocity
         d = 0
-        lane_s_map = self.get_s_map(veh.route)
-        future_waypoints = self.PredictTrajectoryVehicles(veh.pos[0], veh.pose[1], veh.route, lane_s_map, v, d)
+        s_map = self.get_s_map(path)
+        future_waypoints = self.PredictTrajectoryVehicles(position, path, s_map, velocity, d)
         return future_waypoints
 
     # collision check by vicinity or point-wise check
