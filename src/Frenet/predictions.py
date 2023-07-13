@@ -6,6 +6,8 @@ import numpy as np
 from numpy.typing import NDArray
 from helper.frenet import *
 from env_info.vehicle_info import Traffic
+from env_info.environment import Environment
+from env_info.lane_info import LaneInfo
 
 @dataclass(frozen=True)
 class Predictions:
@@ -95,27 +97,20 @@ class Predictions:
         future_waypoints = self.PredictTrajectoryVehicles(position, path, s_map, velocity, d)
         return future_waypoints
 
-    # collision check by vicinity or point-wise check
-    def collision(self, points1, points2):
-        for i in range(len(points1)):
-            for j in range(len(points2)):
-                if distance(points1[0][i], points1[1][i], points2[0][j], points2[1][j]) < self.tol:
-                    return True
-        return False
-
-    def add(self, car, env):
-        env.register = True
-        env.counter += 1
-        env.vehicles.append(car)
-
-    def removal(self, car, env):
-        if car in self.env.vehicles:
-            env.deregister = True
-            env.counter -= 1
-            env.vehicles.remove(car)
-
-    def closest_pt_idx(self, x, y, lane):
-        # finding the closest index on lane from point(x,y)
+    # reduce the computational cost for this
+    def closest_pt_idx(
+            self, 
+            x: float, 
+            y: float, 
+            lane: NDArray[np.float64],
+        ) -> float:
+        """
+        Function to find the closest index on the lane to the current position of the traffic agent
+        
+        args:
+            x,y: current position of the vehicle
+            lane: current lane on which the traffic agent is moving
+        """
         closest_index = 0
         min_dist = 10000.0
         for i in range(len(lane[0])):
@@ -125,12 +120,29 @@ class Predictions:
                 closest_index = i
         return closest_index
     
-    def get_route(self, pos, lanes, curr_lane, next_lane):
-        lane = lanes.stack_lanes(curr_lane, next_lane)
-        idx = self.closest_pt_idx(pos[0], pos[1], lane)
+    def get_route(
+            self, 
+            position: NDArray[np.float64], 
+            lanes: LaneInfo, 
+            current_lane: LaneInfo, 
+            next_lane: LaneInfo,
+            horizon: int = 500,
+        ) -> LaneInfo:
+        """
+        Function to stack the next lane with the current lane on the intersection.
+        
+        args:
+            position: current position of the vehicle
+            lanes: defining the lanes type
+            current_lane: lane at which car is located currently
+            next_lane: next lane to stack with the current lane
+            horizon: number of points to add into the path
+        """
+        lane = lanes.stack_lanes(current_lane, next_lane)
+        idx = self.closest_pt_idx(position[0], position[1], lane)
         route = []
         horizon = 0
-        while idx < len(lane[0]) and horizon < 500:
+        while idx < len(lane[0]) and horizon:
             route.append(lane[0][idx][0], lane[0][idx][1])
             horizon += 1
             idx += 1
@@ -144,6 +156,14 @@ class Predictions:
             veh.route = route
             # get future coordinates
             veh.future_waypoints = self.get_future_trajectory(veh)
+
+    # collision check by vicinity or point-wise check
+    def collision(self, points1, points2):
+        for i in range(len(points1)):
+            for j in range(len(points2)):
+                if distance(points1[0][i], points1[1][i], points2[0][j], points2[1][j]) < self.tol:
+                    return True
+        return False
 
     # updates the dynamics for this
     def predict_collision(self, env):
