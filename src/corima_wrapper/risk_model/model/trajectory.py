@@ -183,34 +183,6 @@ class Trajectory:
     #         trajectory_length=trajectory_length,
     #     )
 
-# x1, y1, _ = get_straight_dubins([13, -0.9], [2.5, -0.9], np.pi, np.pi)
-# x9, y9, _ = get_dubins([2.5, -0.9], [0.9, -2.5], np.pi, -np.pi/2)
-# x6, y6, _ = get_straight_dubins([0.9, -2.5], [0.9, -13], -np.pi/2, -np.pi/2)
-
-# x10, y10, _ = get_dubins([2.5, -0.9], [-2.5, -0.9], np.pi, np.pi)				
-# x3, y3, yaw3 = get_straight_dubins([-2.5, -0.9], [-13, -0.9], np.pi, np.pi)   		
-# x11, y11, yaw11 = get_dubins([2.5, -0.9], [-0.9, 2.5], np.pi, np.pi/2)				
-# x7, y7, yaw7 = get_straight_dubins([-0.9, 2.5], [-0.9, 13], np.pi/2, np.pi/2) 		
-
-# x5, y5, _ = get_straight_dubins([-0.9, -13], [-0.9, -2.5], np.pi/2, np.pi/2) 	
-# x14, y14, _ = get_dubins([-0.9, -2.5], [2.5, 0.9], np.pi/2, 0)					
-# x2, y2, _ = get_straight_dubins([2.5, 0.9], [13, 0.9], 0, 0)             		 
-
-# x4, y4, _ = get_straight_dubins([-13, 0.9], [-2.5, 0.9], 0, 0)      	  			
-# x15, y15, _ = get_dubins([-2.5, 0.9], [-0.9, 2.5], 0, np.pi/2)					
-
-# x_1, y_1 = np.hstack((x5, x14, x2)), np.hstack((y5, y14, y2))
-# x_2_left, y_2_left = np.hstack((x1, x9, x6)), np.hstack((y1, y9, y6))
-# x_2_straight, y_2_straight = np.hstack((x1, x10, x3)), np.hstack((y1, y10, y3))
-# x_2_right, y_2_right = np.hstack((x1, x11, x7)), np.hstack((y1, y11, y7))
-# x_3, y_3 = np.hstack((x4, x15, x7)), np.hstack((y4, y15, y7))
-
-# waypoints_1 = arr_to_point(x_1, y_1)
-# waypoints_2_left = arr_to_point(x_2_left, y_2_left)
-# waypoints_2_straight = arr_to_point(x_2_straight, y_2_straight)
-# waypoints_2_right = arr_to_point(x_2_right, y_2_right)
-# waypoints_3 = arr_to_point(x_3, y_3)
-
 @dataclass(frozen=True)
 class UncertainTrajectory(Trajectory):
     covariance_matrices: NDArray[np.float64]
