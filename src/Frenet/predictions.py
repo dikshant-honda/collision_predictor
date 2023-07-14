@@ -16,6 +16,9 @@ class Predictions:
     dt_m: float
     np_m: float
     tol: float
+    """
+    the main collision prediction class
+    """
 
     def __init__(self) -> None:
         self.interp_back_path = 1000                    # interpolate back to path after this number of steps
