@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+from dataclasses import dataclass
+from numpy.typing import NDArray
 from std_msgs.msg import Header
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Twist, Pose, Vector3, PoseWithCovariance, Quaternion
@@ -38,12 +40,34 @@ class VehicleInfo:
 
         return VehicleState(id, odom_car, lin_vel, stop, future_waypoints, route_car_map, yaw_car_map, reached_end, at_junction, location)
 
-# serve as a traffic data type for integration
+@dataclass(frozen=True)
 class Traffic:
-    def __init__(self, id, pos, vel, theta, type, location, route, future_waypoints) -> None:
+    def __init__(
+            self, 
+            id: str, 
+            position: NDArray[np.float64], 
+            velocity: float, 
+            theta: float, 
+            type: str, 
+            location: NDArray[np.float64], 
+            route: NDArray[np.float64], 
+            future_waypoints: NDArray[np.float64]
+        ) -> None:
+        """
+        traffic participant information class
+        
+        args:
+        id: vehicle id allocated during perception maintained by SORT
+        positon: position of the vehicle
+        velocity: velocity of the vehicle
+        theta: orientation of the vehicle
+        type: car, truck, bicycle, // pedestrain details to be added later
+        route: mid lane coordinates of the lane on which currently the car is moving
+        future_waypoints: estimated waypoints from future trajectory predictions
+        """
         self.id = id
-        self.position = pos
-        self.velocity = vel
+        self.position = position
+        self.velocity = velocity
         self.orientation = theta
         self.type = type
         self.location = location
