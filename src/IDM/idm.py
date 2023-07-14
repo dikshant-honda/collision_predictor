@@ -23,6 +23,18 @@ class IDM:
 
         return acceleration
 
+def time_to_collision(position1, velocity1, position2, velocity2):
+    relative_position = np.array(position1) - np.array(position2)
+    relative_velocity = np.array(velocity1) - np.array(velocity2)
+    
+    if np.dot(relative_position, relative_velocity) >= 0:
+        return float("inf")
+    
+    time = -np.dot(relative_position, relative_velocity) / np.dot(relative_velocity, relative_velocity)
+    if time < 0:
+        return 0
+    
+    return time
 
 def predict_trajectory(idm, initial_speed, lead_speed, gap, initial_position, time_horizon, time_step):
     speed = initial_speed
@@ -82,20 +94,13 @@ if __name__ == '__main__':
     ego_initial_position = 0
 
     lead_vehicle = IDM()
-    lead_vehicle_speed = 24
+    lead_vehicle_speed = 5
     lead_initial_position = 10
 
     # initial iteration
     init_gap = lead_initial_position - ego_initial_position
     ego_trajectory, ego_pos, time = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_initial_position, time_horizon, time_step)
     lead_trajectory, lead_pos, time = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_initial_position, time_horizon, time_step)
-
-    # print("Predicted Trajectory:")
-    # for t, (position, speed) in enumerate(ego_trajectory):
-    #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
-
-    # for t, (position, speed) in enumerate(lead_trajectory):
-    #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
 
     for t in range(10):
         gap = lead_trajectory[1][0] - ego_trajectory[1][0]
@@ -106,7 +111,16 @@ if __name__ == '__main__':
         lead_pos_data.clear()
 
         data = [ego_pos, lead_pos]
+        # for t, (position, speed) in enumerate(ego_trajectory):
+        #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
 
+        # for t, (position, speed) in enumerate(lead_trajectory):
+        #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
+
+        # print("-------------------------------------------------")
+
+        time = time_to_collision(ego_trajectory[0], ego_trajectory[1], lead_trajectory[0], lead_trajectory[1])
+        print(time)
         plot(data, np.zeros((len(ego_pos))))
 
         # plot(ego_pos, np.zeros((len(ego_pos))))
