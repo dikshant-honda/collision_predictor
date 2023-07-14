@@ -44,11 +44,11 @@ def predict_trajectory(idm, initial_speed, lead_speed, gap, initial_position, ti
     return trajectory, pos, time
 
 def plot(x_pos, y_pos):
-    line.set_data(x_pos[0], y_pos)
-    line.set_data(x_pos[1], y_pos)
+    line1.set_data(x_pos[0], y_pos)
+    line2.set_data(x_pos[1], y_pos)
 
-    ax.plot(x_pos[0][0], y_pos[0], "*")
-    ax.plot(x_pos[1][0], y_pos[0], "o")
+    # ax.plot(x_pos[0][0], y_pos[0], "*")
+    # ax.plot(x_pos[1][0], y_pos[0], "o")
 
     ax.set_xlim(-1, 50)
     ax.set_ylim(-1, 1)
@@ -66,7 +66,8 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
 
     # Create an empty plot
-    line, = ax.plot([], [])
+    line1, = ax.plot([], [], 'r-')
+    line2, = ax.plot([], [], 'b*')
 
     idm = IDM()
     initial_speed = 20  # Initial speed of the vehicle
