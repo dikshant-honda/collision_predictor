@@ -55,15 +55,15 @@ class Traffic:
         ) -> None:
         """
         traffic participant information class
-        
+
         args:
-        id: vehicle id allocated during perception maintained by SORT
-        positon: position of the vehicle
-        velocity: velocity of the vehicle
-        theta: orientation of the vehicle
-        type: car, truck, bicycle, // pedestrain details to be added later
-        route: mid lane coordinates of the lane on which currently the car is moving
-        future_waypoints: estimated waypoints from future trajectory predictions
+            id: vehicle id allocated during perception maintained by SORT
+            positon: position of the vehicle
+            velocity: velocity of the vehicle
+            theta: orientation of the vehicle
+            type: car, truck, bicycle, // pedestrain details to be added later
+            route: mid lane coordinates of the lane on which currently the car is moving
+            future_waypoints: estimated waypoints from future trajectory predictions
         """
         self.id = id
         self.position = position
