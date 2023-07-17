@@ -10,7 +10,7 @@ def multivariate_normal(x, d, mean, covariance):
 def generate_surface(mean, covariance, d, shift):
     nb_of_x = 100 # grid size
     xs = np.linspace(-40 + shift , 40 + shift , num=nb_of_x)
-    ys = np.linspace(-40 , 40 , num=nb_of_x)
+    ys = np.linspace(-20 , 20 , num=nb_of_x)
     x, y = np.meshgrid(xs, ys) # Generate grid
     pdf = np.zeros((nb_of_x, nb_of_x))
     
@@ -34,9 +34,7 @@ contour = plt.contour(x, y, pdf, levels = 100, cmap = "viridis")
 plt.title('Contour plot for positions')
 plt.xlabel('X')
 plt.ylabel('Y')
-plt.xlim(-40, 120)
-plt.ylim(-20, 20)
-# plt.axis('equal')
+plt.axis('equal')
 
 init_pos = np.matrix([[0.], [0.]])
 v = 10
