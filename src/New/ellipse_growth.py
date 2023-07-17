@@ -1,19 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-center = (0, 0)
-init_raidus = 1
-growth_rate = 0.1
-num_points = 100
+center = [0, 0]
 
-time = np.linspace(0, 1, num_points)
+a = 4
+b = 2
 
-radii = init_raidus + growth_rate * time
+theta = np.linspace(0, 2 * np.pi, 100)
+x = center[0] + a * np.cos(theta)
+y = center[1] + b * np.sin(theta)
 
-theta = np.linspace(0, 2 * np.pi, num_points)
-x = center[0] + radii * np.cos(theta)
-y = center[1] + radii * np.sin(theta)
+# plt.plot(x, y)
 
-plt.plot(x, y)
-plt.axis('equal')
+# plt.axis("equal")
+# plt.show()
+
+scale_factor  = 1.4
+
+v = 2
+for t in range(12):
+    center[0] += v * t
+
+    x = scale_factor * (center[0] + a * np.cos(theta))
+    y = scale_factor * (center[1] + b * np.sin(theta)) 
+
+    plt.plot(x, y)
+    plt.draw()
+    plt.axis('equal')
+    plt.pause(0.7)
+
 plt.show()
