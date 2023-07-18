@@ -1,54 +1,44 @@
-import numpy as np
 import matplotlib.pyplot as plt
-
-# fig, ax = plt.subplots()
-# ax.set_aspect('equal')
-
-# velocity = 3
-# radius = 2.5
-# position = [0, 0]
-# growth_rate = 1
-
-# theta = np.linspace(0, 2*np.pi, 100)
-
-# for time in range(10):
-#     position[0] = velocity * time
-
-#     if growth_rate < 1.2 :
-#         growth_rate += 0.14 * time
-
-#     x =  position[0] + growth_rate * radius * np.cos(theta)
-#     y =  position[1] + growth_rate * radius * np.sin(theta)
-
-#     ax.plot(x, y)
-#     ax.plot(position[0], position[1], "*")
-
-#     plt.pause(1)
-#     # ax.clear()
-# plt.show()
+import numpy as np
+from numpy.typing import NDArray
 
 
-def noise(position, velocity, radius, time_horizon, growth_rate = 1):
+def add_noise(
+        position: NDArray[np.float64],
+        velocity: float,
+        radius: float,
+        time_horizon: int,
+        growth_rate: float = 1.0
+) -> list:
+    """
+    function to add circular noise to the future predicted position of the 
+    vehicle assuming constant velocity, further replace by IDM.
+
+    returns a list of circular noise and time step: [noise(x), noise(y), time]
+
+    args:
+        position: current position of the vehicle
+        velocity: current velcoity of the vehicle
+        radius: noise size, initialized rouhgly by the size of the vehicle
+        time_horizon: time forizon for which future trajectory is needed
+        growth_rate: growth rate of the noise due to increase in uncertainity in the future
+    """
+
+    noise = [[], [], []]
     theta = np.linspace(0, 2*np.pi, 100)
 
     for time in range(time_horizon):
-        position[0] = velocity * time       # for time being consider movement only in x direction, change later
+        # for time being consider movement only in x direction, change later with IDM
+        position[0] = velocity * time
 
         if growth_rate < 1.4:
             growth_rate += velocity * (time/50)
 
-        x =  position[0] + growth_rate * radius * np.cos(theta)
-        y =  position[1] + growth_rate * radius * np.sin(theta)
+        x = position[0] + growth_rate * radius * np.cos(theta)
+        y = position[1] + growth_rate * radius * np.sin(theta)
 
-        ax.plot(x, y)
-        ax.plot(position[0], position[1], "*") 
+        noise[0].append(x)
+        noise[1].append(y)
+        noise[1].append(time)
 
-        plt.pause(0.5)
-
-if __name__ == "__main__":
-    fig, ax = plt.subplots()
-    ax.set_aspect('equal')
-
-    noise([0, 0], 3, 2.5, 10, 1)
-
-    plt.show()
+    return noise
