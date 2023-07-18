@@ -1,32 +1,38 @@
-import math
+from math import sqrt, acos, floor, sin
 
-def overlap_area_of_circles(r1, r2, d):
-    # Calculate the distance between the centers
-    distance = math.sqrt((d[0] - d[1])**2 + (d[2] - d[3])**2)
+# Function to return area of intersection
+def intersectionArea(X1, Y1, R1, X2, Y2, R2):
 
-    # Case 1: One circle is entirely within the other
-    if distance < abs(r1 - r2):
-        smaller_radius = min(r1, r2)
-        return math.pi * smaller_radius**2
+    Pi = 3.14
+    
+    # Calculate the euclidean distance
+    # between the two points
+    d = sqrt(((X2 - X1) * (X2 - X1)) + ((Y2 - Y1) * (Y2 - Y1)))
 
-    # Case 2: The circles don't overlap at all
-    if distance >= r1 + r2:
-        return 0
+    if (d > R1 + R2) :
+        ans = 0
 
-    # Case 3: Partial overlap
-    theta1 = 2 * math.acos((distance**2 + r1**2 - r2**2) / (2 * distance * r1))
-    theta2 = 2 * math.acos((distance**2 + r2**2 - r1**2) / (2 * distance * r2))
-    sector_area1 = (theta1 / 2) * r1**2
-    sector_area2 = (theta2 / 2) * r2**2
-    triangle_area = 0.5 * distance * math.sqrt(r1**2 - (distance**2 / 4)) * math.sqrt(r2**2 - (distance**2 / 4))
-    overlap_area = sector_area1 + sector_area2 - triangle_area
+    elif (d <= (R1 - R2) and R1 >= R2) :
+        ans = floor(Pi * R2 * R2)
 
-    return overlap_area
+    elif (d <= (R2 - R1) and R2 >= R1) :
+        ans = floor(Pi * R1 * R1)
 
-# Example usage
-radius1 = 5
-radius2 = 3
-center_distance = [0, 7.9, 0, 0]
+    else :
+        alpha = acos(((R1 * R1) + (d * d) - (R2 * R2)) / (2 * R1 * d)) * 2
+        beta = acos(((R2 * R2) + (d * d) - (R1 * R1)) / (2 * R2 * d)) * 2
+        
+        a1 = (0.5 * beta * R2 * R2 ) - (0.5 * R2 * R2 * sin(beta))
+        a2 = (0.5 * alpha * R1 * R1) - (0.5 * R1 * R1 * sin(alpha))
+        ans = floor(a1 + a2)
 
-area = overlap_area_of_circles(radius1, radius2, center_distance)
-print("Overlap area:", area)
+    return ans
+
+# Driver Code
+if __name__ == "__main__" :
+
+    X1 = 0; Y1 = 0; R1 = 4
+    X2 = 6; Y2 = 0; R2 = 4
+
+    print(intersectionArea(X1, Y1, R1, X2, Y2, R2))
+    
