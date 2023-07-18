@@ -39,6 +39,6 @@ def add_noise(
 
         noise[0].append(x)
         noise[1].append(y)
-        noise[1].append(time)
+        noise[2].append(time)
 
     return noise
