@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 
 def add_noise(
         position: NDArray[np.float64],
-        velocity: float,
+        velocity: NDArray[np.float64],
         radius: float,
         time_horizon: int,
         growth_rate: float = 1.0
@@ -24,21 +24,18 @@ def add_noise(
         growth_rate: growth rate of the noise due to increase in uncertainity in the future
     """
 
-    noise = [[], [], []]
-    theta = np.linspace(0, 2*np.pi, 100)
+    noise = []
 
     for time in range(time_horizon):
-        # for time being consider movement only in x direction, change later with IDM
-        position[0] = velocity * time
+        # change later with IDM predicted points
+        position[0] = velocity[0] * time
+        position[1] = velocity[1] * time
 
         if growth_rate < 1.4:
             growth_rate += velocity * (time/50)
 
-        x = position[0] + growth_rate * radius * np.cos(theta)
-        y = position[1] + growth_rate * radius * np.sin(theta)
+        size = growth_rate * radius
 
-        noise[0].append(x)
-        noise[1].append(y)
-        noise[2].append(time)
+        noise.append([position, size])
 
     return noise
