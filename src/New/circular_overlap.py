@@ -51,6 +51,13 @@ def plotter(
         vehicle2: Traffic,
         time_horizon: float,
 ) -> None:
+    """
+    Function to visualize the circular overlap dynamically at every time step
+
+    args:
+        vehicle1, vehicle2: pair of traffic vehicles considered for collision check
+        time_horizon: future predictions time horizon
+    """
     fig, ax = plt.subplots()
     ax.axis('equal')
 
