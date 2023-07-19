@@ -46,6 +46,50 @@ for time in range(time_horizon):
 
 plt.show()
 
+def plotter(
+        vehicle1: Traffic, 
+        vehicle2: Traffic,
+        time_horizon: float,
+) -> None:
+    fig, ax = plt.subplots()
+    ax.axis('equal')
+
+    theta = np.linspace(0, 2 * np.pi, 100)
+    
+    # vehicle 1 data
+    vehicle_1_position = vehicle1.location
+    vehicle_1_velocity = vehicle1.velocity
+    vehicle_1_radius = 1.4
+
+    # vehicle 2 data
+    vehicle_2_position = vehicle2.location
+    vehicle_2_velocity = vehicle2.velocity
+    vehicle_2_radius = 1.4
+
+    # predictions using constant velocity assumption, replace later with IDM
+    vehicle_1_predictions_with_noise = add_noise(vehicle_1_position, vehicle_1_velocity, vehicle_1_radius, time_horizon)
+    vehicle_2_predictions_with_noise = add_noise(vehicle_2_position, vehicle_2_velocity, vehicle_2_radius, time_horizon)
+
+    for time in range(time_horizon):
+        ax.clear()
+
+        vehicle_1_centers = vehicle_1_predictions_with_noise[time][0]
+        vehicle_1_size = vehicle_1_predictions_with_noise[time][1]
+        
+        vehicle_2_centers = vehicle_2_predictions_with_noise[time][0]
+        vehicle_2_size = vehicle_2_predictions_with_noise[time][1]
+
+        # plot
+        ax.plot(vehicle_1_centers[0] + vehicle_1_size * np.cos(theta),
+                vehicle_1_centers[1] + vehicle_1_size * np.sin(theta))
+
+        ax.plot(vehicle_2_centers[0] + vehicle_2_size * np.cos(theta),
+                vehicle_2_centers[1] + vehicle_2_size * np.sin(theta))
+        
+        plt.pause(0.5)
+
+    plt.show()
+
 
 def overlap(
         vehicle1: Traffic, 
@@ -79,11 +123,11 @@ def overlap(
     overlap_with_time_step = []
 
     for time in range(time_horizon):
-        vehicle_1_centers = vehicle_1_predictions_with_noise[0]
-        vehicle_1_size = vehicle_1_predictions_with_noise[1]
+        vehicle_1_centers = vehicle_1_predictions_with_noise[time][0]
+        vehicle_1_size = vehicle_1_predictions_with_noise[time][1]
         
-        vehicle_2_centers = vehicle_2_predictions_with_noise[0]
-        vehicle_2_size = vehicle_2_predictions_with_noise[1]
+        vehicle_2_centers = vehicle_2_predictions_with_noise[time][0]
+        vehicle_2_size = vehicle_2_predictions_with_noise[time][1]
 
         overlap  = intersectionArea(vehicle_1_centers[0], vehicle_1_centers[1], vehicle_1_size,
                                     vehicle_2_centers[0], vehicle_2_centers[1], vehicle_2_size)
