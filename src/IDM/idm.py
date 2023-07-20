@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
-
 class IDM:
     def __init__(
             self,
@@ -218,27 +217,34 @@ if __name__ == "__main__":
     fig_position, ax_position = plt.subplots()
     fig_time, ax_time = plt.subplots()
 
-    ego_position = 0
-    ego_speed = 15
-
-    lead_position = 50
-    lead_speed = 10
-
     time_horizon = 50
     time_step = 0.1
 
-    idm = IDM()
 
-    for _ in range(10):
-        result = predict_trajectory(
-            idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
+#     # initializations
+#     ego_position = 0
+#     ego_speed = 15
 
-        time, ego_trajectory, lead_trajectory = result
+#     lead_position = 50
+#     lead_speed = 10
 
-        position_plot(ego_trajectory, lead_trajectory)
+#     # calling the IDM class object
+#     idm = IDM()
 
-        time_plot(time, ego_trajectory, lead_trajectory)
+#     # running the check 10 times
+#     for _ in range(10):
+#         result = predict_trajectory(
+#             idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
 
-        ego_position, lead_position = update(ego_position, ego_speed, lead_position, lead_speed)
+#         time, ego_trajectory, lead_trajectory = result
 
-    plt.show()
+#         # dynamically plotting the positions
+#         position_plot(ego_trajectory, lead_trajectory) 
+
+#         # dynamically plotting the position with respect to time
+#         time_plot(time, ego_trajectory, lead_trajectory)
+
+#         # take a step in the real world
+#         ego_position, lead_position = update(ego_position, ego_speed, lead_position, lead_speed)
+
+#     plt.show()
