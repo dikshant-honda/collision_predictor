@@ -3,27 +3,64 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class IDM:
-    def __init__(self, desired_speed=25, time_headway=1.5, min_gap=2, max_acceleration=1.5, comfortable_deceleration=1,
-                 delta=4, acceleration_exponent=1.5):
+    def __init__(
+            self, 
+            desired_speed: float = 25, 
+            time_headway: float = 1.5, 
+            min_gap: float = 2, 
+            max_acceleration: float = 1.5, 
+            comfortable_deceleration: float = 1,
+            delta:int = 4, 
+            ) -> None:
+        """
+        Intelligent Driver Model (IDM) class for calculating the acceleration given
+        the dynamics of the environment
+
+        args:
+            desired_speed: desired speed of vehicle "n"
+            time_headway: safety time gap of vehicle "n"
+            min_gap: jam distance of the vehicle "n"
+            max_acceleration: maximum acceleration of the vehicle "n"
+            comfortable_deceleration: desired deceleration of the vehicle "n" 
+            delta: exponent for current speed / desired speed
+        """
         self.desired_speed = desired_speed
         self.time_headway = time_headway
         self.min_gap = min_gap
         self.max_acceleration = max_acceleration
         self.comfortable_deceleration = comfortable_deceleration
         self.delta = delta
-        self.acceleration_exponent = acceleration_exponent
 
-    def calculate_acceleration(self, ego_vehicle_speed, lead_vehicle_speed, ego_vehicle_distance):
+    def calculate_acceleration(
+            self, 
+            ego_vehicle_speed: float, 
+            lead_vehicle_speed: float, 
+            ego_vehicle_distance: float,
+            ) -> float:
+        """
+        Function to calculate the accleration after IDM calculations
+
+        args:
+            ego_vehicle_speed: current speed of the ego vehicle
+            lead_vehicle_speed: speed of the vehicle ahead of ego vehicle
+            ego_vehicle_distance: distance between ego vehicle and lead vehicle,
+                                  infinity, if there's no vehicle ahead of ego
+        """
         desired_gap = self.min_gap + ego_vehicle_speed * self.time_headway + (
                 (ego_vehicle_speed * (ego_vehicle_speed - lead_vehicle_speed)) / (
-                2 * self.comfortable_deceleration * math.sqrt(self.max_acceleration)))
+                2 * math.sqrt(self.max_acceleration * self.comfortable_deceleration) ))
 
         acceleration = self.max_acceleration * (1 - math.pow(ego_vehicle_speed / self.desired_speed, self.delta) -
                                                 math.pow(desired_gap / ego_vehicle_distance, 2))
 
         return acceleration
 
-def time_to_collision(position1, velocity1, position2, velocity2):
+def time_to_collision(
+        position1, 
+        velocity1,
+        position2, 
+        velocity2
+        ):
     relative_position = np.array(position1) - np.array(position2)
     relative_velocity = np.array(velocity1) - np.array(velocity2)
     
@@ -36,7 +73,14 @@ def time_to_collision(position1, velocity1, position2, velocity2):
     
     return time
 
-def predict_trajectory(idm: IDM, initial_speed, lead_speed, gap, initial_position, time_horizon, time_step):
+def predict_trajectory(
+        idm: IDM, 
+        initial_speed, 
+        lead_speed, gap, 
+        initial_position, 
+        time_horizon, 
+        time_step
+        ):
     speed = initial_speed
     position = initial_position
     trajectory = [(position, speed)]
