@@ -1,18 +1,20 @@
 import math
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from numpy.typing import NDArray
+
 
 class IDM:
     def __init__(
-            self, 
-            desired_speed: float = 25, 
-            time_headway: float = 1.5, 
-            min_gap: float = 2, 
-            max_acceleration: float = 1.5, 
+            self,
+            desired_speed: float = 25,
+            time_headway: float = 1.5,
+            min_gap: float = 2,
+            max_acceleration: float = 1.5,
             comfortable_deceleration: float = 1,
-            delta:int = 4, 
-            ) -> None:
+            delta: int = 4,
+    ) -> None:
         """
         Intelligent Driver Model (IDM) class for calculating the acceleration given
         the dynamics of the environment
@@ -33,11 +35,11 @@ class IDM:
         self.delta = delta
 
     def calculate_acceleration(
-            self, 
-            ego_vehicle_speed: float, 
-            lead_vehicle_speed: float, 
+            self,
+            ego_vehicle_speed: float,
+            lead_vehicle_speed: float,
             ego_vehicle_distance: float,
-            ) -> float:
+    ) -> float:
         """
         Function to calculate the accleration after IDM calculations
 
@@ -48,20 +50,26 @@ class IDM:
                                   infinity, if there's no vehicle ahead of ego
         """
         desired_gap = self.min_gap + ego_vehicle_speed * self.time_headway + (
-                (ego_vehicle_speed * (ego_vehicle_speed - lead_vehicle_speed)) / (
-                2 * math.sqrt(self.max_acceleration * self.comfortable_deceleration) ))
+            (ego_vehicle_speed * (ego_vehicle_speed - lead_vehicle_speed)) / (
+                2 * math.sqrt(self.max_acceleration * self.comfortable_deceleration)))
+
+        print(ego_vehicle_speed)
+        print(desired_gap)
+        print(math.pow(ego_vehicle_speed / self.desired_speed, self.delta))
+        print()
 
         acceleration = self.max_acceleration * (1 - math.pow(ego_vehicle_speed / self.desired_speed, self.delta) -
                                                 math.pow(desired_gap / ego_vehicle_distance, 2))
 
         return acceleration
 
+
 def time_to_collision(
-        position1: NDArray[np.float64], 
+        position1: NDArray[np.float64],
         velocity1: float,
-        position2: NDArray[np.float64], 
+        position2: NDArray[np.float64],
         velocity2: float,
-        ) -> float:
+) -> float:
     """
     Function to compute the time to collision (TTC) between two traffic participants.
 
@@ -71,25 +79,27 @@ def time_to_collision(
     """
     relative_position = np.array(position1) - np.array(position2)
     relative_velocity = np.array(velocity1) - np.array(velocity2)
-    
+
     if np.dot(relative_position, relative_velocity) >= 0:
         return float("inf")
-    
-    time = -np.dot(relative_position, relative_velocity) / np.dot(relative_velocity, relative_velocity)
+
+    time = -np.dot(relative_position, relative_velocity) / \
+        np.dot(relative_velocity, relative_velocity)
     if time < 0:
         return 0
-    
+
     return time
 
+
 def predict_trajectory(
-        idm: IDM, 
+        idm: IDM,
         initial_position: NDArray[np.float64],
-        initial_speed: float, 
-        lead_speed: float, 
-        gap: float,  
-        time_horizon: int, 
+        initial_speed: float,
+        lead_speed: float,
+        gap: float,
+        time_horizon: int,
         time_step: int,
-        ) -> list:
+) -> list:
     """
     Function to compute the future trajecory of the vehicle using IDM analysis
 
@@ -111,16 +121,18 @@ def predict_trajectory(
     time = []
 
     for t in range(time_horizon):
-        acceleration = idm.calculate_acceleration(speed, lead_speed, gap)  # Assuming no lead vehicle
+        acceleration = idm.calculate_acceleration(
+            speed, lead_speed, gap)  # Assuming no lead vehicle
         speed += acceleration * time_step
         position += speed * time_step
         trajectory.append((position, speed))
         pos.append(position)
         time.append(t*time_step)
-    
+
     time.append(1.0)
 
     return trajectory, pos, time
+
 
 def plot(x_pos, y_pos):
     line1.set_data(x_pos[0], y_pos)
@@ -135,6 +147,7 @@ def plot(x_pos, y_pos):
     # Redraw the plot
     plt.draw()
     plt.pause(1)
+
 
 if __name__ == '__main__':
     ego_pos_data = []
@@ -166,14 +179,18 @@ if __name__ == '__main__':
 
     # initial iteration
     init_gap = lead_initial_position - ego_initial_position
-    ego_trajectory, ego_pos, time = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_initial_position, time_horizon, time_step)
-    lead_trajectory, lead_pos, time = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_initial_position, time_horizon, time_step)
+    ego_trajectory, ego_pos, time = predict_trajectory(
+        ego_vehicle, ego_initial_position, ego_vehicle_speed, lead_vehicle_speed, init_gap, time_horizon, time_step)
+    lead_trajectory, lead_pos, time = predict_trajectory(
+        lead_vehicle, lead_initial_position, lead_vehicle_speed, 0, math.inf, time_horizon, time_step)
 
     for t in range(10):
         gap = lead_trajectory[1][0] - ego_trajectory[1][0]
-        ego_trajectory, ego_pos, time = predict_trajectory(ego_vehicle ,ego_vehicle_speed, lead_vehicle_speed, init_gap, ego_pos[1], time_horizon, time_step)
-        lead_trajectory, lead_pos, time = predict_trajectory(lead_vehicle, lead_vehicle_speed, 0, math.inf, lead_pos[1], time_horizon, time_step)
-        
+        ego_trajectory, ego_pos, time = predict_trajectory(
+            ego_vehicle, ego_pos[1], ego_vehicle_speed, lead_vehicle_speed, init_gap, time_horizon, time_step)
+        lead_trajectory, lead_pos, time = predict_trajectory(
+            lead_vehicle, lead_pos[1], lead_vehicle_speed, 0, math.inf, time_horizon, time_step)
+
         ego_pos_data.clear()
         lead_pos_data.clear()
 
@@ -186,7 +203,8 @@ if __name__ == '__main__':
 
         # print("-------------------------------------------------")
 
-        time = time_to_collision(ego_trajectory[0], ego_trajectory[1], lead_trajectory[0], lead_trajectory[1])
+        time = time_to_collision(
+            ego_trajectory[0], ego_trajectory[1], lead_trajectory[0], lead_trajectory[1])
         print(time)
         plot(data, np.zeros((len(ego_pos))))
 
