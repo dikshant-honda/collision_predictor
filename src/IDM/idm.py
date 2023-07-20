@@ -90,7 +90,7 @@ def predict_trajectory(
         idm: IDM,
         ego_position: float,
         ego_speed: float,
-        lead_position: float, 
+        lead_position: float,
         lead_speed: float,
         time_horizon: int,
         time_step: int,
@@ -134,10 +134,21 @@ def predict_trajectory(
         # assuming the lead vehicle is moving with a constant velocity
         lead_position = lead_position + lead_speed * time_step
         lead_trajectory.append(lead_position)
-        
+
     return [time, ego_trajectory, lead_trajectory]
 
-def position_plot(ego_position, lead_position):
+
+def position_plot(
+        ego_trajectory: list,
+        lead_trajectory: list,
+) -> None:
+    """
+    Function to plot the future ego and lead trajectory positions
+
+    args:
+        ego_trajectory: future ego trajectory (x, y)
+        lead_trajectory: future lead trajectory (x, y)
+    """
     fig, ax = plt.subplots()
     ax.clear()
 
@@ -150,20 +161,33 @@ def position_plot(ego_position, lead_position):
     # consider movement in x-direction only for time being
     y = np.linspace(0, 0, time_horizon)
 
-    ax.plot(ego_position[0], y[0], "o")
-    ax.plot(lead_position[0], y[0], "o")
+    ax.plot(ego_trajectory[0], y[0], "o")
+    ax.plot(lead_trajectory[0], y[0], "o")
 
-    line1, = ax.plot([], [], 'r-', label = "ego position")
-    line2, = ax.plot([], [], 'b--', label = "lead position")
-    line1.set_data(ego_position, y)
-    line2.set_data(lead_position, y)
+    line1, = ax.plot([], [], 'r-', label="ego trajectory")
+    line2, = ax.plot([], [], 'b--', label="lead trajectory")
+    line1.set_data(ego_trajectory, y)
+    line2.set_data(lead_trajectory, y)
 
     # visualize
     plt.legend()
     plt.draw()
     plt.pause(0.1)
 
-def time_plot(time, ego_position, lead_position):
+
+def time_plot(
+        time: float,
+        ego_trajectory: list,
+        lead_trajectory: list,
+) -> None:
+    """
+    Function to plot the future ego and lead trajectory positions with respect to time
+
+    args:
+        time: time step per future predictions
+        ego_trajectory: future ego trajectory (x, y)
+        lead_trajectory: future lead trajectory (x, y)
+    """
     fig, ax = plt.subplots()
     ax.clear()
 
@@ -173,18 +197,19 @@ def time_plot(time, ego_position, lead_position):
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 100)
 
-    ax.plot(time[0], ego_position[0], "o")
-    ax.plot(time[0], lead_position[0], "o")
+    ax.plot(time[0], ego_trajectory[0], "o")
+    ax.plot(time[0], lead_trajectory[0], "o")
 
-    line1, = ax.plot([], [], 'r-', label = "ego position")
-    line2, = ax.plot([], [], 'b--', label = "lead position")
-    line1.set_data(time, ego_position)
-    line2.set_data(time, lead_position)
+    line1, = ax.plot([], [], 'r-', label="ego trajectory")
+    line2, = ax.plot([], [], 'b--', label="lead trajectory")
+    line1.set_data(time, ego_trajectory)
+    line2.set_data(time, lead_trajectory)
 
     # visualize
     plt.legend()
     plt.draw()
     plt.pause(0.1)
+
 
 if __name__ == "__main__":
     ego_position = 0
@@ -198,13 +223,14 @@ if __name__ == "__main__":
 
     idm = IDM()
 
-    trajectory = predict_trajectory(idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
+    result = predict_trajectory(
+        idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
 
-    time, ego_pos, lead_pos = trajectory
+    time, ego_trajectory, lead_trajectory = result
 
-    position_plot(ego_pos, lead_pos)
+    position_plot(ego_trajectory, lead_trajectory)
 
-    time_plot(time, ego_pos, lead_pos)
+    time_plot(time, ego_trajectory, lead_trajectory)
 
     plt.show()
 
