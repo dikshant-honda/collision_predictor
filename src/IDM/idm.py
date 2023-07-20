@@ -90,8 +90,8 @@ def predict_trajectory(
         idm: IDM,
         ego_position: float,
         ego_speed: float,
+        lead_position: float, 
         lead_speed: float,
-        gap: float,
         time_horizon: int,
         time_step: int,
 ) -> list:
@@ -102,45 +102,103 @@ def predict_trajectory(
 
     args:
         idm: defining an IDM instance for calculating the accelaration value
-        ego_position: current positon of the vehicle
-        ego_speed: current speed of the vehicle
-        lead_speed: speed of the vehicle ahead of it
-        gap: distance between the current vehicle and the lead vehicle
+        ego_position: current positon of the ego vehicle
+        ego_speed: current speed of the ego vehicle
+        lead_position: current positon of the lead vehicle
+        lead_speed: current speed of the lead vehicle 
         time_horizon: duration over which you want to predict the trajectory
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
+
+    future_trajectory = []
+    time = []
+
+    for t in range(time_horizon):
+        print(ego_position, lead_position)
+        # compute the gap between the ego and lead vehicle
+        gap = lead_position - ego_position
+
+        # compute IDM accleration based on this dynamics
+        acceleration = idm.calculate_acceleration(ego_speed, lead_speed, gap)
+
+        # update the dynamics of the ego vehicle
+        ego_speed = acceleration * time_step
+        ego_position += ego_speed * time_step
+        time_steps = t * time_step
+
+        future_trajectory.append(ego_position)
+        time.append(time_steps)
+
+        # update the dynamics of the traffic vehicle
+        # assuming the lead vehicle is moving with a constant velocity
+        lead_position = lead_position + lead_speed * time_step
+
+        print(ego_position, lead_position)
+        print()
+    
+    return [lead_position, time]
+
+def time_plot(time, position):
+    fig, ax = plt.subplots()
+
+    ax.clear()
+
+    ax.plot(time ,position)
+    
+    plt.draw()
+    plt.pause(0.1)
+
+if __name__ == "__main__":
+    ego_position = 0
+    ego_speed = 10
+
+    lead_position = 10
+    lead_speed = 7
+
+    time_horizon = 50
+    time_step = 0.1
+
+    idm = IDM()
+
+    trajectory = predict_trajectory(idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
+
+    pos, time = trajectory
+
+    time_plot(time, pos)
+
+    plt.show()
 
     # lead_speed = 20.0
     # time_steps = 50
     # time_step = 0.1
 
-    v = [15]  # done
-    s = [10.0]  # done gap
-    time = [0.0]  # done
-    for t in range(1, time_steps):
-        acc = idm.calculate_acceleration(v[t-1], lead_speed, s[t-1])
+    # v = [15]  # done
+    # s = [10.0]  # done gap
+    # time = [0.0]  # done
+    # for t in range(1, time_steps):
+    #     acc = idm.calculate_acceleration(v[t-1], lead_speed, s[t-1])
 
-        v.append(v[t-1] + acc * time_step)
-        s.append(s[t-1] + v[t] * time_step)
-        time.append(t * time_step)
+    #     v.append(v[t-1] + acc * time_step)
+    #     s.append(s[t-1] + v[t] * time_step)
+    #     time.append(t * time_step)
 
 
-    # trajectory = [(position, speed)]
-    # pos = [position]
-    # time = [0]
+    # # trajectory = [(position, speed)]
+    # # pos = [position]
+    # # time = [0]
 
-    future_positions = [ego_position]
-    future_speeds = [ego_speed]
-    time = [0.0]
+    # future_positions = [ego_position]
+    # future_speeds = [ego_speed]
+    # time = [0.0]
 
-    for t in range(1, time_horizon):
-        acceleration = idm.calculate_acceleration(
-            future_speeds[t-1], lead_speed, gap)  # Assuming no lead vehicle
-        speed += acceleration * time_step
-        position += speed * time_step
-        # trajectory.append((position, speed))
-        pos.append(position)
-        time.append(t*time_step)
+    # for t in range(1, time_horizon):
+    #     acceleration = idm.calculate_acceleration(
+    #         future_speeds[t-1], lead_speed, gap)  # Assuming no lead vehicle
+    #     speed += acceleration * time_step
+    #     position += speed * time_step
+    #     # trajectory.append((position, speed))
+    #     pos.append(position)
+    #     time.append(t*time_step)
 
     # return trajectory, pos, time
 
@@ -164,41 +222,31 @@ def position_plot(x_pos, y_pos):
     plt.draw()
     plt.pause(0.1)
 
-def time_plot(time, position):
-    fig, ax = plt.subplots()
+# if __name__ == "__main__":
+#     idm = IDM()
 
-    ax.clear()
+#     lead_speed = 20.0
+#     time_steps = 50
+#     time_step = 0.1
 
-    ax.plot(time ,position)
-    
-    plt.draw()
-    plt.pause(0.1)
+#     v = [15]
+#     s = [10.0]
+#     time = [0.0]
+#     for t in range(1, time_steps):
+#         acc = idm.calculate_acceleration(v[t-1], lead_speed, s[t-1])
 
-if __name__ == "__main__":
-    idm = IDM()
+#         v.append(v[t-1] + acc * time_step)
+#         s.append(s[t-1] + v[t] * time_step)
+#         time.append(t * time_step)
 
-    lead_speed = 20.0
-    time_steps = 50
-    time_step = 0.1
+#     # position_plot(s, np.linspace(0, 0, time_steps))
+#     # time_plot(time, s)
+#     print(s)
+#     # traj, pos, ti = predict_trajectory(idm, 0, 15, 20, 10, 50, 0.1)
+#     # print(ti, pos)
+#     # time_plot(ti, pos)
 
-    v = [15]
-    s = [10.0]
-    time = [0.0]
-    for t in range(1, time_steps):
-        acc = idm.calculate_acceleration(v[t-1], lead_speed, s[t-1])
-
-        v.append(v[t-1] + acc * time_step)
-        s.append(s[t-1] + v[t] * time_step)
-        time.append(t * time_step)
-
-    # position_plot(s, np.linspace(0, 0, time_steps))
-    # time_plot(time, s)
-    print(s)
-    # traj, pos, ti = predict_trajectory(idm, 0, 15, 20, 10, 50, 0.1)
-    # print(ti, pos)
-    # time_plot(ti, pos)
-
-    plt.show()
+#     plt.show()
 
 # if __name__ == '__main__':
 #     ego_pos_data = []
