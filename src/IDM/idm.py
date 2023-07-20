@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.typing import NDArray
 
 class IDM:
     def __init__(
@@ -56,11 +57,18 @@ class IDM:
         return acceleration
 
 def time_to_collision(
-        position1, 
-        velocity1,
-        position2, 
-        velocity2
-        ):
+        position1: NDArray[np.float64], 
+        velocity1: float,
+        position2: NDArray[np.float64], 
+        velocity2: float,
+        ) -> float:
+    """
+    Function to compute the time to collision (TTC) between two traffic participants.
+
+    args:
+        position1, velocity1: position and velocity of the first vehicle
+        position2, velocity2: position and velocity of the second vehicle
+    """
     relative_position = np.array(position1) - np.array(position2)
     relative_velocity = np.array(velocity1) - np.array(velocity2)
     
@@ -75,12 +83,27 @@ def time_to_collision(
 
 def predict_trajectory(
         idm: IDM, 
-        initial_speed, 
-        lead_speed, gap, 
-        initial_position, 
-        time_horizon, 
-        time_step
-        ):
+        initial_position: NDArray[np.float64],
+        initial_speed: float, 
+        lead_speed: float, 
+        gap: float,  
+        time_horizon: int, 
+        time_step: int,
+        ) -> list:
+    """
+    Function to compute the future trajecory of the vehicle using IDM analysis
+
+    Returns the future trajectory coordinates in a list at every time step
+
+    args:
+        idm: defining an IDM instance for calculating the accelaration value
+        initial_position: current positon of the vehicle
+        initial_speed: current speed of the vehicle
+        lead_speed: speed of the vehicle ahead of it
+        gap: distance between the current vehicle and the lead vehicle
+        time_horizon: duration over which you want to predict the trajectory
+        time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
+    """
     speed = initial_speed
     position = initial_position
     trajectory = [(position, speed)]
