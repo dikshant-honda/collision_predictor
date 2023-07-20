@@ -149,30 +149,29 @@ def position_plot(
         ego_trajectory: future ego trajectory (x, y)
         lead_trajectory: future lead trajectory (x, y)
     """
-    fig, ax = plt.subplots()
-    ax.clear()
+    ax_position.clear()
 
     # visualization parameters
-    ax.set_xlabel("x(m)")
-    ax.set_ylabel("y(m)")
-    ax.set_xlim(-1, 150)
-    ax.set_ylim(-1, 1)
+    ax_position.set_xlabel("x(m)")
+    ax_position.set_ylabel("y(m)")
+    ax_position.set_xlim(-1, 150)
+    ax_position.set_ylim(-1, 1)
 
     # consider movement in x-direction only for time being
     y = np.linspace(0, 0, time_horizon)
 
-    ax.plot(ego_trajectory[0], y[0], "o")
-    ax.plot(lead_trajectory[0], y[0], "o")
+    ax_position.plot(ego_trajectory[0], y[0], "o")
+    ax_position.plot(lead_trajectory[0], y[0], "o")
 
-    line1, = ax.plot([], [], 'r-', label="ego trajectory")
-    line2, = ax.plot([], [], 'b--', label="lead trajectory")
+    line1, = ax_position.plot([], [], 'r-', label="ego trajectory")
+    line2, = ax_position.plot([], [], 'b--', label="lead trajectory")
     line1.set_data(ego_trajectory, y)
     line2.set_data(lead_trajectory, y)
 
     # visualize
     plt.legend()
     plt.draw()
-    plt.pause(0.1)
+    plt.pause(1.0)
 
 
 def time_plot(
@@ -188,27 +187,26 @@ def time_plot(
         ego_trajectory: future ego trajectory (x, y)
         lead_trajectory: future lead trajectory (x, y)
     """
-    fig, ax = plt.subplots()
-    ax.clear()
+    ax_time.clear()
 
     # visualization parameters
-    ax.set_xlabel("time(s)")
-    ax.set_ylabel("position(m)")
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 100)
+    ax_time.set_xlabel("time(s)")
+    ax_time.set_ylabel("position(m)")
+    ax_time.set_xlim(0, 10)
+    ax_time.set_ylim(0, 100)
 
-    ax.plot(time[0], ego_trajectory[0], "o")
-    ax.plot(time[0], lead_trajectory[0], "o")
+    ax_time.plot(time[0], ego_trajectory[0], "o")
+    ax_time.plot(time[0], lead_trajectory[0], "o")
 
-    line1, = ax.plot([], [], 'r-', label="ego trajectory")
-    line2, = ax.plot([], [], 'b--', label="lead trajectory")
+    line1, = ax_time.plot([], [], 'r-', label="ego trajectory")
+    line2, = ax_time.plot([], [], 'b--', label="lead trajectory")
     line1.set_data(time, ego_trajectory)
     line2.set_data(time, lead_trajectory)
 
     # visualize
     plt.legend()
     plt.draw()
-    plt.pause(0.1)
+    plt.pause(1.0)
 
 def update(ego_position, ego_velocity, lead_position, lead_velocity, time=0.5):
     ego_position += ego_velocity * time
@@ -216,6 +214,10 @@ def update(ego_position, ego_velocity, lead_position, lead_velocity, time=0.5):
     return ego_position, lead_position
 
 if __name__ == "__main__":
+    
+    fig_position, ax_position = plt.subplots()
+    fig_time, ax_time = plt.subplots()
+
     ego_position = 0
     ego_speed = 15
 
