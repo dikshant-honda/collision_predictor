@@ -1,6 +1,8 @@
 import numpy as np
 from numpy.typing import NDArray
 
+from IDM.idm import IDM
+
 
 def add_noise(
         position: NDArray[np.float64],

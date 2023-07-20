@@ -36,7 +36,7 @@ def time_to_collision(position1, velocity1, position2, velocity2):
     
     return time
 
-def predict_trajectory(idm, initial_speed, lead_speed, gap, initial_position, time_horizon, time_step):
+def predict_trajectory(idm: IDM, initial_speed, lead_speed, gap, initial_position, time_horizon, time_step):
     speed = initial_speed
     position = initial_position
     trajectory = [(position, speed)]
