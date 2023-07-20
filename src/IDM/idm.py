@@ -98,7 +98,8 @@ def predict_trajectory(
     """
     Function to compute the future trajecory of the vehicle using IDM analysis
 
-    Returns the future trajectory coordinates in a list at every time step
+    Returns the future trajectory coordinates of the ego and the lead 
+    vehicle in a list at every time step
 
     args:
         idm: defining an IDM instance for calculating the accelaration value
@@ -110,72 +111,80 @@ def predict_trajectory(
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
 
-    future_trajectory = []
+    ego_trajectory = []
     lead_trajectory = []
     time = []
 
     for t in range(time_horizon):
-        print(ego_position, lead_position)
         # compute the gap between the ego and lead vehicle
         gap = lead_position - ego_position
 
         # compute IDM accleration based on this dynamics
         acceleration = idm.calculate_acceleration(ego_speed, lead_speed, gap)
 
-        print("acceleration:", acceleration)
-
         # update the dynamics of the ego vehicle
         ego_speed += acceleration * time_step
         ego_position += ego_speed * time_step
         time_steps = t * time_step
 
-        future_trajectory.append(ego_position)
+        ego_trajectory.append(ego_position)
         time.append(time_steps)
 
         # update the dynamics of the traffic vehicle
         # assuming the lead vehicle is moving with a constant velocity
         lead_position = lead_position + lead_speed * time_step
         lead_trajectory.append(lead_position)
-
-        print(ego_position, lead_position)
-        print()
         
-    return [future_trajectory, time, lead_trajectory]
+    return [time, ego_trajectory, lead_trajectory]
 
 def position_plot(ego_position, lead_position):
     fig, ax = plt.subplots()
-
     ax.clear()
 
-    y = np.linspace(0, 0, time_horizon)
-
-    line1, = ax.plot([], [], 'r-')
-    line2, = ax.plot([], [], 'b*')
-    line1.set_data(ego_position, y)
-    line2.set_data(lead_position, y)
-
+    # visualization parameters
+    ax.set_xlabel("x(m)")
+    ax.set_ylabel("y(m)")
     ax.set_xlim(-1, 150)
     ax.set_ylim(-1, 1)
 
-    # Redraw the plot
+    # consider movement in x-direction only for time being
+    y = np.linspace(0, 0, time_horizon)
+
+    ax.plot(ego_position[0], y[0], "o")
+    ax.plot(lead_position[0], y[0], "o")
+
+    line1, = ax.plot([], [], 'r-', label = "ego position")
+    line2, = ax.plot([], [], 'b--', label = "lead position")
+    line1.set_data(ego_position, y)
+    line2.set_data(lead_position, y)
+
+    # visualize
+    plt.legend()
     plt.draw()
     plt.pause(0.1)
 
 def time_plot(time, ego_position, lead_position):
     fig, ax = plt.subplots()
-
     ax.clear()
 
+    # visualization parameters
+    ax.set_xlabel("time(s)")
+    ax.set_ylabel("position(m)")
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 100)
 
-    line1, = ax.plot([], [], 'r-')
-    line2, = ax.plot([], [], 'b*')
+    ax.plot(time[0], ego_position[0], "o")
+    ax.plot(time[0], lead_position[0], "o")
+
+    line1, = ax.plot([], [], 'r-', label = "ego position")
+    line2, = ax.plot([], [], 'b--', label = "lead position")
     line1.set_data(time, ego_position)
     line2.set_data(time, lead_position)
 
+    # visualize
+    plt.legend()
     plt.draw()
-    plt.pause(0.5)
+    plt.pause(0.1)
 
 if __name__ == "__main__":
     ego_position = 0
@@ -191,7 +200,7 @@ if __name__ == "__main__":
 
     trajectory = predict_trajectory(idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
 
-    ego_pos, time, lead_pos = trajectory
+    time, ego_pos, lead_pos = trajectory
 
     position_plot(ego_pos, lead_pos)
 
