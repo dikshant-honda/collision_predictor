@@ -53,11 +53,6 @@ class IDM:
             (ego_vehicle_speed * (ego_vehicle_speed - lead_vehicle_speed)) / (
                 2 * math.sqrt(self.max_acceleration * self.comfortable_deceleration)))
 
-        print(ego_vehicle_speed)
-        print(desired_gap)
-        print(math.pow(ego_vehicle_speed / self.desired_speed, self.delta))
-        print()
-
         acceleration = self.max_acceleration * (1 - math.pow(ego_vehicle_speed / self.desired_speed, self.delta) -
                                                 math.pow(desired_gap / ego_vehicle_distance, 2))
 
@@ -134,81 +129,109 @@ def predict_trajectory(
     return trajectory, pos, time
 
 
-def plot(x_pos, y_pos):
-    line1.set_data(x_pos[0], y_pos)
-    line2.set_data(x_pos[1], y_pos)
+# def plot(x_pos, y_pos):
+#     line1.set_data(x_pos[0], y_pos)
+#     line2.set_data(x_pos[1], y_pos)
 
-    # ax.plot(x_pos[0][0], y_pos[0], "*")
-    # ax.plot(x_pos[1][0], y_pos[0], "o")
+#     # ax.plot(x_pos[0][0], y_pos[0], "*")
+#     # ax.plot(x_pos[1][0], y_pos[0], "o")
 
-    ax.set_xlim(-1, 50)
-    ax.set_ylim(-1, 1)
+#     ax.set_xlim(-1, 50)
+#     ax.set_ylim(-1, 1)
 
-    # Redraw the plot
-    plt.draw()
-    plt.pause(1)
+#     # Redraw the plot
+#     plt.draw()
+#     plt.pause(1)
 
 
-if __name__ == '__main__':
-    ego_pos_data = []
-    lead_pos_data = []
-    time_data = []
+# if __name__ == '__main__':
+#     ego_pos_data = []
+#     lead_pos_data = []
+#     time_data = []
 
-    # Create a figure and axis
-    fig, ax = plt.subplots()
+#     # Create a figure and axis
+#     fig, ax = plt.subplots()
 
-    # Create an empty plot
-    line1, = ax.plot([], [], 'r-')
-    line2, = ax.plot([], [], 'b*')
+#     # Create an empty plot
+#     line1, = ax.plot([], [], 'r-')
+#     line2, = ax.plot([], [], 'b*')
 
+#     idm = IDM()
+#     initial_speed = 20  # Initial speed of the vehicle
+#     initial_position = 0  # Initial position of the vehicle
+#     time_horizon = 10  # Time horizon for trajectory prediction (in seconds)
+#     time_step = 0.1  # Time step for trajectory prediction (in seconds)
+
+#     # trajectory, pos, _ = predict_trajectory(idm, initial_speed, 0, math.inf, initial_position, time_horizon, time_step)
+
+#     ego_vehicle = IDM()
+#     ego_vehicle_speed = 15
+#     ego_initial_position = 0
+
+#     lead_vehicle = IDM()
+#     lead_vehicle_speed = 5
+#     lead_initial_position = 10
+
+#     # initial iteration
+#     init_gap = lead_initial_position - ego_initial_position
+#     ego_trajectory, ego_pos, time = predict_trajectory(
+#         ego_vehicle, ego_initial_position, ego_vehicle_speed, lead_vehicle_speed, init_gap, time_horizon, time_step)
+#     lead_trajectory, lead_pos, time = predict_trajectory(
+#         lead_vehicle, lead_initial_position, lead_vehicle_speed, 0, math.inf, time_horizon, time_step)
+
+#     for t in range(10):
+#         gap = lead_trajectory[1][0] - ego_trajectory[1][0]
+#         ego_trajectory, ego_pos, time = predict_trajectory(
+#             ego_vehicle, ego_pos[1], ego_vehicle_speed, lead_vehicle_speed, init_gap, time_horizon, time_step)
+#         lead_trajectory, lead_pos, time = predict_trajectory(
+#             lead_vehicle, lead_pos[1], lead_vehicle_speed, 0, math.inf, time_horizon, time_step)
+
+#         ego_pos_data.clear()
+#         lead_pos_data.clear()
+
+#         data = [ego_pos, lead_pos]
+#         # for t, (position, speed) in enumerate(ego_trajectory):
+#         #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
+
+#         # for t, (position, speed) in enumerate(lead_trajectory):
+#         #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
+
+#         # print("-------------------------------------------------")
+
+#         time = time_to_collision(
+#             ego_trajectory[0], ego_trajectory[1], lead_trajectory[0], lead_trajectory[1])
+#         print("time to collision:", time)
+
+#         print("-------------------------------------")
+#         plot(data, np.zeros((len(ego_pos))))
+
+#         # plot(ego_pos, np.zeros((len(ego_pos))))
+#         # plot(lead_pos, np.zeros((len(lead_pos))))
+
+#     plt.show()
+
+if __name__ == "__main__":
     idm = IDM()
-    initial_speed = 20  # Initial speed of the vehicle
-    initial_position = 0  # Initial position of the vehicle
-    time_horizon = 10  # Time horizon for trajectory prediction (in seconds)
-    time_step = 0.1  # Time step for trajectory prediction (in seconds)
 
-    # trajectory, pos, _ = predict_trajectory(idm, initial_speed, 0, math.inf, initial_position, time_horizon, time_step)
+    lead_speed = 20.0
+    time_steps = 100
+    time_step = 0.1
 
-    ego_vehicle = IDM()
-    ego_vehicle_speed = 20
-    ego_initial_position = 0
+    v = [15]
+    s = [10.0]
 
-    lead_vehicle = IDM()
-    lead_vehicle_speed = 5
-    lead_initial_position = 10
+    print("initial speed:", v[0])
 
-    # initial iteration
-    init_gap = lead_initial_position - ego_initial_position
-    ego_trajectory, ego_pos, time = predict_trajectory(
-        ego_vehicle, ego_initial_position, ego_vehicle_speed, lead_vehicle_speed, init_gap, time_horizon, time_step)
-    lead_trajectory, lead_pos, time = predict_trajectory(
-        lead_vehicle, lead_initial_position, lead_vehicle_speed, 0, math.inf, time_horizon, time_step)
+    for t in range(1, time_steps):
 
-    for t in range(10):
-        gap = lead_trajectory[1][0] - ego_trajectory[1][0]
-        ego_trajectory, ego_pos, time = predict_trajectory(
-            ego_vehicle, ego_pos[1], ego_vehicle_speed, lead_vehicle_speed, init_gap, time_horizon, time_step)
-        lead_trajectory, lead_pos, time = predict_trajectory(
-            lead_vehicle, lead_pos[1], lead_vehicle_speed, 0, math.inf, time_horizon, time_step)
+        acc = idm.calculate_acceleration(v[t-1], lead_speed, s[t-1])
 
-        ego_pos_data.clear()
-        lead_pos_data.clear()
+        v.append(v[t-1] + acc * time_step)
+        s.append(s[t-1] + v[t] * time_step)
 
-        data = [ego_pos, lead_pos]
-        # for t, (position, speed) in enumerate(ego_trajectory):
-        #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
 
-        # for t, (position, speed) in enumerate(lead_trajectory):
-        #     print(f"Time: {t * time_step:.1f}s, Position: {position:.2f}m, Speed: {speed:.2f}m/s")
+    print("final speed:", v[-1])
+    print("final spacing:", s[-1])
 
-        # print("-------------------------------------------------")
-
-        time = time_to_collision(
-            ego_trajectory[0], ego_trajectory[1], lead_trajectory[0], lead_trajectory[1])
-        print(time)
-        plot(data, np.zeros((len(ego_pos))))
-
-        # plot(ego_pos, np.zeros((len(ego_pos))))
-        # plot(lead_pos, np.zeros((len(lead_pos))))
-
-    plt.show()
+    print(v)
+    print(s)
