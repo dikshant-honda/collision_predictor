@@ -12,7 +12,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax.axis('equal')
 
-    time_horizon = 10
+    time_horizon = 5000
     time_step = 0.1
 
     # calling the IDM class object
@@ -23,8 +23,8 @@ if __name__ == "__main__":
     ego_speed = 20
     ego_radius = 0.5
 
-    lead_position = 5
-    lead_speed = 10
+    lead_position = 50
+    lead_speed = 4
     lead_radius = 0.5
 
     time, ego_trajectory, lead_trajectory = predict_trajectory(
@@ -42,6 +42,7 @@ if __name__ == "__main__":
         plotter(
             ax, ego_predictions_with_noise[time], lead_predictions_with_noise[time])
 
-        print("collision probability:", overlap_area)
+        if overlap_area > 0.1:
+            print("collision probability:", overlap_area, "at time step:", time*time_step)
 
     plt.show()
