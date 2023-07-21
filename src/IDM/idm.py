@@ -14,7 +14,7 @@ class IDM:
             time_headway: float = 1.5,
             min_gap: float = 2,
             max_acceleration: float = 1.5,
-            comfortable_deceleration: float = 1,
+            comfortable_deceleration: float = 2,
             delta: int = 4,
     ) -> None:
         """
@@ -58,7 +58,7 @@ class IDM:
         acceleration = self.max_acceleration * (1 - math.pow(ego_vehicle_speed / self.desired_speed, self.delta) -
                                                 math.pow(desired_gap / ego_vehicle_distance, 2))
 
-        return acceleration
+        return max(-self.comfortable_deceleration, acceleration)
 
 
 def time_to_collision(
