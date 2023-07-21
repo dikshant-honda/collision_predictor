@@ -1,8 +1,11 @@
+#! /usr/bin/env python3
+
 import math
 
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
+
 
 class IDM:
     def __init__(
@@ -140,6 +143,7 @@ def predict_trajectory(
 def position_plot(
         ego_trajectory: list,
         lead_trajectory: list,
+        time_horizon: int,
 ) -> None:
     """
     Function to plot the future ego and lead trajectory positions
@@ -147,6 +151,7 @@ def position_plot(
     args:
         ego_trajectory: future ego trajectory (x, y)
         lead_trajectory: future lead trajectory (x, y)
+        time_horizon: future prediction time horizon
     """
     ax_position.clear()
 
@@ -171,6 +176,8 @@ def position_plot(
     plt.legend()
     plt.draw()
     plt.pause(1.0)
+
+    return
 
 
 def time_plot(
@@ -207,44 +214,52 @@ def time_plot(
     plt.draw()
     plt.pause(1.0)
 
+    return
+
+
 def update(ego_position, ego_velocity, lead_position, lead_velocity, time=0.5):
     ego_position += ego_velocity * time
     lead_position += lead_velocity * time
     return ego_position, lead_position
 
+
 if __name__ == "__main__":
-    
+
     fig_position, ax_position = plt.subplots()
     fig_time, ax_time = plt.subplots()
 
-    time_horizon = 50
-    time_step = 0.1
+"""
+sample test code for getting IDM based future trajectory predictions:
 
+    # time_horizon = 50
+    # time_step = 0.1
 
-#     # initializations
-#     ego_position = 0
-#     ego_speed = 15
+    # initializations
+    ego_position = 0
+    ego_speed = 15
 
-#     lead_position = 50
-#     lead_speed = 10
+    lead_position = 50
+    lead_speed = 10
 
-#     # calling the IDM class object
-#     idm = IDM()
+    # calling the IDM class object
+    idm = IDM()
 
-#     # running the check 10 times
-#     for _ in range(10):
-#         result = predict_trajectory(
-#             idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
+    # running the check 10 times
+    for _ in range(10):
+        result = predict_trajectory(
+            idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
 
-#         time, ego_trajectory, lead_trajectory = result
+        time, ego_trajectory, lead_trajectory = result
 
-#         # dynamically plotting the positions
-#         position_plot(ego_trajectory, lead_trajectory) 
+        # dynamically plotting the positions
+        position_plot(ego_trajectory, lead_trajectory, time_horizon) 
 
-#         # dynamically plotting the position with respect to time
-#         time_plot(time, ego_trajectory, lead_trajectory)
+        # dynamically plotting the position with respect to time
+        time_plot(time, ego_trajectory, lead_trajectory)
 
-#         # take a step in the real world
-#         ego_position, lead_position = update(ego_position, ego_speed, lead_position, lead_speed)
+        # take a step in the real world
+        ego_position, lead_position = update(ego_position, ego_speed, lead_position, lead_speed)
 
-#     plt.show()
+    plt.show()
+
+"""
