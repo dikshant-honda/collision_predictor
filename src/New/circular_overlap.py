@@ -81,6 +81,7 @@ def plotter(
 
     plt.draw()
     plt.pause(0.1)
+    
     return
 
 
