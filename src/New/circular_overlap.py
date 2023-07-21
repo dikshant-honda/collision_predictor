@@ -38,6 +38,7 @@ def overlap(
 
 
 def plotter(
+        ax,
         vehicle_1_data: NDArray[np.float64],
         vehicle_2_data: NDArray[np.float64],
 ) -> None:
@@ -55,7 +56,7 @@ def plotter(
     # visualization parameters
     ax.set_xlabel("x(m)")
     ax.set_ylabel("y(m)")
-    ax.set_xlim(-1, 50)
+    ax.set_xlim(-1, 100)
     ax.set_ylim(-1.4, 1.4)
 
     theta = np.linspace(0, 2 * np.pi, 100)
@@ -79,13 +80,13 @@ def plotter(
     return
 
 
-if __name__ == "__main__":
-
-    fig, ax = plt.subplots()
-    ax.axis('equal')
-
 # """
 # sample test code for two `non-interacting vehicles`
+
+if __name__ == "__main__":
+    # plotting tools
+    fig, ax = plt.subplots()
+    ax.axis('equal')
 
     time_horizon = 30
     time_step = 0.1
@@ -115,8 +116,8 @@ if __name__ == "__main__":
     for time in range(time_horizon):
         overlap_area = overlap(
             vehicle_1_predictions_with_noise[time], vehicle_2_predictions_with_noise[time])
-        plotter(
-            vehicle_1_predictions_with_noise[time], vehicle_2_predictions_with_noise[time])
+        plotter(ax,
+                vehicle_1_predictions_with_noise[time], vehicle_2_predictions_with_noise[time])
 
         print("collision probability:", overlap_area)
 
