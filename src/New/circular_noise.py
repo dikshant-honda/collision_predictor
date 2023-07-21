@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -35,13 +37,14 @@ def add_noise(
 
     idm = IDM()
 
-    time_steps, trajectory, _ = predict_trajectory(idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
+    time_steps, trajectory, _ = predict_trajectory(
+        idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
 
     for time in range(len(time_steps)):
         if growth_rate < 1.4:
             growth_rate += ego_speed * (time/50)
-    
-        size = growth_rate * radius 
+
+        size = growth_rate * radius
 
         noise.append([trajectory[time], size])
 
