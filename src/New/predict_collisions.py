@@ -12,41 +12,54 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax.axis('equal')
 
+    # time params for computing the future trajectory
     time_horizon = 50
     time_step = 0.1
+
+    # step in real world
+    time_move = 1
+    sim_time = 10
 
     # calling the IDM class object
     idm = IDM()
 
     # initializations
     ego_position = 0
-    ego_speed = 20
+    ego_speed = 10
     ego_radius = 0.5
 
-    lead_position = 50
+    lead_position = 60
     lead_speed = 4
     lead_radius = 0.5
 
-    time, ego_trajectory, lead_trajectory = predict_trajectory(
-        idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
+    for step in range(sim_time):
+        ax.clear()
+        print("simulation time step:", step)
+        time, ego_trajectory, lead_trajectory = predict_trajectory(
+            idm, ego_position, ego_speed, lead_position, lead_speed, time_horizon, time_step)
 
-    ego_predictions_with_noise = add_noise(
-        time, ego_trajectory, ego_speed, ego_radius)
+        ego_predictions_with_noise = add_noise(
+            time, ego_trajectory, ego_speed, ego_radius)
 
-    lead_predictions_with_noise = add_noise(
-        time, lead_trajectory, lead_speed, lead_radius)
+        lead_predictions_with_noise = add_noise(
+            time, lead_trajectory, lead_speed, lead_radius)
 
-    for time in range(time_horizon):
-        overlap_area = overlap(
-            ego_predictions_with_noise[time], lead_predictions_with_noise[time])
-        plotter(
-            ax, ego_predictions_with_noise[time], lead_predictions_with_noise[time])
+        for time in range(time_horizon):
+            overlap_area = overlap(
+                ego_predictions_with_noise[time], lead_predictions_with_noise[time])
+            plotter(
+                ax, ego_predictions_with_noise[time], lead_predictions_with_noise[time])
 
-        if overlap_area > 0.1:
-            print("collision probability:", overlap_area, "after:", time*time_step, "seconds!")
+            if overlap_area > 0.1:
+                print("collision probability:", overlap_area, "after:", time*time_step, "seconds!")
 
-    TTC = time_to_collision(ego_position, ego_speed, lead_position, lead_speed)
+        TTC = time_to_collision(ego_position, ego_speed, lead_position, lead_speed)
 
-    print("time to collision:", TTC, "seconds!")
+        ego_position += ego_speed * time_move
+        lead_position += lead_speed * time_move
+
+        print("time to collision:", TTC, "seconds!")
+
+        print("-------------------------------------")
 
     plt.show()
