@@ -38,8 +38,8 @@ class IDM:
 
     def calculate_acceleration(
             self,
-            ego_vehicle_speed: float,
-            lead_vehicle_speed: float,
+            ego_vehicle_speed: NDArray[np.float64],
+            lead_vehicle_speed: NDArray[np.float64],
             ego_vehicle_distance: float,
     ) -> float:
         """
@@ -63,9 +63,9 @@ class IDM:
 
 def time_to_collision(
         position1: NDArray[np.float64],
-        velocity1: float,
+        velocity1: NDArray[np.float64],
         position2: NDArray[np.float64],
-        velocity2: float,
+        velocity2: NDArray[np.float64],
 ) -> float:
     """
     Function to compute the time to collision (TTC) between two traffic participants.
@@ -90,10 +90,10 @@ def time_to_collision(
 
 def predict_trajectory(
         idm: IDM,
-        ego_position: float,
-        ego_speed: float,
-        lead_position: float,
-        lead_speed: float,
+        ego_position: NDArray[np.float64],
+        ego_velocity: NDArray[np.float64],
+        lead_position: NDArray[np.float64],
+        lead_velocity: NDArray[np.float64],
         time_horizon: int,
         time_step: int,
 ) -> list:
@@ -106,9 +106,9 @@ def predict_trajectory(
     args:
         idm: defining an IDM instance for calculating the accelaration value
         ego_position: current positon of the ego vehicle
-        ego_speed: current speed of the ego vehicle
+        ego_velocity: current speed of the ego vehicle
         lead_position: current positon of the lead vehicle
-        lead_speed: current speed of the lead vehicle 
+        lead_velocity: current speed of the lead vehicle 
         time_horizon: duration over which you want to predict the trajectory
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
@@ -119,7 +119,11 @@ def predict_trajectory(
 
     for t in range(time_horizon):
         # compute the gap between the ego and lead vehicle
+        # !!!!!!!!!!! change this later !!!!!!!!!!!!!
         gap = lead_position - ego_position
+
+        # compute speed
+        ego_speed = np.sqrt(ego_velocity[0]**2 + ego_velocity[1]**2)
 
         # compute IDM accleration based on this dynamics
         acceleration = idm.calculate_acceleration(ego_speed, lead_speed, gap)
@@ -228,18 +232,18 @@ if __name__ == "__main__":
     fig_position, ax_position = plt.subplots()
     fig_time, ax_time = plt.subplots()
 
-"""
-sample test code for getting IDM based future trajectory predictions:
+# """
+# sample test code for getting IDM based future trajectory predictions:
 
-    # time_horizon = 50
-    # time_step = 0.1
+    time_horizon = 50
+    time_step = 0.1
 
     # initializations
-    ego_position = 0
-    ego_speed = 15
+    ego_position = np.array([0, 0])
+    ego_speed = np.array([15, 0])
 
-    lead_position = 50
-    lead_speed = 10
+    lead_position = np.array([50, 0])
+    lead_speed = np.array([10, 0])
 
     # calling the IDM class object
     idm = IDM()
@@ -262,4 +266,4 @@ sample test code for getting IDM based future trajectory predictions:
 
     plt.show()
 
-"""
+# """
