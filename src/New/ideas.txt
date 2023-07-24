@@ -7,3 +7,6 @@ approach 2:
     2. uncertainity in trajectory using circular size based on speed
     3. compute the area of overlap of 2 circles for each future time steps
     4. if risk value beyond certain value at any time step, alert!
+
+idea for smart overlap:
+overlap with 3 circles: big center and 2 at the extremes
