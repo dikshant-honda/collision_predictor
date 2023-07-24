@@ -54,11 +54,11 @@ if __name__ == "__main__":
                 print("collision probability:", overlap_area, "after:", time*time_step, "seconds!")
 
         TTC = time_to_collision(ego_position, ego_speed, lead_position, lead_speed)
+        print("time to collision:", TTC, "seconds!")
 
+        # take a step in the real world
         ego_position += ego_speed * time_move
         lead_position += lead_speed * time_move
-
-        print("time to collision:", TTC, "seconds!")
 
         print("-------------------------------------")
 
