@@ -1,41 +1,44 @@
-import numpy as np
+import bisect
 import math
 
+import numpy as np
 from numpy.typing import NDArray
-import bisect
 
 
 class Point2D:
     def __init__(
-            self,
-            x_init: float = 0,
-            y_init: float = 0
-            ) -> None:
+        self,
+        x_init: float = 0,
+        y_init: float = 0,
+    ) -> None:
         """
         class for defining the cartesian coordinates
         """
         self.x = x_init
         self.y = y_init
 
+
 class Frenet:
-    def __init__(self, 
-                s: float = 0, 
-                d: float = 0
-                ) -> None:
+    def __init__(
+        self,
+        s: float = 0,
+        d: float = 0,
+    ) -> None:
         """
         class for defining the frenet coordinates
         """
         self.s = s
         self.d = d
 
+
 def global_to_local(
-        reference_point: Point2D, 
-        orientation: float, 
-        p: Point2D
-        ) -> Point2D:
+        reference_point: Point2D,
+        orientation: float,
+        p: Point2D,
+) -> Point2D:
     """
     function for transforming global point to local point
-    
+
     args:
         reference_point: closest reference point on the lane
         orientation: global orientation of the reference point on the lane
@@ -47,14 +50,16 @@ def global_to_local(
     c = math.cos(-orientation)
 
     out = Point2D(delta.x * c - delta.y * s,
-    delta.x * s + delta.y * c)
+                  delta.x * s + delta.y * c)
 
     return out
 
+
 def local_to_global(
-        center: Point2D, 
-        theta: float, 
-        p: Point2D) -> Point2D:
+        center: Point2D,
+        theta: float,
+        p: Point2D,
+) -> Point2D:
     """
     function for transforming local point to global point
 
@@ -70,6 +75,7 @@ def local_to_global(
 
     return out
 
+
 def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     """
     function to compute the euclidean distance between two points
@@ -78,11 +84,12 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
         x1, y1: coordinates of point 1
         x2, y2: coordinates of point 2
     """
-    return math.sqrt((x1-x2)**2  + (y1-y2)**2)
+    return math.sqrt((x1-x2)**2 + (y1-y2)**2)
+
 
 def get_s_map(
-        path: list(Point2D),
-    ) -> NDArray[np.float64]:
+    path: list(Point2D),
+) -> NDArray[np.float64]:
     """
     function to get the s-map in Frenet coordinate system.
     it will accumulate the distance along the curve taking origin as the vehicle current position.
@@ -99,12 +106,14 @@ def get_s_map(
                 prev_point.x, prev_point.y, point.x, point.y)
         s_map = np.append(s_map, accumulated_distance)
         prev_point = point
-        
+
     return s_map
 
+
 def closest_point_ind(
-        path: list(Point2D), 
-        point: Point2D) -> int:
+        path: list(Point2D),
+        point: Point2D,
+) -> int:
     """
     function to find the closest point index on the path from the given point
 
@@ -123,10 +132,12 @@ def closest_point_ind(
 
     return closest_index
 
+
 def get_frenet(
-        point: Point2D, 
-        path: list(Point2D), 
-        s_map: NDArray[np.float64]) -> Frenet:
+        point: Point2D,
+        path: list(Point2D),
+        s_map: NDArray[np.float64],
+) -> Frenet:
     """
     function to convert cartesian coordinates system to frenet coordinate system
 
@@ -149,8 +160,10 @@ def get_frenet(
         elif ind_closest == 0:
             use_previous = False
         else:
-            dist_prev = distance(path[ind_closest-1].x, path[ind_closest-1].y, point.x, point.y)
-            dist_next = distance(path[ind_closest+1].x, path[ind_closest+1].y, point.x, point.y)
+            dist_prev = distance(
+                path[ind_closest-1].x, path[ind_closest-1].y, point.x, point.y)
+            dist_next = distance(
+                path[ind_closest+1].x, path[ind_closest+1].y, point.x, point.y)
 
             if dist_prev <= dist_next:
                 use_previous = True
@@ -177,16 +190,16 @@ def get_frenet(
 
     else:
         print("Incorrect index")
-        return 
+        return
 
     return Frenet(p_s, p_d)
 
 
 def get_xy(
-        point: Frenet, 
-        path: list(Point2D), 
-        s_map: NDArray[np.float64]
-        ) -> Point2D:
+        point: Frenet,
+        path: list(Point2D),
+        s_map: NDArray[np.float64],
+) -> Point2D:
     """
     function to convert frenet coordinates system to cartesian coordinates system
 
@@ -205,7 +218,7 @@ def get_xy(
         if point.s < 0.0:
             prev_point = 0
         else:
-            prev_point = len(s_map) -2
+            prev_point = len(s_map) - 2
     else:
         # Find the previous point
         idx = bisect.bisect_left(s_map, point.s)
@@ -216,6 +229,7 @@ def get_xy(
 
     # Transform from local to global
     theta = math.atan2(p2.y - p1.y, p2.x - p1.x)
-    p_xy = local_to_global(p1, theta, Point2D(point.s - s_map[prev_point], point.d))
+    p_xy = local_to_global(p1, theta, Point2D(
+        point.s - s_map[prev_point], point.d))
 
     return p_xy
