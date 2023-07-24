@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from IDM.idm import IDM, predict_trajectory
+from IDM.idm import IDM, predict_trajectory, time_to_collision
 from New.circular_noise import add_noise
 from New.circular_overlap import overlap, plotter
 
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax.axis('equal')
 
-    time_horizon = 5000
+    time_horizon = 50
     time_step = 0.1
 
     # calling the IDM class object
@@ -43,6 +43,10 @@ if __name__ == "__main__":
             ax, ego_predictions_with_noise[time], lead_predictions_with_noise[time])
 
         if overlap_area > 0.1:
-            print("collision probability:", overlap_area, "at time step:", time*time_step)
+            print("collision probability:", overlap_area, "after:", time*time_step, "seconds!")
+
+    TTC = time_to_collision(ego_position, ego_speed, lead_position, lead_speed)
+
+    print("time to collision:", TTC, "seconds!")
 
     plt.show()
