@@ -24,12 +24,12 @@ if __name__ == "__main__":
     idm = IDM()
 
     # initializations
-    ego_position = 0
-    ego_speed = 10
+    ego_position = [0, 0]
+    ego_speed = [10, 0]
     ego_radius = 0.5
 
-    lead_position = 60
-    lead_speed = 4
+    lead_position = [60, 0]
+    lead_speed = [4, 0]
     lead_radius = 0.5
 
     for step in range(sim_time):
