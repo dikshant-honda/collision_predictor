@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
+from frenet import *
 
 class IDM:
     def __init__(
@@ -90,10 +91,11 @@ def time_to_collision(
 
 def predict_trajectory(
         idm: IDM,
-        ego_position: NDArray[np.float64],
+        ego_position: Point2D,
         ego_velocity: NDArray[np.float64],
-        lead_position: NDArray[np.float64],
+        lead_position: Point2D,
         lead_velocity: NDArray[np.float64],
+        path,
         time_horizon: int,
         time_step: int,
 ) -> list:
@@ -109,6 +111,7 @@ def predict_trajectory(
         ego_velocity: current speed of the ego vehicle
         lead_position: current positon of the lead vehicle
         lead_velocity: current speed of the lead vehicle 
+        path
         time_horizon: duration over which you want to predict the trajectory
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
@@ -117,28 +120,38 @@ def predict_trajectory(
     lead_trajectory = []
     time = []
 
+    s_map = get_s_map(path)
+
+    ego_position_in_frenet = get_frenet(ego_position, path, s_map)
+    lead_position_in_frenet = get_frenet(lead_position, path, s_map)
+
     for t in range(time_horizon):
         # compute the gap between the ego and lead vehicle
-        # !!!!!!!!!!! change this later !!!!!!!!!!!!!
-        gap = lead_position - ego_position
+        gap = ego_position_in_frenet.s - lead_position_in_frenet.s
 
         # compute speed
         ego_speed = np.sqrt(ego_velocity[0]**2 + ego_velocity[1]**2)
+        lead_speed = np.sqrt(lead_velocity[0]**2 + lead_velocity[1]**2)
 
         # compute IDM accleration based on this dynamics
         acceleration = idm.calculate_acceleration(ego_speed, lead_speed, gap)
 
         # update the dynamics of the ego vehicle
         ego_speed += acceleration * time_step
-        ego_position += ego_speed * time_step
+        ego_position_in_frenet.s += ego_speed * time_step
         time_steps = t * time_step
+
+        ego_position = get_xy(ego_position_in_frenet, path, s_map)
 
         ego_trajectory.append(ego_position)
         time.append(time_steps)
 
         # update the dynamics of the traffic vehicle
         # assuming the lead vehicle is moving with a constant velocity
-        lead_position = lead_position + lead_speed * time_step
+        lead_position_in_frenet.s += lead_speed * time_step
+        
+        lead_position = get_xy(lead_position_in_frenet, path, s_map)
+
         lead_trajectory.append(lead_position)
 
     return [time, ego_trajectory, lead_trajectory]
@@ -239,10 +252,10 @@ if __name__ == "__main__":
     time_step = 0.1
 
     # initializations
-    ego_position = np.array([0, 0])
+    ego_position = Point2D(0, 0)
     ego_speed = np.array([15, 0])
 
-    lead_position = np.array([50, 0])
+    lead_position = Point2D(50, 0)
     lead_speed = np.array([10, 0])
 
     # calling the IDM class object
