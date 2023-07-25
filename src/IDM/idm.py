@@ -185,6 +185,11 @@ def position_plot(
     x_ego, y_ego = route.points_to_coordinates(ego_trajectory)
     x_lead, y_lead = route.points_to_coordinates(lead_trajectory)
 
+    # visualizing the roads
+    ax_position.plot(x_coords, y_coords, 'y--')
+    ax_position.plot(x_coords, boundaries_left, "g")
+    ax_position.plot(x_coords, boundaries_right, "g")
+
     ax_position.plot(x_ego[0], y_ego[0], "o")
     ax_position.plot(x_lead[0], y_lead[0], "o")
 
@@ -201,44 +206,46 @@ def position_plot(
     return
 
 
-# def time_plot(
-#         time: float,
-#         ego_trajectory: list,
-#         lead_trajectory: list,
-# ) -> None:
-#     """
-#     Function to plot the future ego and lead trajectory positions with respect to time
+def time_plot(
+        ax_time,
+        time: float,
+        ego_trajectory: list,
+        lead_trajectory: list,
+) -> None:
+    """
+    Function to plot the future ego and lead trajectory positions with respect to time
 
-#     args:
-#         time: time step per future predictions
-#         ego_trajectory: future ego trajectory Point2D(x, y)
-#         lead_trajectory: future lead trajectory Point2D(x, y)
-#     """
-#     ax_time.clear()
+    args:
+        ax_time: matplotlib tool for plotting
+        time: time step per future predictions
+        ego_trajectory: future ego trajectory Point2D(x, y)
+        lead_trajectory: future lead trajectory Point2D(x, y)
+    """
+    ax_time.clear()
 
-#     # visualization parameters
-#     ax_time.set_xlabel("time(s)")
-#     ax_time.set_ylabel("position(m)")
-#     ax_time.set_xlim(0, 10)
-#     ax_time.set_ylim(0, 100)
+    # visualization parameters
+    ax_time.set_xlabel("time(s)")
+    ax_time.set_ylabel("position(m)")
+    ax_time.set_xlim(0, 10)
+    ax_time.set_ylim(0, 100)
 
-#     x_ego, y_ego = route.points_to_coordinates(ego_trajectory)
-#     x_lead, y_lead = route.points_to_coordinates(lead_trajectory)
+    x_ego, y_ego = route.points_to_coordinates(ego_trajectory)
+    x_lead, y_lead = route.points_to_coordinates(lead_trajectory)
 
-#     ax_time.plot(time[0], x_ego[0], "o")
-#     ax_time.plot(time[0], x_lead[0], "o")
+    ax_time.plot(time[0], x_ego[0], "o")
+    ax_time.plot(time[0], x_lead[0], "o")
 
-#     line1, = ax_time.plot([], [], 'r-', label="ego trajectory")
-#     line2, = ax_time.plot([], [], 'b--', label="lead trajectory")
-#     line1.set_data(time, x_ego)
-#     line2.set_data(time, x_lead)
+    line1, = ax_time.plot([], [], 'r-', label="ego trajectory")
+    line2, = ax_time.plot([], [], 'b--', label="lead trajectory")
+    line1.set_data(time, x_ego)
+    line2.set_data(time, x_lead)
 
-#     # visualize
-#     plt.legend()
-#     plt.draw()
-#     plt.pause(1.0)
+    # visualize
+    plt.legend()
+    plt.draw()
+    plt.pause(1.0)
 
-#     return
+    return
 
 
 def update(ego_position: Point2D, ego_velocity, lead_position: Point2D, lead_velocity, time=0.5):
@@ -250,13 +257,21 @@ def update(ego_position: Point2D, ego_velocity, lead_position: Point2D, lead_vel
 if __name__ == "__main__":
 
     fig_position, ax_position = plt.subplots()
-    fig_time, ax_time = plt.subplots()
+    # fig_time, ax_time = plt.subplots()
 
 # """
 # sample test code for getting IDM based future trajectory predictions:
 
     time_horizon = 50
     time_step = 0.1
+
+    number_of_points = 100
+
+    x_coords = np.linspace(0, 150, 100)
+    y_coords = np.linspace(0, 0, 100)
+
+    boundaries_left = np.linspace(0.5, 0.5, 100)
+    boundaries_right = np.linspace(-0.5, -0.5, 100)
 
     # initializations
     ego_position = Point2D(0, 0)
@@ -265,7 +280,7 @@ if __name__ == "__main__":
     lead_position = Point2D(50, 0)
     lead_speed = np.array([10, 0])
 
-    route = Path()
+    route = Path(x_coords, y_coords)
     path = route.get_path()
 
     # calling the IDM class object
@@ -282,7 +297,7 @@ if __name__ == "__main__":
         position_plot(ego_trajectory, lead_trajectory)
 
         # dynamically plotting the position with respect to time
-        # time_plot(time, ego_trajectory, lead_trajectory)
+        # time_plot(ax_time, time, ego_trajectory, lead_trajectory)
 
         # take a step in the real world
         ego_position, lead_position = update(
