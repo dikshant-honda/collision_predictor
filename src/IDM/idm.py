@@ -113,7 +113,7 @@ def predict_trajectory(
         ego_velocity: current speed of the ego vehicle
         lead_position: current positon of the lead vehicle
         lead_velocity: current speed of the lead vehicle 
-        path
+        path: center lane coordinates of the lane on which vehicle is currently located, type list(Point2D)
         time_horizon: duration over which you want to predict the trajectory
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
         interpolate_back_path: interpolate back to path after this number of steps
@@ -152,11 +152,11 @@ def predict_trajectory(
         ego_trajectory.append(ego_position)
         time.append(time_steps)
 
-        # update the dynamics of the traffic vehicle
-        # assuming the lead vehicle is moving with a constant velocity
+        # update the dynamics of the lead vehicle
+        # assuming the lead vehicle is moving with a constant velocity and its offset is zero from the center lane
         lead_position_in_frenet.s += lead_speed * time_step
 
-        if lead_position_in_frenet.s is np.inf:
+        if lead_position_in_frenet.s is np.inf:     # no vehicle ahead of the ego vehicle
             lead_position = Point2D(np.inf, 0)
         else:
             lead_position = get_xy(lead_position_in_frenet, path, s_map)

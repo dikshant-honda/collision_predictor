@@ -77,7 +77,7 @@ def plotter(
             vehicle_2_centers.y + vehicle_2_size * np.sin(theta), 'b')
 
     plt.draw()
-    plt.pause(0.001)
+    plt.pause(0.1)
 
     return
 
