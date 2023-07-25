@@ -3,7 +3,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..IDM.idm import IDM, predict_trajectory, time_to_collision  # relative import
 from IDM.idm import IDM, predict_trajectory, time_to_collision
 from New.circular_noise import add_noise
 from New.circular_overlap import overlap, plotter
