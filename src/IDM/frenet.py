@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import bisect
 import math
 
@@ -146,11 +148,8 @@ def get_frenet(
         path: 2D list having the coordinates of the middle lane of the road 
         s_map: cumulative distance map from current point obtained using get_s_map() function
     """
-    if path == None:
-        print("Empty map. Cannot return Frenet coordinates")
-        return Frenet(0.0, 0.0)
 
-    ind_closest = closest_point_ind(path, point.x, point.y)
+    ind_closest = closest_point_ind(path, point)
 
     # Determine the indices of the 2 closest points
     if ind_closest < len(path):
@@ -208,10 +207,6 @@ def get_xy(
         path: 2D list having the coordinates of the middle lane of the road 
         s_map: cumulative distance map from current point obtained using get_s_map() function
     """
-
-    if path == None or s_map == None:
-        print("Empty path. Cannot compute Cartesian coordinates")
-        return Point2D(0.0, 0.0)
 
     # If the value is out of the actual path send a warning
     if point.s < 0.0 or point.s > s_map[-1]:
