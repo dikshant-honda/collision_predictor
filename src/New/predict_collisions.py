@@ -3,8 +3,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.frenet import Point2D
+from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
 from New.circular_noise import add_noise
 from New.circular_overlap import overlap, plotter
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # calling the IDM class object
     idm = IDM()
 
-     # definining the route structure
+    # definining the route structure
     number_of_points = 300
 
     x_coords = np.linspace(0, 300, number_of_points)
@@ -73,9 +73,11 @@ if __name__ == "__main__":
                 ax, ego_predictions_with_noise[time], lead_predictions_with_noise[time])
 
             if overlap_area > 0.1:
-                print("collision probability:", overlap_area, "after:", time*time_step, "seconds!")
+                print("collision probability:", overlap_area,
+                      "after:", time*time_step, "seconds!")
 
-        TTC = time_to_collision(ego_position.x, ego_speed[0], lead_position.x, lead_speed[0])
+        TTC = time_to_collision(
+            ego_position.x, ego_speed[0], lead_position.x, lead_speed[0])
         print("time to collision:", TTC, "seconds!")
 
         # take a step in the real world
