@@ -96,7 +96,7 @@ def predict_trajectory(
         ego_velocity: NDArray[np.float64],
         lead_position: Point2D,
         lead_velocity: NDArray[np.float64],
-        path,
+        path: list,
         time_horizon: int,
         time_step: int,
         interpolate_back_path: int = 100,
@@ -267,11 +267,11 @@ if __name__ == "__main__":
 
     number_of_points = 100
 
-    x_coords = np.linspace(0, 150, 100)
-    y_coords = np.linspace(0, 0, 100)
+    x_coords = np.linspace(0, 150, number_of_points)
+    y_coords = np.linspace(0, 0, number_of_points)
 
-    boundaries_left = np.linspace(0.5, 0.5, 100)
-    boundaries_right = np.linspace(-0.5, -0.5, 100)
+    boundaries_left = np.linspace(0.5, 0.5, number_of_points)
+    boundaries_right = np.linspace(-0.5, -0.5, number_of_points)
 
     # initializations
     ego_position = Point2D(0, 0)
@@ -280,6 +280,7 @@ if __name__ == "__main__":
     lead_position = Point2D(50, 0)
     lead_speed = np.array([10, 0])
 
+    # obtaining the path from the route
     route = Path(x_coords, y_coords)
     path = route.get_path()
 
