@@ -7,6 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from IDM.frenet import *
+from IDM.path import Path
 
 class IDM:
     def __init__(
@@ -98,7 +99,7 @@ def predict_trajectory(
         path,
         time_horizon: int,
         time_step: int,
-        interpolate_back_path: int = 100, 
+        interpolate_back_path: int = 100,
 ) -> list:
     """
     Function to compute the future trajecory of the vehicle using IDM analysis
@@ -142,7 +143,7 @@ def predict_trajectory(
         ego_speed += acceleration * time_step
         ego_position_in_frenet.s += ego_speed * time_step
         time_steps = t * time_step
-        
+
         # tracking back towards the center line linearly
         ego_position_in_frenet.d -= t * ego_position_in_frenet.d / interpolate_back_path
 
@@ -154,29 +155,13 @@ def predict_trajectory(
         # update the dynamics of the traffic vehicle
         # assuming the lead vehicle is moving with a constant velocity
         lead_position_in_frenet.s += lead_speed * time_step
-        
+
         lead_position = get_xy(lead_position_in_frenet, path, s_map)
 
         lead_trajectory.append(lead_position)
 
     return [time, ego_trajectory, lead_trajectory]
 
-def points_to_coordinates(
-        points: list(Point2D)
-        ):
-    """
-    Function to convert 2D points to list of coordinates
-    
-    args:
-        ponts: list of points stored in point2D format
-    """
-    x_coordinates, y_coordinates = [], []
-
-    for point in points:
-        x_coordinates.append(point.x)
-        y_coordinates.append(point.y)
-    
-    return x_coordinates, y_coordinates
 
 def position_plot(
         ego_trajectory: list,
@@ -197,8 +182,8 @@ def position_plot(
     ax_position.set_xlim(-1, 150)
     ax_position.set_ylim(-1, 1)
 
-    x_ego, y_ego = points_to_coordinates(ego_trajectory)
-    x_lead, y_lead = points_to_coordinates(lead_trajectory)
+    x_ego, y_ego = route.points_to_coordinates(ego_trajectory)
+    x_lead, y_lead = route.points_to_coordinates(lead_trajectory)
 
     ax_position.plot(x_ego[0], y_ego[0], "o")
     ax_position.plot(x_lead[0], y_lead[0], "o")
@@ -216,44 +201,44 @@ def position_plot(
     return
 
 
-def time_plot(
-        time: float,
-        ego_trajectory: list,
-        lead_trajectory: list,
-) -> None:
-    """
-    Function to plot the future ego and lead trajectory positions with respect to time
+# def time_plot(
+#         time: float,
+#         ego_trajectory: list,
+#         lead_trajectory: list,
+# ) -> None:
+#     """
+#     Function to plot the future ego and lead trajectory positions with respect to time
 
-    args:
-        time: time step per future predictions
-        ego_trajectory: future ego trajectory Point2D(x, y)
-        lead_trajectory: future lead trajectory Point2D(x, y)
-    """
-    ax_time.clear()
+#     args:
+#         time: time step per future predictions
+#         ego_trajectory: future ego trajectory Point2D(x, y)
+#         lead_trajectory: future lead trajectory Point2D(x, y)
+#     """
+#     ax_time.clear()
 
-    # visualization parameters
-    ax_time.set_xlabel("time(s)")
-    ax_time.set_ylabel("position(m)")
-    ax_time.set_xlim(0, 10)
-    ax_time.set_ylim(0, 100)
+#     # visualization parameters
+#     ax_time.set_xlabel("time(s)")
+#     ax_time.set_ylabel("position(m)")
+#     ax_time.set_xlim(0, 10)
+#     ax_time.set_ylim(0, 100)
 
-    x_ego, y_ego = points_to_coordinates(ego_trajectory)
-    x_lead, y_lead = points_to_coordinates(lead_trajectory)
+#     x_ego, y_ego = route.points_to_coordinates(ego_trajectory)
+#     x_lead, y_lead = route.points_to_coordinates(lead_trajectory)
 
-    ax_time.plot(time[0], x_ego[0], "o")
-    ax_time.plot(time[0], x_lead[0], "o")
+#     ax_time.plot(time[0], x_ego[0], "o")
+#     ax_time.plot(time[0], x_lead[0], "o")
 
-    line1, = ax_time.plot([], [], 'r-', label="ego trajectory")
-    line2, = ax_time.plot([], [], 'b--', label="lead trajectory")
-    line1.set_data(time, x_ego)
-    line2.set_data(time, x_lead)
+#     line1, = ax_time.plot([], [], 'r-', label="ego trajectory")
+#     line2, = ax_time.plot([], [], 'b--', label="lead trajectory")
+#     line1.set_data(time, x_ego)
+#     line2.set_data(time, x_lead)
 
-    # visualize
-    plt.legend()
-    plt.draw()
-    plt.pause(1.0)
+#     # visualize
+#     plt.legend()
+#     plt.draw()
+#     plt.pause(1.0)
 
-    return
+#     return
 
 
 def update(ego_position: Point2D, ego_velocity, lead_position: Point2D, lead_velocity, time=0.5):
@@ -280,7 +265,8 @@ if __name__ == "__main__":
     lead_position = Point2D(50, 0)
     lead_speed = np.array([10, 0])
 
-    path = get_path()
+    route = Path()
+    path = route.get_path()
 
     # calling the IDM class object
     idm = IDM()
@@ -293,13 +279,14 @@ if __name__ == "__main__":
         time, ego_trajectory, lead_trajectory = result
 
         # dynamically plotting the positions
-        position_plot(ego_trajectory, lead_trajectory) 
+        position_plot(ego_trajectory, lead_trajectory)
 
         # dynamically plotting the position with respect to time
-        time_plot(time, ego_trajectory, lead_trajectory)
+        # time_plot(time, ego_trajectory, lead_trajectory)
 
         # take a step in the real world
-        ego_position, lead_position = update(ego_position, ego_speed, lead_position, lead_speed)
+        ego_position, lead_position = update(
+            ego_position, ego_speed, lead_position, lead_speed)
 
     plt.show()
 
