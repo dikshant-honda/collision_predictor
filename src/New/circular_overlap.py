@@ -118,10 +118,14 @@ if __name__ == "__main__":
     ego_speed_2 = np.array([20, 0])
     ego_radius_2 = 0.5
 
+    # initializations for lead vehicle at a very far distance
+    lead_position = Point2D(np.inf, 0)
+    lead_speed = np.array([10, 0])
+
     vehicle_1_time_steps, vehicle_1_trajectory, _ = predict_trajectory(
-        ego_idm_1, ego_position_1, ego_speed_1, np.inf, 10, path, time_horizon, time_step)
+        ego_idm_1, ego_position_1, ego_speed_1, lead_position, lead_speed, path, time_horizon, time_step)
     vehicle_2_time_steps, vehicle_2_trajectory, _ = predict_trajectory(
-        ego_idm_2, ego_position_2, ego_speed_2, np.inf, 10, path, time_horizon, time_step)
+        ego_idm_2, ego_position_2, ego_speed_2, lead_position, lead_speed, path, time_horizon, time_step)
 
     vehicle_1_predictions_with_noise = add_noise(
         vehicle_1_time_steps, vehicle_1_trajectory, ego_speed_1, ego_radius_1)
