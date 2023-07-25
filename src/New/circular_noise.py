@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 def add_noise(
         time_steps: NDArray[np.float64],
         trajectory: NDArray[np.float64],
-        speed: float,
+        velocity: NDArray[np.float64],
         radius: float,
         growth_rate: float = 1.0,
 ) -> list:
@@ -19,12 +19,14 @@ def add_noise(
     args:
         time_steps: predicted trajectory time steps
         trajectory: future trajectory estimated using IDM
-        speed: curremt speed of the vehicle
+        velocity: current velocity of the vehicle
         radius: noise size, initialized roughly by the size of the vehicle
         growth_rate: growth rate of the noise due to increase in uncertainity in the future
     """
 
     noise = []
+
+    speed = np.sqrt(velocity[0] ** 2 + velocity[1] ** 2)
 
     for time in range(len(time_steps)):
         if growth_rate < 1.4:
