@@ -151,6 +151,10 @@ def get_frenet(
 
     ind_closest = closest_point_ind(path, point)
 
+    # vehicle is at infinity
+    if ind_closest is None:
+        return Frenet(np.inf, 0)
+
     # Determine the indices of the 2 closest points
     if ind_closest < len(path):
         # Check if we are at the end of the segment
