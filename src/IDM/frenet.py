@@ -88,7 +88,7 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
 
 
 def get_s_map(
-    path: list(Point2D),
+    path: list,
 ) -> NDArray[np.float64]:
     """
     function to get the s-map in Frenet coordinate system.
@@ -111,7 +111,7 @@ def get_s_map(
 
 
 def closest_point_ind(
-        path: list(Point2D),
+        path: list,
         point: Point2D,
 ) -> int:
     """
@@ -135,7 +135,7 @@ def closest_point_ind(
 
 def get_frenet(
         point: Point2D,
-        path: list(Point2D),
+        path: list,
         s_map: NDArray[np.float64],
 ) -> Frenet:
     """
@@ -197,7 +197,7 @@ def get_frenet(
 
 def get_xy(
         point: Frenet,
-        path: list(Point2D),
+        path: list,
         s_map: NDArray[np.float64],
 ) -> Point2D:
     """
