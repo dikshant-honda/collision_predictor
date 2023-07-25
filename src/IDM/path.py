@@ -1,15 +1,12 @@
 #! /usr/bin/env python3
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 from IDM.frenet import Point2D
 
 
 class Path:
-    def __init__(self) -> None:
-        self.x = None
-        self.y = None
+    def __init__(self, x: list, y: list) -> None:
+        self.x = x
+        self.y = y
         self.number_of_points = 100
 
     def points_to_coordinates(
@@ -37,19 +34,7 @@ class Path:
 
         return path
 
-    def path(self):
-        self.x = np.linspace(0, 100, self.number_of_points)
-        self.y = np.linspace(0, 0, self.number_of_points)
-
-        return self.x, self.y
-    
     def get_path(self):
-        self.path()
         path = self.coordinates_to_points(self.x, self.y)
 
         return path
-
-
-pt = Path()
-path = pt.get_path()
-
