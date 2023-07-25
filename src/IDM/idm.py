@@ -156,7 +156,10 @@ def predict_trajectory(
         # assuming the lead vehicle is moving with a constant velocity
         lead_position_in_frenet.s += lead_speed * time_step
 
-        lead_position = get_xy(lead_position_in_frenet, path, s_map)
+        if lead_position_in_frenet.s is np.inf:
+            lead_position = Point2D(np.inf, 0)
+        else:
+            lead_position = get_xy(lead_position_in_frenet, path, s_map)
 
         lead_trajectory.append(lead_position)
 
