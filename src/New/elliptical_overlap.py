@@ -93,29 +93,38 @@ def plot():
     plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
     plt.show()
 
-def intersections(a, b):
-    ea = LinearRing(a)
-    eb = LinearRing(b)
 
-    print(Polygon(ea).area)
-    print(Polygon(eb).area)
-    mp = ea.intersection(eb)
+if __name__ == "__main__":
+    ellipse_1_params = (1, 1, 2, 1, 45)
+    ellipse_2_params = (2, 0.5, 5, 1.5, -30)
 
-    pts = []
-    for p in mp.geoms:
-        pts.append([p.x, p.y])
+    ellipse_1, ellipse_2  = ellipse_polyline([ellipse_1_params, ellipse_2_params])
 
-    poly = Polygon(pts)
-    print(poly.area)
-    x = [p.x for p in mp.geoms]
-    y = [p.y for p in mp.geoms]
-    return x, y
+    plot()
 
-ellipses = [(1, 1, 2, 1, 45), (2, 0.5, 5, 1.5, -30)]
-a, b = ellipse_polyline(ellipses)
-x, y = intersections(a, b)
-plt.plot(x, y, "o")
-plt.plot(a[:,0], a[:,1])
-plt.plot(b[:,0], b[:,1])
+# def intersections(a, b):
+#     ea = LinearRing(a)
+#     eb = LinearRing(b)
 
-plt.show()
+#     print(Polygon(ea).area)
+#     print(Polygon(eb).area)
+#     mp = ea.intersection(eb)
+
+#     pts = []
+#     for p in mp.geoms:
+#         pts.append([p.x, p.y])
+
+#     poly = Polygon(pts)
+#     print(poly.area)
+#     x = [p.x for p in mp.geoms]
+#     y = [p.y for p in mp.geoms]
+#     return x, y
+
+# ellipses = [(1, 1, 2, 1, 45), (2, 0.5, 5, 1.5, -30)]
+# a, b = ellipse_polyline(ellipses)
+# x, y = intersections(a, b)
+# plt.plot(x, y, "o")
+# plt.plot(a[:,0], a[:,1])
+# plt.plot(b[:,0], b[:,1])
+
+# plt.show()
