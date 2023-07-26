@@ -49,6 +49,50 @@ def overlap_area(
 
     return Polygon(points).area
 
+def ellipse_area(
+        ellipse_coordinates: list,
+) -> float:
+    """
+    Function to compute the area of the ellipse
+
+    args:
+        ellipse_coordinates: coordinates of the ellipse in consideration
+    """
+    return Polygon(LinearRing(ellipse_coordinates)).area
+
+def intersection_points(
+        ellipse_1: list,
+        ellipse_2: list,
+) -> MultiPoint:
+    """
+    Function to find out the intersection points of two ellipses
+
+    args:
+        ellipse_1: coordinates of ellipse 1
+        ellipse_2: coordinates of ellipse 2
+    """
+    e1 = LinearRing(ellipse_1)
+    e2 = LinearRing(ellipse_2)
+
+    return e1.intersection(e2)
+
+def multipoint_to_list(
+        points: MultiPoint,
+) -> list:
+    """
+    Function to convert the multipoints into list
+    """
+    points = []
+    for point in intersection_points.geoms:
+        points.append([point.x, point.y])
+
+    return points
+
+def plot():
+    plt.plot(ellipse_1[:, 0], ellipse_1[:, 1])
+    plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
+    plt.show()
+
 def intersections(a, b):
     ea = LinearRing(a)
     eb = LinearRing(b)
