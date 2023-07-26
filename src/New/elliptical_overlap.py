@@ -5,9 +5,9 @@ from shapely.geometry.polygon import LinearRing
 
 
 def ellipse_polyline(
-        ellipses: list, 
+        ellipses: list,
         n: int = 100,
-        ) -> list:
+) -> list:
     """
     Function to draw an ellipse from the ellipses params
 
@@ -36,7 +36,7 @@ def ellipse_polyline(
 
 def overlap_area(
         intersection_points: MultiPoint,
-        ) -> float:
+) -> float:
     """
     Function to compute the area of the onverlapped trapezium
 
@@ -49,6 +49,7 @@ def overlap_area(
 
     return Polygon(points).area
 
+
 def ellipse_area(
         ellipse_coordinates: list,
 ) -> float:
@@ -59,6 +60,7 @@ def ellipse_area(
         ellipse_coordinates: coordinates of the ellipse in consideration
     """
     return Polygon(LinearRing(ellipse_coordinates)).area
+
 
 def intersection_points(
         ellipse_1: list,
@@ -76,6 +78,7 @@ def intersection_points(
 
     return e1.intersection(e2)
 
+
 def multipoint_to_list(
         points: MultiPoint,
 ) -> list:
@@ -88,6 +91,7 @@ def multipoint_to_list(
 
     return points
 
+
 def plot():
     """
     plotting tool
@@ -95,6 +99,7 @@ def plot():
     plt.plot(ellipse_1[:, 0], ellipse_1[:, 1])
     plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
     plt.show()
+
 
 def collision_probability(
         overlap: float,
@@ -105,11 +110,13 @@ def collision_probability(
     """
     return overlap / total
 
+
 if __name__ == "__main__":
     ellipse_1_params = (1, 1, 2, 1, 45)
     ellipse_2_params = (2, 0.5, 5, 1.5, -30)
 
-    ellipse_1, ellipse_2  = ellipse_polyline([ellipse_1_params, ellipse_2_params])
+    ellipse_1, ellipse_2 = ellipse_polyline(
+        [ellipse_1_params, ellipse_2_params])
 
     # plot()
 
@@ -123,6 +130,5 @@ if __name__ == "__main__":
     total_area = ellipse_1_area + ellipse_2_area
 
     prob = collision_probability(overlap, total_area)
-    
-    print(prob)
 
+    print(prob)
