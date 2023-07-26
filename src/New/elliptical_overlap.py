@@ -89,10 +89,21 @@ def multipoint_to_list(
     return points
 
 def plot():
+    """
+    plotting tool
+    """
     plt.plot(ellipse_1[:, 0], ellipse_1[:, 1])
     plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
     plt.show()
 
+def collision_probability(
+        overlap: float,
+        total: float,
+) -> float:
+    """
+    dice loss of the overlap
+    """
+    return overlap / total
 
 if __name__ == "__main__":
     ellipse_1_params = (1, 1, 2, 1, 45)
@@ -100,31 +111,18 @@ if __name__ == "__main__":
 
     ellipse_1, ellipse_2  = ellipse_polyline([ellipse_1_params, ellipse_2_params])
 
-    plot()
+    # plot()
 
-# def intersections(a, b):
-#     ea = LinearRing(a)
-#     eb = LinearRing(b)
+    intersect = intersection_points(ellipse_1, ellipse_2)
 
-#     print(Polygon(ea).area)
-#     print(Polygon(eb).area)
-#     mp = ea.intersection(eb)
+    overlap = overlap_area(intersect)
 
-#     pts = []
-#     for p in mp.geoms:
-#         pts.append([p.x, p.y])
+    ellipse_1_area = ellipse_area(ellipse_1)
+    ellipse_2_area = ellipse_area(ellipse_2)
 
-#     poly = Polygon(pts)
-#     print(poly.area)
-#     x = [p.x for p in mp.geoms]
-#     y = [p.y for p in mp.geoms]
-#     return x, y
+    total_area = ellipse_1_area + ellipse_2_area
 
-# ellipses = [(1, 1, 2, 1, 45), (2, 0.5, 5, 1.5, -30)]
-# a, b = ellipse_polyline(ellipses)
-# x, y = intersections(a, b)
-# plt.plot(x, y, "o")
-# plt.plot(a[:,0], a[:,1])
-# plt.plot(b[:,0], b[:,1])
+    prob = collision_probability(overlap, total_area)
+    
+    print(prob)
 
-# plt.show()
