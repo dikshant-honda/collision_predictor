@@ -110,6 +110,9 @@ def collision_probability(
     """
     return overlap / total
 
+# """
+# testing code:
+
 
 if __name__ == "__main__":
     ellipse_1_params = (1, 1, 2, 1, 45)
@@ -132,3 +135,5 @@ if __name__ == "__main__":
     prob = collision_probability(overlap, total_area)
 
     print(prob)
+
+# """
