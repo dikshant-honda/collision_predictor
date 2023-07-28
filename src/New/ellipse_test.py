@@ -17,21 +17,19 @@ def ellipse(center_x, center_y, major_axis, minor_axis, rotation_angle=0):
     return ellipse
 
 def overlap_area(ellipse1, ellipse2):
-    # # Find the intersection of the two ellipses
-    # intersection = ellipse1.intersection(ellipse2)
-
-    # # Calculate the area of the intersection
-    # area = intersection.area
-    if ellipse1.intersects(ellipse2): 
-        intersect = ellipse1.intersection(ellipse2).area
-        return intersect
-    return 0
+    # check if it intersects
+    if ellipse1.intersects(ellipse2):
+        # Find the intersection of the two ellipses 
+        intersect = ellipse1.intersection(ellipse2)
+        # Calculate the area of the intersection
+        area = intersect.area
+        return area
     
-    # return area
+    return 0
 
 # Example usage
 ellipse1 = ellipse(center_x=1, center_y=1, major_axis=6, minor_axis=2, rotation_angle=0)
-ellipse2 = ellipse(center_x=15, center_y=0, major_axis=5, minor_axis=1.5)
+ellipse2 = ellipse(center_x=10, center_y=0, major_axis=5, minor_axis=1.5)
 
 xx, yy = ellipse1.exterior.coords.xy
 
@@ -46,6 +44,8 @@ x = xx.tolist()
 y = yy.tolist()
 
 plt.plot(x, y)
+
+plt.show()
 
 overlap_area = overlap_area(ellipse1, ellipse2)
 print("Overlap Area:", overlap_area)
