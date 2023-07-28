@@ -8,7 +8,7 @@ from shapely.geometry.polygon import LinearRing
 
 def ellipse_polyline(
         ellipses: list,
-        n: int = 100,
+        n: int = 200,
 ) -> list:
     """
     Function to draw an ellipse from the ellipses params
@@ -45,10 +45,11 @@ def overlap_area(
     args:
         intersection_points: Multipoint list of intersected points
     """
+    verts = np.array(intersection_points.exterior.coords.xy)
     points = []
     for point in intersection_points.geoms:
         points.append([point.x, point.y])
-
+    print(points)
     return Polygon(points).area
 
 
@@ -166,6 +167,9 @@ def overlap(
     vehicle_2_centers = vehicle_2_data[0]
     vehicle_2_size = vehicle_2_data[1]
 
+    print(vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size)
+    print(vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size)
+
     vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
                         vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
     vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
@@ -187,6 +191,14 @@ def overlap(
 
     return probability
 
+def plot(ellipse_1, ellipse_2):
+    """
+    plotting tool
+    """
+    plt.plot(ellipse_1[:, 0], ellipse_1[:, 1])
+    plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
+
+    return
 
 # """
 # testing code:
@@ -197,14 +209,17 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax.axis('equal')
 
+    ellipse_1_params = (1, 1, 6, 2, 0)
+    ellipse_2_params = (2, 0, 5, 1.5, 0)
+
     ellipse_1_params = (1, 1, 2, 1, 45)
     ellipse_2_params = (2, 0.5, 5, 1.5, -30)
 
     ellipse_1, ellipse_2 = ellipse_polyline(
         [ellipse_1_params, ellipse_2_params])
 
-    plotter(ax, ellipse_1, ellipse_2)
-
+    plot(ellipse_1, ellipse_2)
+    plt.show()
     intersect = intersection_points(ellipse_1, ellipse_2)
 
     overlap = overlap_area(intersect)
@@ -217,7 +232,5 @@ if __name__ == "__main__":
     prob = collision_probability(overlap, total_area)
 
     print(prob)
-
-    plt.show()
 
 # """
