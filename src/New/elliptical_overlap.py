@@ -45,7 +45,6 @@ def overlap_area(
     args:
         intersection_points: Multipoint list of intersected points
     """
-    verts = np.array(intersection_points.exterior.coords.xy)
     points = []
     for point in intersection_points.geoms:
         points.append([point.x, point.y])
@@ -83,7 +82,7 @@ def intersection_points(
 
 
 def multipoint_to_list(
-        points: MultiPoint,
+        intersection_points: MultiPoint,
 ) -> list:
     """
     Function to convert the multipoints into list
