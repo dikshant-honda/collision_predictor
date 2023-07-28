@@ -94,9 +94,16 @@ def multipoint_to_list(
     return points
 
 
-def plot():
+def plot(
+        ellipse_1: list,
+        ellipse_2: list,
+) -> None:
     """
     plotting tool
+
+    args:
+        ellipse_1: coordinates of ellipse_1
+        ellipse_2: coordinates of ellipse_2
     """
     plt.plot(ellipse_1[:, 0], ellipse_1[:, 1])
     plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
@@ -123,7 +130,7 @@ if __name__ == "__main__":
     ellipse_1, ellipse_2 = ellipse_polyline(
         [ellipse_1_params, ellipse_2_params])
 
-    # plot()
+    plot(ellipse_1, ellipse_2)
 
     intersect = intersection_points(ellipse_1, ellipse_2)
 
