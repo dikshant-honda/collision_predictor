@@ -13,7 +13,6 @@ from New.elliptical_noise import add_noise as add_elliptical_noise
 from New.elliptical_overlap import overlap as elliptical_overlap
 from New.elliptical_overlap import plotter as ellipse_plotter
 
-
 if __name__ == "__main__":
 
     fig, ax = plt.subplots()
@@ -71,7 +70,7 @@ if __name__ == "__main__":
 
         ego_predictions_with_circular_noise = add_circular_noise(
             time, ego_trajectory, ego_speed, ego_size)
-        
+
         ego_predictions_with_elliptical_noise = add_elliptical_noise(
             time, ego_trajectory, ego_speed, ego_major_axis, ego_minor_axis, ego_orientation)
 
@@ -79,7 +78,7 @@ if __name__ == "__main__":
             time, lead_trajectory, lead_speed, lead_size)
 
         lead_predictions_with_elliptical_noise = add_elliptical_noise(
-            time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)   
+            time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)
 
         # circular overlap check
         for time in range(time_horizon):

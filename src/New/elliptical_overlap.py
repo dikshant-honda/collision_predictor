@@ -115,11 +115,13 @@ def plotter(
     vehicle_2_centers = vehicle_2_data[0]
     vehicle_2_size = vehicle_2_data[1]
 
-    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
-    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
+    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
+                        vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
+    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
+                        vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
 
-    vehicle_1, vehicle_2 = ellipse_polyline([vehicle_1_params, vehicle_2_params])
-
+    vehicle_1, vehicle_2 = ellipse_polyline(
+        [vehicle_1_params, vehicle_2_params])
 
     # visualization parameters
     ax.set_xlabel("x(m)")
@@ -164,10 +166,13 @@ def overlap(
     vehicle_2_centers = vehicle_2_data[0]
     vehicle_2_size = vehicle_2_data[1]
 
-    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
-    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
+    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
+                        vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
+    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
+                        vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
 
-    vehicle_1, vehicle_2 = ellipse_polyline([vehicle_1_params, vehicle_2_params])
+    vehicle_1, vehicle_2 = ellipse_polyline(
+        [vehicle_1_params, vehicle_2_params])
 
     intersect = intersection_points(vehicle_1, vehicle_2)
 
