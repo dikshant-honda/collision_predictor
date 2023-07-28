@@ -94,7 +94,8 @@ def multipoint_to_list(
     return points
 
 
-def plot(
+def plotter(
+        ax,
         ellipse_1: list,
         ellipse_2: list,
 ) -> None:
@@ -102,11 +103,26 @@ def plot(
     plotting tool
 
     args:
+        ax: plotting tool
         ellipse_1: coordinates of ellipse_1
         ellipse_2: coordinates of ellipse_2
     """
-    plt.plot(ellipse_1[:, 0], ellipse_1[:, 1])
-    plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
+
+    # ax.clear()
+
+    # visualization parameters
+    ax.set_xlabel("x(m)")
+    ax.set_ylabel("y(m)")
+    ax.set_xlim(-1, 200)
+    ax.set_ylim(-1.4, 1.4)
+
+    ax.plot(ellipse_1[:, 0], ellipse_1[:, 1], 'r')
+    ax.plot(ellipse_2[:, 0], ellipse_2[:, 1], 'b')
+
+    plt.draw()
+    plt.pause(0.1)
+
+    return
 
 
 def collision_probability(
@@ -160,28 +176,32 @@ def overlap(
 # testing code:
 
 
-# if __name__ == "__main__":
-#     ellipse_1_params = (1, 1, 2, 1, 45)
-#     ellipse_2_params = (2, 0.5, 5, 1.5, -30)
+if __name__ == "__main__":
+    # plotting tools
+    fig, ax = plt.subplots()
+    ax.axis('equal')
 
-#     ellipse_1, ellipse_2 = ellipse_polyline(
-#         [ellipse_1_params, ellipse_2_params])
+    ellipse_1_params = (1, 1, 2, 1, 45)
+    ellipse_2_params = (2, 0.5, 5, 1.5, -30)
 
-#     plot(ellipse_1, ellipse_2)
+    ellipse_1, ellipse_2 = ellipse_polyline(
+        [ellipse_1_params, ellipse_2_params])
 
-#     intersect = intersection_points(ellipse_1, ellipse_2)
+    plotter(ax, ellipse_1, ellipse_2)
 
-#     overlap = overlap_area(intersect)
+    intersect = intersection_points(ellipse_1, ellipse_2)
 
-#     ellipse_1_area = ellipse_area(ellipse_1)
-#     ellipse_2_area = ellipse_area(ellipse_2)
+    overlap = overlap_area(intersect)
 
-#     total_area = ellipse_1_area + ellipse_2_area
+    ellipse_1_area = ellipse_area(ellipse_1)
+    ellipse_2_area = ellipse_area(ellipse_2)
 
-#     prob = collision_probability(overlap, total_area)
+    total_area = ellipse_1_area + ellipse_2_area
 
-#     print(prob)
+    prob = collision_probability(overlap, total_area)
 
-#     plt.show()
+    print(prob)
+
+    plt.show()
 
 # """
