@@ -107,7 +107,6 @@ def plot(
     """
     plt.plot(ellipse_1[:, 0], ellipse_1[:, 1])
     plt.plot(ellipse_2[:, 0], ellipse_2[:, 1])
-    plt.show()
 
 
 def collision_probability(
@@ -144,5 +143,7 @@ if __name__ == "__main__":
     prob = collision_probability(overlap, total_area)
 
     print(prob)
+
+    plt.show()
 
 # """
