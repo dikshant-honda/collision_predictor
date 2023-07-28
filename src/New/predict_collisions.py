@@ -7,9 +7,11 @@ from IDM.frenet import Point2D
 from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
-from New.circular_overlap import overlap, plotter
+from New.circular_overlap import overlap as circular_overlap
+from New.circular_overlap import plotter
 from New.elliptical_noise import add_noise as add_elliptical_noise
-from New.elliptical_overlap import overlap_area, ellipse_polyline, intersection_points, ellipse_area, collision_probability, plot
+from New.elliptical_overlap import overlap as elliptical_overlap
+from New.elliptical_overlap import plot
 
 
 if __name__ == "__main__":
@@ -80,35 +82,20 @@ if __name__ == "__main__":
             time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)   
 
         # circular overlap check
-        # for time in range(time_horizon):
-        #     overlap_area = overlap(
-        #         ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
-        #     plotter(
-        #         ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+        for time in range(time_horizon):
+            overlap_area = circular_overlap(
+                ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+            # plotter(
+            #     ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
 
-        #     if overlap_area > 0.1:
-        #         print("collision probability:", overlap_area,
-        #               "after:", time*time_step, "seconds!")
+            if overlap_area > 0.1:
+                print("collision probability:", overlap_area,
+                      "after:", time*time_step, "seconds!")
 
         # elliptical overlap check
         for time in range(time_horizon):
-            ego_params = [ego_predictions_with_elliptical_noise[time][0].x, ego_predictions_with_elliptical_noise[time][0].y, ego_predictions_with_elliptical_noise[time][1][0], ego_predictions_with_elliptical_noise[time][1][1], ego_predictions_with_elliptical_noise[time][1][2]]
-            lead_params = [lead_predictions_with_elliptical_noise[time][0].x, lead_predictions_with_elliptical_noise[time][0].y, lead_predictions_with_elliptical_noise[time][1][0], lead_predictions_with_elliptical_noise[time][1][1], lead_predictions_with_elliptical_noise[time][1][2]]
-
-            ego, lead = ellipse_polyline([ego_params, lead_params])
-            
-            intersect = intersection_points(ego, lead)
-
-            collide = overlap_area(intersect)
-
-            ego_variance = ellipse_area(ego)
-            lead_variance = ellipse_area(lead)
-
-            total_variance = ego_variance + lead_variance
-
-            prob = collision_probability(collide, total_variance)
-
-            plot(ego, lead)
+            overlap_area = elliptical_overlap(
+                ego_predictions_with_elliptical_noise[time], lead_predictions_with_elliptical_noise[time])
 
             if overlap_area > 0.1:
                 print("collision probability:", overlap_area,
