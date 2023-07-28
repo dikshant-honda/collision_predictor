@@ -8,6 +8,9 @@ from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
 from New.circular_overlap import overlap, plotter
+from New.elliptical_noise import add_noise as add_elliptical_noise
+from New.elliptical_overlap import overlap_area, ellipse_polyline, intersection_points, ellipse_area, collision_probability, plot
+
 
 if __name__ == "__main__":
 
@@ -42,10 +45,16 @@ if __name__ == "__main__":
     ego_position = Point2D(0, 0)
     ego_speed = np.array([10, 0])
     ego_size = 0.6
+    ego_major_axis = 0.6
+    ego_minor_axis = 0.2
+    ego_orientation = 0.0
 
     lead_position = Point2D(50, 0)
     lead_speed = np.array([4, 0])
     lead_size = 0.6
+    lead_major_axis = 0.6
+    lead_minor_axis = 0.2
+    lead_orientation = 0.0
 
     for step in range(sim_time):
         ax.clear()
@@ -58,17 +67,48 @@ if __name__ == "__main__":
         time, ego_trajectory, lead_trajectory = predict_trajectory(
             idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
 
-        ego_predictions_with_noise = add_circular_noise(
+        ego_predictions_with_circular_noise = add_circular_noise(
             time, ego_trajectory, ego_speed, ego_size)
+        
+        ego_predictions_with_elliptical_noise = add_elliptical_noise(
+            time, ego_trajectory, ego_speed, ego_major_axis, ego_minor_axis, ego_orientation)
 
-        lead_predictions_with_noise = add_circular_noise(
+        lead_predictions_with_circular_noise = add_circular_noise(
             time, lead_trajectory, lead_speed, lead_size)
 
+        lead_predictions_with_elliptical_noise = add_elliptical_noise(
+            time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)   
+
+        # circular overlap check
+        # for time in range(time_horizon):
+        #     overlap_area = overlap(
+        #         ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+        #     plotter(
+        #         ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+
+        #     if overlap_area > 0.1:
+        #         print("collision probability:", overlap_area,
+        #               "after:", time*time_step, "seconds!")
+
+        # elliptical overlap check
         for time in range(time_horizon):
-            overlap_area = overlap(
-                ego_predictions_with_noise[time], lead_predictions_with_noise[time])
-            plotter(
-                ax, ego_predictions_with_noise[time], lead_predictions_with_noise[time])
+            ego_params = [ego_predictions_with_elliptical_noise[time][0].x, ego_predictions_with_elliptical_noise[time][0].y, ego_predictions_with_elliptical_noise[time][1][0], ego_predictions_with_elliptical_noise[time][1][1], ego_predictions_with_elliptical_noise[time][1][2]]
+            lead_params = [lead_predictions_with_elliptical_noise[time][0].x, lead_predictions_with_elliptical_noise[time][0].y, lead_predictions_with_elliptical_noise[time][1][0], lead_predictions_with_elliptical_noise[time][1][1], lead_predictions_with_elliptical_noise[time][1][2]]
+
+            ego, lead = ellipse_polyline([ego_params, lead_params])
+            
+            intersect = intersection_points(ego, lead)
+
+            collide = overlap_area(intersect)
+
+            ego_variance = ellipse_area(ego)
+            lead_variance = ellipse_area(lead)
+
+            total_variance = ego_variance + lead_variance
+
+            prob = collision_probability(collide, total_variance)
+
+            plot(ego, lead)
 
             if overlap_area > 0.1:
                 print("collision probability:", overlap_area,
