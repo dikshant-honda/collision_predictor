@@ -6,7 +6,7 @@ import numpy as np
 from IDM.frenet import Point2D
 from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
-from New.circular_noise import add_noise
+from New.circular_noise import add_noise as add_circular_noise
 from New.circular_overlap import overlap, plotter
 
 if __name__ == "__main__":
@@ -41,11 +41,11 @@ if __name__ == "__main__":
     # initializations
     ego_position = Point2D(0, 0)
     ego_speed = np.array([10, 0])
-    ego_radius = 0.7
+    ego_size = 0.6
 
     lead_position = Point2D(50, 0)
     lead_speed = np.array([4, 0])
-    lead_radius = 0.7
+    lead_size = 0.6
 
     for step in range(sim_time):
         ax.clear()
@@ -55,16 +55,14 @@ if __name__ == "__main__":
         ax.plot(x_coords, boundaries_left, "g")
         ax.plot(x_coords, boundaries_right, "g")
         print("simulation time step:", step)
-
-        # main loop
         time, ego_trajectory, lead_trajectory = predict_trajectory(
             idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
 
-        ego_predictions_with_noise = add_noise(
-            time, ego_trajectory, ego_speed, ego_radius)
+        ego_predictions_with_noise = add_circular_noise(
+            time, ego_trajectory, ego_speed, ego_size)
 
-        lead_predictions_with_noise = add_noise(
-            time, lead_trajectory, lead_speed, lead_radius)
+        lead_predictions_with_noise = add_circular_noise(
+            time, lead_trajectory, lead_speed, lead_size)
 
         for time in range(time_horizon):
             overlap_area = overlap(
