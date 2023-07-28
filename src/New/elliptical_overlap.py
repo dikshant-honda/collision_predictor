@@ -96,19 +96,30 @@ def multipoint_to_list(
 
 def plotter(
         ax,
-        ellipse_1: list,
-        ellipse_2: list,
+        vehicle_1_data: list,
+        vehicle_2_data: list,
 ) -> None:
     """
-    plotting tool
+    Function to visualize the elliptical overlap dynamically at every time step
 
     args:
         ax: plotting tool
-        ellipse_1: coordinates of ellipse_1
-        ellipse_2: coordinates of ellipse_2
+        vehicle_1_data: future trajectory information with uncertainity size for vehicle 1, 
+        vehicle_2_data: future trajectory information with uncertainity size for vehicle 2
     """
 
     # ax.clear()
+    vehicle_1_centers = vehicle_1_data[0]
+    vehicle_1_size = vehicle_1_data[1]
+
+    vehicle_2_centers = vehicle_2_data[0]
+    vehicle_2_size = vehicle_2_data[1]
+
+    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
+    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
+
+    vehicle_1, vehicle_2 = ellipse_polyline([vehicle_1_params, vehicle_2_params])
+
 
     # visualization parameters
     ax.set_xlabel("x(m)")
@@ -116,8 +127,8 @@ def plotter(
     ax.set_xlim(-1, 200)
     ax.set_ylim(-1.4, 1.4)
 
-    ax.plot(ellipse_1[:, 0], ellipse_1[:, 1], 'r')
-    ax.plot(ellipse_2[:, 0], ellipse_2[:, 1], 'b')
+    ax.plot(vehicle_1[:, 0], vehicle_1[:, 1], 'r')
+    ax.plot(vehicle_2[:, 0], vehicle_2[:, 1], 'b')
 
     plt.draw()
     plt.pause(0.1)

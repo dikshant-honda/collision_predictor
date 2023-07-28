@@ -8,10 +8,10 @@ from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
 from New.circular_overlap import overlap as circular_overlap
-from New.circular_overlap import plotter
+from New.circular_overlap import plotter as circle_plotter
 from New.elliptical_noise import add_noise as add_elliptical_noise
 from New.elliptical_overlap import overlap as elliptical_overlap
-from New.elliptical_overlap import plot
+from New.elliptical_overlap import plotter as ellipse_plotter
 
 
 if __name__ == "__main__":
@@ -85,8 +85,8 @@ if __name__ == "__main__":
         for time in range(time_horizon):
             overlap_area = circular_overlap(
                 ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
-            # plotter(
-            #     ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+            circle_plotter(
+                ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
 
             if overlap_area > 0.1:
                 print("collision probability:", overlap_area,
@@ -96,6 +96,8 @@ if __name__ == "__main__":
         for time in range(time_horizon):
             overlap_area = elliptical_overlap(
                 ego_predictions_with_elliptical_noise[time], lead_predictions_with_elliptical_noise[time])
+            ellipse_plotter(
+                ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
 
             if overlap_area > 0.1:
                 print("collision probability:", overlap_area,
