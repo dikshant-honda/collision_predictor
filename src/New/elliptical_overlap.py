@@ -4,95 +4,58 @@ import matplotlib.pyplot as plt
 import numpy as np
 from shapely import MultiPoint, Polygon
 from shapely.geometry.polygon import LinearRing
+from shapely.geometry import Point
+from shapely.geometry import Polygon
+from shapely.affinity import rotate
+from shapely.affinity import scale
 
 
-def ellipse_polyline(
-        ellipses: list,
-        n: int = 200,
-) -> list:
+def ellipse(
+        center_x: float, 
+        center_y: float, 
+        major_axis: float, 
+        minor_axis: float, 
+        rotation_angle: float = 0,
+        ):
     """
-    Function to draw an ellipse from the ellipses params
-
-    Return the list of elliptical coordinates
+    function to create an ellipse geometry using a scaled circle
 
     args:
-        ellipses: list of ellipse parameters -> [center.x, center.y, major_axis, minor_axis, orientation]
-        n: number of points 
+        center_x: x coordinate of the origin of the ellipse
+        center_y: y coordinate of the origin of the ellipse
+        major_axis: length of major axis of the ellipse
+        minor_axis: length of minor axis of the ellipse
+        rotation_angle: orientation of the ellipse
     """
-    theta = np.linspace(0, 2*np.pi, n, endpoint=False)
-    st = np.sin(theta)
-    ct = np.cos(theta)
-    result = []
-
-    for x, y, a, b, angle in ellipses:
-        angle = np.deg2rad(angle)
-        sa = np.sin(angle)
-        ca = np.cos(angle)
-        p = np.empty((n, 2))
-        p[:, 0] = x + a * ca * ct - b * sa * st
-        p[:, 1] = y + a * sa * ct + b * ca * st
-        result.append(p)
-
-    return result
-
+    
+    circle = Point(center_x, center_y).buffer(1)
+    ellipse = scale(circle, major_axis, minor_axis)
+ 
+    if rotation_angle != 0:
+        ellipse = rotate(ellipse, rotation_angle, origin=(center_x, center_y))
+    
+    return ellipse
 
 def overlap_area(
-        intersection_points: MultiPoint,
-) -> float:
+        ellipse1: ellipse, 
+        ellipse2: ellipse,
+        ):
     """
-    Function to compute the area of the onverlapped trapezium
+    function to compute the overlap area of two ellipses
 
     args:
-        intersection_points: Multipoint list of intersected points
+        ellipse1: uncertainity in the ego vehicle position
+        ellipse2: uncertainity in the traffic vehicle position
     """
-    points = []
-    for point in intersection_points.geoms:
-        points.append([point.x, point.y])
-    print(points)
-    return Polygon(points).area
 
+    # check if it intersects
+    if ellipse1.intersects(ellipse2):
+        intersect = ellipse1.intersection(ellipse2)
+        area = intersect.area
 
-def ellipse_area(
-        ellipse_coordinates: list,
-) -> float:
-    """
-    Function to compute the area of the ellipse
-
-    args:
-        ellipse_coordinates: coordinates of the ellipse in consideration
-    """
-    return Polygon(LinearRing(ellipse_coordinates)).area
-
-
-def intersection_points(
-        ellipse_1: list,
-        ellipse_2: list,
-) -> MultiPoint:
-    """
-    Function to find out the intersection points of two ellipses
-
-    args:
-        ellipse_1: coordinates of ellipse 1
-        ellipse_2: coordinates of ellipse 2
-    """
-    e1 = LinearRing(ellipse_1)
-    e2 = LinearRing(ellipse_2)
-
-    return e1.intersection(e2)
-
-
-def multipoint_to_list(
-        intersection_points: MultiPoint,
-) -> list:
-    """
-    Function to convert the multipoints into list
-    """
-    points = []
-    for point in intersection_points.geoms:
-        points.append([point.x, point.y])
-
-    return points
-
+        return area
+    
+    return 0
 
 def plotter(
         ax,
