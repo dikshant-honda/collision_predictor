@@ -57,48 +57,51 @@ def overlap_area(
     
     return 0
 
-# def plotter(
-#         ax,
-#         vehicle_1_data: list,
-#         vehicle_2_data: list,
-# ) -> None:
-#     """
-#     Function to visualize the elliptical overlap dynamically at every time step
+def plotter(
+        ax,
+        vehicle_1_data: list,
+        vehicle_2_data: list,
+) -> None:
+    """
+    Function to visualize the elliptical overlap dynamically at every time step
 
-#     args:
-#         ax: plotting tool
-#         vehicle_1_data: future trajectory information with uncertainity size for vehicle 1, 
-#         vehicle_2_data: future trajectory information with uncertainity size for vehicle 2
-#     """
+    args:
+        ax: plotting tool
+        vehicle_1_data: future trajectory information with uncertainity size for vehicle 1, 
+        vehicle_2_data: future trajectory information with uncertainity size for vehicle 2
+    """
 
-#     # ax.clear()
-#     vehicle_1_centers = vehicle_1_data[0]
-#     vehicle_1_size = vehicle_1_data[1]
+    # ax.clear()
+    vehicle_1_centers = vehicle_1_data[0]
+    vehicle_1_size = vehicle_1_data[1]
 
-#     vehicle_2_centers = vehicle_2_data[0]
-#     vehicle_2_size = vehicle_2_data[1]
+    vehicle_2_centers = vehicle_2_data[0]
+    vehicle_2_size = vehicle_2_data[1]
 
-#     vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
-#                         vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
-#     vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
-#                         vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
+    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
+                        vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
+    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
+                        vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
 
-#     vehicle_1, vehicle_2 = ellipse_polyline(
-#         [vehicle_1_params, vehicle_2_params])
+    vehicle_1 = ellipse(vehicle_1_params)
+    vehicle_2 = ellipse(vehicle_2_params)
 
-#     # visualization parameters
-#     ax.set_xlabel("x(m)")
-#     ax.set_ylabel("y(m)")
-#     ax.set_xlim(-1, 200)
-#     ax.set_ylim(-1.4, 1.4)
+    vehicle_1_x, vehicle_1_y =  coords_to_list(vehicle_1)
+    vehicle_2_x, vehicle_2_y =  coords_to_list(vehicle_2)
 
-#     ax.plot(vehicle_1[:, 0], vehicle_1[:, 1], 'r')
-#     ax.plot(vehicle_2[:, 0], vehicle_2[:, 1], 'b')
+    # visualization parameters
+    ax.set_xlabel("x(m)")
+    ax.set_ylabel("y(m)")
+    ax.set_xlim(-1, 200)
+    ax.set_ylim(-1.4, 1.4)
 
-#     plt.draw()
-#     plt.pause(0.1)
+    ax.plot(vehicle_1_x, vehicle_1_y, 'r')
+    ax.plot(vehicle_2_x, vehicle_2_y, 'b')
 
-#     return
+    plt.draw()
+    plt.pause(0.1)
+
+    return
 
 
 def collision_probability(
@@ -111,47 +114,42 @@ def collision_probability(
     return overlap / total
 
 
-# def overlap(
-#         vehicle_1_data: list,
-#         vehicle_2_data: list,
-# ) -> float:
-#     """
-#     Function to compute the normalized overlap area of two interescting circles
-#     at every prediction time step
+def overlap(
+        vehicle_1_data: list,
+        vehicle_2_data: list,
+) -> float:
+    """
+    Function to compute the normalized overlap area of two interescting circles
+    at every prediction time step
 
-#     args:
-#         vehicle_1_data: future trajectory information with uncertainity size for vehicle 1, 
-#         vehicle_2_data: future trajectory information with uncertainity size for vehicle 2
-#     """
-#     vehicle_1_centers = vehicle_1_data[0]
-#     vehicle_1_size = vehicle_1_data[1]
+    args:
+        vehicle_1_data: future trajectory information with uncertainity size for vehicle 1, 
+        vehicle_2_data: future trajectory information with uncertainity size for vehicle 2
+    """
+    vehicle_1_centers = vehicle_1_data[0]
+    vehicle_1_size = vehicle_1_data[1]
 
-#     vehicle_2_centers = vehicle_2_data[0]
-#     vehicle_2_size = vehicle_2_data[1]
+    vehicle_2_centers = vehicle_2_data[0]
+    vehicle_2_size = vehicle_2_data[1]
 
-#     print(vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size)
-#     print(vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size)
+    print(vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size)
+    print(vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size)
 
-#     vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
-#                         vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
-#     vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
-#                         vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
+    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
+                        vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
+    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
+                        vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
+    
+    vehicle_1 = ellipse(vehicle_1_params)
+    vehicle_2 = ellipse(vehicle_2_params)
 
-#     vehicle_1, vehicle_2 = ellipse_polyline(
-#         [vehicle_1_params, vehicle_2_params])
+    overlap_ = overlap_area(vehicle_1, vehicle_2)
 
-#     intersect = intersection_points(vehicle_1, vehicle_2)
+    total_variance = vehicle_1.area + vehicle_2.area
 
-#     overlap_ = overlap_area(intersect)
+    probability = collision_probability(overlap_, total_variance)
 
-#     vehicle_1_variance = ellipse_area(vehicle_1)
-#     vehicle_2_variance = ellipse_area(vehicle_2)
-
-#     total_variance = vehicle_1_variance + vehicle_2_variance
-
-#     probability = collision_probability(overlap_, total_variance)
-
-#     return probability
+    return probability
 
 
 def coords_to_list(ellipse_: ellipse):
@@ -180,8 +178,8 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax.axis('equal')
 
-    ellipse1 = ellipse(1, 1, 6, 2, 0)
-    ellipse2 = ellipse(2, 0, 5, 1.5, 0)
+    ellipse1 = ellipse(1, 1, 6, 2, -10)
+    ellipse2 = ellipse(2, 1, 5, 1.5, 30)
 
     overlap = overlap_area(ellipse1, ellipse2)
 
