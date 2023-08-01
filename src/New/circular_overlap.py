@@ -99,8 +99,8 @@ def plotter(
     # visualization parameters
     ax.set_xlabel("x(m)")
     ax.set_ylabel("y(m)")
-    ax.set_xlim(-1, 200)
-    ax.set_ylim(-1.4, 1.4)
+    ax.set_xlim(-150, 150)
+    ax.set_ylim(-150, 150)
 
     theta = np.linspace(0, 2 * np.pi, 100)
 
