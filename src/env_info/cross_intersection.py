@@ -3,21 +3,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-if __name__ == '__main__':
-    number_of_points = 300
+number_of_points = 300
 
-    # horizontal
-    x_horizontal_lane = np.linspace(-150, 150, number_of_points)
-    y_horizontal_lane = np.linspace(0, 0, number_of_points)
 
-    # vertical
-    x_vertical_lane = np.linspace(0, 0, number_of_points)
-    y_vertical_lane = np.linspace(-150, 150, number_of_points)
-
-    # lane boundaries
-    boundaries_left_lane = np.linspace(5, 5, number_of_points)
-    boundaries_right_lane = np.linspace(-5, -5, number_of_points)
-
+def plot():
     plt.plot(x_horizontal_lane, y_horizontal_lane, 'r--')
     plt.plot(x_vertical_lane, y_vertical_lane, 'r--')
 
@@ -30,3 +19,20 @@ if __name__ == '__main__':
     plt.axis('equal')
 
     plt.show()
+
+    return
+
+
+# horizontal
+x_horizontal_lane = np.linspace(-150, 150, number_of_points)
+y_horizontal_lane = np.linspace(0, 0, number_of_points)
+
+# vertical
+x_vertical_lane = np.linspace(0, 0, number_of_points)
+y_vertical_lane = np.linspace(-150, 150, number_of_points)
+
+# lane boundaries
+boundaries_left_lane = np.linspace(5, 5, number_of_points)
+boundaries_right_lane = np.linspace(-5, -5, number_of_points)
+
+# plot()
