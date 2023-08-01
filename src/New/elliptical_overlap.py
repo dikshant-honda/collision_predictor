@@ -1,22 +1,17 @@
 #! /usr/bin/env python3
 
 import matplotlib.pyplot as plt
-import numpy as np
-from shapely import MultiPoint, Polygon
-from shapely.geometry.polygon import LinearRing
+from shapely.affinity import rotate, scale
 from shapely.geometry import Point
-from shapely.geometry import Polygon
-from shapely.affinity import rotate
-from shapely.affinity import scale
 
 
 def ellipse(
-        center_x: float, 
-        center_y: float, 
-        major_axis: float, 
-        minor_axis: float, 
+        center_x: float,
+        center_y: float,
+        major_axis: float,
+        minor_axis: float,
         rotation_angle: float = 0,
-        ):
+):
     """
     function to create an ellipse geometry using a scaled circle
 
@@ -27,19 +22,20 @@ def ellipse(
         minor_axis: length of minor axis of the ellipse
         rotation_angle: orientation of the ellipse
     """
-    
+
     circle = Point(center_x, center_y).buffer(1)
     ellipse = scale(circle, major_axis, minor_axis)
- 
+
     if rotation_angle != 0:
         ellipse = rotate(ellipse, rotation_angle, origin=(center_x, center_y))
-    
+
     return ellipse
 
+
 def overlap_area(
-        ellipse1: ellipse, 
+        ellipse1: ellipse,
         ellipse2: ellipse,
-        ):
+):
     """
     function to compute the overlap area of two ellipses
 
@@ -54,8 +50,9 @@ def overlap_area(
         area = intersect.area
 
         return area
-    
+
     return 0
+
 
 def plotter(
         ax,
@@ -78,16 +75,13 @@ def plotter(
     vehicle_2_centers = vehicle_2_data[0]
     vehicle_2_size = vehicle_2_data[1]
 
-    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
+    vehicle_1 = ellipse(vehicle_1_centers.x, vehicle_1_centers.y,
                         vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
-    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
+    vehicle_2 = ellipse(vehicle_2_centers.x, vehicle_2_centers.y,
                         vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
 
-    vehicle_1 = ellipse(vehicle_1_params)
-    vehicle_2 = ellipse(vehicle_2_params)
-
-    vehicle_1_x, vehicle_1_y =  coords_to_list(vehicle_1)
-    vehicle_2_x, vehicle_2_y =  coords_to_list(vehicle_2)
+    vehicle_1_x, vehicle_1_y = coords_to_list(vehicle_1)
+    vehicle_2_x, vehicle_2_y = coords_to_list(vehicle_2)
 
     # visualization parameters
     ax.set_xlabel("x(m)")
@@ -132,16 +126,10 @@ def overlap(
     vehicle_2_centers = vehicle_2_data[0]
     vehicle_2_size = vehicle_2_data[1]
 
-    print(vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size)
-    print(vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size)
-
-    vehicle_1_params = (vehicle_1_centers.x, vehicle_1_centers.y,
+    vehicle_1 = ellipse(vehicle_1_centers.x, vehicle_1_centers.y,
                         vehicle_1_size[0], vehicle_1_size[1], vehicle_1_size[2])
-    vehicle_2_params = (vehicle_2_centers.x, vehicle_2_centers.y,
+    vehicle_2 = ellipse(vehicle_2_centers.x, vehicle_2_centers.y,
                         vehicle_2_size[0], vehicle_2_size[1], vehicle_2_size[2])
-    
-    vehicle_1 = ellipse(vehicle_1_params)
-    vehicle_2 = ellipse(vehicle_2_params)
 
     overlap_ = overlap_area(vehicle_1, vehicle_2)
 
@@ -156,10 +144,11 @@ def coords_to_list(ellipse_: ellipse):
     xx, yy = ellipse_.exterior.coords.xy
     return xx.tolist(), yy.tolist()
 
+
 def plot(
-        ellipse_1: ellipse, 
+        ellipse_1: ellipse,
         ellipse_2: ellipse
-        ):
+):
     """
     plotting tool
     """
