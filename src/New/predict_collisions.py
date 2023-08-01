@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from env_info.cross_intersection import *
 from IDM.frenet import Point2D
 from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
@@ -12,41 +13,42 @@ from New.circular_overlap import plotter as circle_plotter
 from New.elliptical_noise import add_noise as add_elliptical_noise
 from New.elliptical_overlap import overlap as elliptical_overlap
 from New.elliptical_overlap import plotter as ellipse_plotter
-from env_info.cross_intersection import *
+
 
 def elliptical_predictions(idm, ego_position, ego_speed, ego_major_axis, ego_minor_axis, ego_orientation, lead_position, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation, path, time_horizon, time_step):
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-            idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
+        idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_elliptical_noise = add_elliptical_noise(
         time, ego_trajectory, ego_speed, ego_major_axis, ego_minor_axis, ego_orientation)
 
     lead_predictions_with_elliptical_noise = add_elliptical_noise(
-            time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)
+        time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)
 
     return ego_predictions_with_elliptical_noise, lead_predictions_with_elliptical_noise
+
 
 def circular_predictions(idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step):
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-            idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
+        idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_circular_noise = add_circular_noise(
         time, ego_trajectory, ego_speed, ego_size)
     lead_predictions_with_circular_noise = add_circular_noise(
         time, lead_trajectory, lead_speed, lead_size)
-    
+
     return ego_predictions_with_circular_noise, lead_predictions_with_circular_noise
-    
+
 
 if __name__ == "__main__":
 
     fig, ax = plt.subplots()
     ax.axis('equal')
-    
+
     # time params for computing the future trajectory
     time_horizon = 50
     time_step = 0.1
@@ -80,20 +82,20 @@ if __name__ == "__main__":
     lead_major_axis_1 = 0.6
     lead_minor_axis_1 = 0.2
     lead_orientation_1 = 0
-    
+
     # initializations for ego vehicle 1
     ego_position_2 = Point2D(0, -50)
     ego_speed_2 = np.array([0, 10])
     ego_size = 0.6
-    ego_major_axis_2 = 0.2
-    ego_minor_axis_2 = 0.6
+    ego_major_axis_2 = 0.6
+    ego_minor_axis_2 = 0.2
     ego_orientation_2 = 90.0
 
     lead_position_2 = Point2D(0, -20)
     lead_speed_2 = np.array([0, 4])
     lead_size = 0.6
-    lead_major_axis_2 = 0.2
-    lead_minor_axis_2 = 0.6
+    lead_major_axis_2 = 0.6
+    lead_minor_axis_2 = 0.2
     lead_orientation_2 = 90.0
 
     for step in range(sim_time):
@@ -130,8 +132,10 @@ if __name__ == "__main__":
         # lead_predictions_with_elliptical_noise = add_elliptical_noise(
         #     time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)
 
-        ego_predictions_with_elliptical_noise_1, lead_predictions_with_elliptical_noise_1 = elliptical_predictions(idm_1, ego_position_1, ego_speed_1, ego_major_axis_1, ego_major_axis_1, ego_orientation_1, lead_position_1, lead_speed_1, lead_major_axis_1, lead_major_axis_1, lead_orientation_1, path_1, time_horizon, time_step)
-        ego_predictions_with_elliptical_noise_2, lead_predictions_with_elliptical_noise_2 = elliptical_predictions(idm_2, ego_position_2, ego_speed_2, ego_major_axis_2, ego_major_axis_2, ego_orientation_2, lead_position_2, lead_speed_2, lead_major_axis_2, lead_major_axis_2, lead_orientation_2, path_2, time_horizon, time_step)
+        ego_predictions_with_elliptical_noise_1, lead_predictions_with_elliptical_noise_1 = elliptical_predictions(
+            idm_1, ego_position_1, ego_speed_1, ego_major_axis_1, ego_major_axis_1, ego_orientation_1, lead_position_1, lead_speed_1, lead_major_axis_1, lead_major_axis_1, lead_orientation_1, path_1, time_horizon, time_step)
+        ego_predictions_with_elliptical_noise_2, lead_predictions_with_elliptical_noise_2 = elliptical_predictions(
+            idm_2, ego_position_2, ego_speed_2, ego_major_axis_2, ego_major_axis_2, ego_orientation_2, lead_position_2, lead_speed_2, lead_major_axis_2, lead_major_axis_2, lead_orientation_2, path_2, time_horizon, time_step)
 
         # # circular overlap check
         # for time in range(time_horizon):
@@ -146,13 +150,22 @@ if __name__ == "__main__":
 
         # elliptical overlap check
         for time in range(time_horizon):
-            overlap_area = elliptical_overlap(
+            overlap_area_1 = elliptical_overlap(
                 ego_predictions_with_elliptical_noise_1[time], lead_predictions_with_elliptical_noise_1[time])
-            # ellipse_plotter(
-            #     ax, ego_predictions_with_elliptical_noise_1[time], lead_predictions_with_elliptical_noise_1[time])
+            overlap_area_2 = elliptical_overlap(
+                ego_predictions_with_elliptical_noise_2[time], lead_predictions_with_elliptical_noise_2[time])
 
-            if overlap_area > 0.1:
-                print("collision probability:", overlap_area,
+            ellipse_plotter(
+                ax, ego_predictions_with_elliptical_noise_1[time], lead_predictions_with_elliptical_noise_1[time])
+            ellipse_plotter(
+                ax, ego_predictions_with_elliptical_noise_2[time], lead_predictions_with_elliptical_noise_2[time])
+
+            if overlap_area_1 > 0.1:
+                print("collision probability for ego 1:", overlap_area_1,
+                      "after:", time*time_step, "seconds!")
+
+            if overlap_area_2 > 0.1:
+                print("collision probability for ego 2:", overlap_area_2,
                       "after:", time*time_step, "seconds!")
 
         # time to collision evaluation
