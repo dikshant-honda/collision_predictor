@@ -84,23 +84,23 @@ if __name__ == "__main__":
         lead_predictions_with_elliptical_noise = add_elliptical_noise(
             time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)
 
-        # # circular overlap check
-        # for time in range(time_horizon):
-        #     overlap_area = circular_overlap(
-        #         ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
-        #     circle_plotter(
-        #         ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+        # circular overlap check
+        for time in range(time_horizon):
+            overlap_area = circular_overlap(
+                ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+            circle_plotter(
+                ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
 
-        #     if overlap_area > 0.1:
-        #         print("collision probability:", overlap_area,
-        #               "after:", time*time_step, "seconds!")
+            if overlap_area > 0.1:
+                print("collision probability:", overlap_area,
+                      "after:", time*time_step, "seconds!")
 
         # elliptical overlap check
         for time in range(time_horizon):
             overlap_area = elliptical_overlap(
                 ego_predictions_with_elliptical_noise[time], lead_predictions_with_elliptical_noise[time])
             ellipse_plotter(
-                ax, ego_predictions_with_circular_noise[time], lead_predictions_with_circular_noise[time])
+                ax, ego_predictions_with_elliptical_noise[time], lead_predictions_with_elliptical_noise[time])
 
             if overlap_area > 0.1:
                 print("collision probability:", overlap_area,
