@@ -252,8 +252,8 @@ def time_plot(
 
 
 def update(ego_position: Point2D, ego_velocity: Point2D, lead_position: Point2D, lead_velocity: Point2D, time=0.5):
-    ego_position.x += ego_velocity[0] * time
-    lead_position.x += lead_velocity[0] * time
+    ego_position.x += ego_velocity.x * time
+    lead_position.x += lead_velocity.x * time
     return ego_position, lead_position
 
 
