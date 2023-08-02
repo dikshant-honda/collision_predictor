@@ -2,6 +2,7 @@
 
 import numpy as np
 from numpy.typing import NDArray
+
 from IDM.frenet import Point2D
 
 
