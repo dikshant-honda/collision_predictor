@@ -105,33 +105,39 @@ if __name__ == "__main__":
 
     # initializations for ego vehicle 1
     ego_position_1 = Point2D(-50, 0)
-    ego_speed_1 = np.array([10, 0])
+    ego_speed_1 = Point2D(10, 0)
     ego_size = 0.6
     ego_major_axis_1 = 0.6
     ego_minor_axis_1 = 0.2
     ego_orientation_1 = 0.0
-
+    
     lead_position_1 = Point2D(-30, 0)
-    lead_speed_1 = np.array([4, 0])
+    lead_speed_1 = Point2D(4, 0)
     lead_size = 0.6
     lead_major_axis_1 = 0.6
     lead_minor_axis_1 = 0.2
     lead_orientation_1 = 0
 
+    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_position_1, ego_speed_1, ego_size, ego_major_axis_1, ego_minor_axis_1, ego_orientation_1)
+    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_position_1, lead_speed_1, lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
+
     # initializations for ego vehicle 1
     ego_position_2 = Point2D(0, -50)
-    ego_speed_2 = np.array([0, 10])
+    ego_speed_2 = Point2D(0, 10)
     ego_size = 0.6
     ego_major_axis_2 = 0.6
     ego_minor_axis_2 = 0.2
     ego_orientation_2 = 90.0
 
     lead_position_2 = Point2D(0, -20)
-    lead_speed_2 = np.array([0, 4])
+    lead_speed_2 = Point2D(0, 4)
     lead_size = 0.6
     lead_major_axis_2 = 0.6
     lead_minor_axis_2 = 0.2
     lead_orientation_2 = 90.0
+
+    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_position_2, ego_speed_2, ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
+    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_position_2, lead_speed_2, lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
 
     for step in range(sim_time):
         ax.clear()
@@ -202,19 +208,19 @@ if __name__ == "__main__":
 
         # time to collision evaluation
         TTC_1 = time_to_collision(
-            ego_position_1.x, ego_speed_1[0], lead_position_1.x, lead_speed_1[0])
+            ego_position_1.x, ego_speed_1.x, lead_position_1.x, lead_speed_1.x)
         print("time to collision:", TTC_1, "seconds!")
 
         TTC_2 = time_to_collision(
-            ego_position_2.y, ego_speed_2[1], lead_position_1.y, lead_speed_1[1])
+            ego_position_2.y, ego_speed_2.y, lead_position_1.y, lead_speed_1.y)
         print("time to collision:", TTC_2, "seconds!")
 
         # take a step in the real world
-        ego_position_1.x += ego_speed_1[0] * time_move
-        lead_position_1.x += lead_speed_1[0] * time_move
+        ego_position_1.x += ego_speed_1.x * time_move
+        lead_position_1.x += lead_speed_1.x * time_move
 
-        ego_position_2.y += ego_speed_2[1] * time_move
-        lead_position_2.y += lead_speed_2[1] * time_move
+        ego_position_2.y += ego_speed_2.y * time_move
+        lead_position_2.y += lead_speed_2.y * time_move
 
         print("-------------------------------------")
 

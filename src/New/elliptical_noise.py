@@ -2,12 +2,13 @@
 
 import numpy as np
 from numpy.typing import NDArray
+from IDM.frenet import Point2D
 
 
 def add_noise(
         time_steps: NDArray[np.float64],
         trajectory: NDArray[np.float64],
-        velocity: NDArray[np.float64],
+        velocity: Point2D,
         major_axis: float,
         minor_axis: float,
         orientation: float,
@@ -30,7 +31,7 @@ def add_noise(
 
     noise = []
 
-    speed = np.sqrt(velocity[0] ** 2 + velocity[1] ** 2)
+    speed = np.sqrt(velocity.x ** 2 + velocity.y ** 2)
 
     for time in range(len(time_steps)):
         if growth_rate < 1.4:

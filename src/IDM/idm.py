@@ -93,9 +93,9 @@ def time_to_collision(
 def predict_trajectory(
         idm: IDM,
         ego_position: Point2D,
-        ego_velocity: NDArray[np.float64],
+        ego_velocity: Point2D,
         lead_position: Point2D,
-        lead_velocity: NDArray[np.float64],
+        lead_velocity: Point2D,
         path: list,
         time_horizon: int,
         time_step: int,
@@ -133,8 +133,8 @@ def predict_trajectory(
         gap = ego_position_in_frenet.s - lead_position_in_frenet.s
 
         # compute speed
-        ego_speed = np.sqrt(ego_velocity[0]**2 + ego_velocity[1]**2)
-        lead_speed = np.sqrt(lead_velocity[0]**2 + lead_velocity[1]**2)
+        ego_speed = np.sqrt(ego_velocity.x ** 2 + ego_velocity.y ** 2)
+        lead_speed = np.sqrt(lead_velocity.x ** 2 + lead_velocity.y ** 2)
 
         # compute IDM accleration based on this dynamics
         acceleration = idm.calculate_acceleration(ego_speed, lead_speed, gap)
@@ -251,7 +251,7 @@ def time_plot(
     return
 
 
-def update(ego_position: Point2D, ego_velocity, lead_position: Point2D, lead_velocity, time=0.5):
+def update(ego_position: Point2D, ego_velocity: Point2D, lead_position: Point2D, lead_velocity: Point2D, time=0.5):
     ego_position.x += ego_velocity[0] * time
     lead_position.x += lead_velocity[0] * time
     return ego_position, lead_position
@@ -278,10 +278,10 @@ if __name__ == "__main__":
 
     # initializations
     ego_position = Point2D(0, 0)
-    ego_speed = np.array([15, 0])
+    ego_speed = Point2D(15, 0)
 
     lead_position = Point2D(50, 0)
-    lead_speed = np.array([10, 0])
+    lead_speed = Point2D(10, 0)
 
     # obtaining the path from the route
     route = Path(x_coords, y_coords)

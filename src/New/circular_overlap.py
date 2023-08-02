@@ -150,18 +150,18 @@ if __name__ == "__main__":
     # initializations for vehicle 1
     ego_idm_1 = IDM()
     ego_position_1 = Point2D(0, 0)
-    ego_speed_1 = np.array([20, 0])
+    ego_speed_1 = Point2D(20, 0)
     ego_radius_1 = 0.5
 
     # initializations for vehicle 2
     ego_idm_2 = IDM()
     ego_position_2 = Point2D(5, 0)
-    ego_speed_2 = np.array([20, 0])
+    ego_speed_2 = Point2D(20, 0)
     ego_radius_2 = 0.5
 
     # initializations for lead vehicle at a very far distance
     lead_position = Point2D(np.inf, 0)
-    lead_speed = np.array([10, 0])
+    lead_speed = Point2D(10, 0)
 
     vehicle_1_time_steps, vehicle_1_trajectory, _ = predict_trajectory(
         ego_idm_1, ego_position_1, ego_speed_1, lead_position, lead_speed, path, time_horizon, time_step)
