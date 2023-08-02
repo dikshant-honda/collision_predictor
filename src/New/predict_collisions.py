@@ -50,47 +50,52 @@ class Vehicle:
         self.orientation = orientation
 
 
-def elliptical_predictions(idm, ego_position, ego_speed, ego_major_axis, ego_minor_axis, ego_orientation, lead_position, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation, path, time_horizon, time_step):
+def elliptical_predictions(
+        ego: Vehicle, 
+        lead: Vehicle,
+        time_horizon: float, 
+        time_step: float,
+        ):
+    
+    path = ego.route.get_path()
+
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_elliptical_noise = add_elliptical_noise(
-        time, ego_trajectory, ego_speed, ego_major_axis, ego_minor_axis, ego_orientation)
+        time, ego_trajectory, ego.velocity, ego.major_axis, ego.minor_axis, ego.orientation)
 
     lead_predictions_with_elliptical_noise = add_elliptical_noise(
-        time, lead_trajectory, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation)
+        time, lead_trajectory, lead.velocity, lead.major_axis, lead.minor_axis, lead.orientation)
 
     return ego_predictions_with_elliptical_noise, lead_predictions_with_elliptical_noise
 
 
-def circular_predictions(idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step):
+def circular_predictions(
+        ego: Vehicle, 
+        lead: Vehicle, 
+        time_horizon: float, 
+        time_step: float,
+        ):
+    
+    path = ego.route.get_path()
+
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_circular_noise = add_circular_noise(
-        time, ego_trajectory, ego_speed, ego_size)
+        time, ego_trajectory, ego.velocity, ego.size)
     lead_predictions_with_circular_noise = add_circular_noise(
-        time, lead_trajectory, lead_speed, lead_size)
+        time, lead_trajectory, lead.velocity, lead.size)
 
     return ego_predictions_with_circular_noise, lead_predictions_with_circular_noise
 
 
-if __name__ == "__main__":
-
-    fig, ax = plt.subplots()
-    ax.axis('equal')
-
-    # time params for computing the future trajectory
-    time_horizon = 50
-    time_step = 0.1
-
-    # step in real world
-    time_move = 1
-    sim_time = 10
+def get_vehicle_info():
 
     # calling the IDM class object
     idm_1 = IDM()
@@ -139,6 +144,25 @@ if __name__ == "__main__":
     ego_vehicle_2 = Vehicle(idm_2, route_2, ego_position_2, ego_speed_2, ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
     lead_vehicle_2 = Vehicle(idm_2, route_2, lead_position_2, lead_speed_2, lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
 
+    return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
+
+
+if __name__ == "__main__":
+
+    fig, ax = plt.subplots()
+    ax.axis('equal')
+
+    # time params for computing the future trajectory
+    time_horizon = 50
+    time_step = 0.1
+
+    # step in real world
+    time_move = 1
+    sim_time = 10
+
+    # get initial vehicle information 
+    ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2 = get_vehicle_info()
+
     for step in range(sim_time):
         ax.clear()
 
@@ -157,14 +181,14 @@ if __name__ == "__main__":
         print("simulation time step:", step)
 
         ego_predictions_with_circular_noise_1, lead_predictions_with_circular_noise_1 = circular_predictions(
-            idm_1, ego_position_1, ego_speed_1, lead_position_1, lead_speed_1, path_1, time_horizon, time_step)
+            ego_vehicle_1, lead_vehicle_1, time_horizon, time_step)
         ego_predictions_with_circular_noise_2, lead_predictions_with_circular_noise_2 = circular_predictions(
-            idm_2, ego_position_2, ego_speed_2, lead_position_2, lead_speed_2, path_2, time_horizon, time_step)
+            ego_vehicle_2, lead_vehicle_2, time_horizon, time_step)
 
         ego_predictions_with_elliptical_noise_1, lead_predictions_with_elliptical_noise_1 = elliptical_predictions(
-            idm_1, ego_position_1, ego_speed_1, ego_major_axis_1, ego_major_axis_1, ego_orientation_1, lead_position_1, lead_speed_1, lead_major_axis_1, lead_major_axis_1, lead_orientation_1, path_1, time_horizon, time_step)
+            ego_vehicle_1, lead_vehicle_1,time_horizon, time_step)
         ego_predictions_with_elliptical_noise_2, lead_predictions_with_elliptical_noise_2 = elliptical_predictions(
-            idm_2, ego_position_2, ego_speed_2, ego_major_axis_2, ego_major_axis_2, ego_orientation_2, lead_position_2, lead_speed_2, lead_major_axis_2, lead_major_axis_2, lead_orientation_2, path_2, time_horizon, time_step)
+            ego_vehicle_2, lead_vehicle_2, time_horizon, time_step)
 
         # circular overlap check
         for time in range(time_horizon):
@@ -208,19 +232,19 @@ if __name__ == "__main__":
 
         # time to collision evaluation
         TTC_1 = time_to_collision(
-            ego_position_1.x, ego_speed_1.x, lead_position_1.x, lead_speed_1.x)
+            ego_vehicle_1.position.x, ego_vehicle_1.velocity.x, lead_vehicle_1.position.x, lead_vehicle_1.velocity.x)
         print("time to collision:", TTC_1, "seconds!")
 
         TTC_2 = time_to_collision(
-            ego_position_2.y, ego_speed_2.y, lead_position_1.y, lead_speed_1.y)
+            ego_vehicle_2.position.y, ego_vehicle_2.velocity.y, lead_vehicle_2.position.y, lead_vehicle_2.velocity.y)
         print("time to collision:", TTC_2, "seconds!")
 
         # take a step in the real world
-        ego_position_1.x += ego_speed_1.x * time_move
-        lead_position_1.x += lead_speed_1.x * time_move
+        ego_vehicle_1.position.x += ego_vehicle_1.velocity.x * time_move
+        lead_vehicle_1.position.x += lead_vehicle_1.velocity.x * time_move
 
-        ego_position_2.y += ego_speed_2.y * time_move
-        lead_position_2.y += lead_speed_2.y * time_move
+        ego_vehicle_2.position.y += ego_vehicle_2.velocity.y * time_move
+        lead_vehicle_2.position.y += lead_vehicle_2.velocity.y * time_move
 
         print("-------------------------------------")
 
