@@ -51,12 +51,21 @@ class Vehicle:
 
 
 def elliptical_predictions(
-        ego: Vehicle, 
+        ego: Vehicle,
         lead: Vehicle,
-        time_horizon: float, 
+        time_horizon: float,
         time_step: float,
-        ):
-    
+):
+    """
+    function to get IDM based future predictions with elliptical uncertainity
+
+    args:
+        ego: ego vehicle information
+        lead: lead vehicle information
+        time_horizon: duration over which you want to predict the trajectory
+        time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
+    """
+
     path = ego.route.get_path()
 
     # predict future trajectory using IDM
@@ -74,12 +83,21 @@ def elliptical_predictions(
 
 
 def circular_predictions(
-        ego: Vehicle, 
-        lead: Vehicle, 
-        time_horizon: float, 
+        ego: Vehicle,
+        lead: Vehicle,
+        time_horizon: float,
         time_step: float,
-        ):
-    
+):
+    """
+    function to get IDM based future predictions with circular uncertainity
+
+    args:
+        ego: ego vehicle information
+        lead: lead vehicle information
+        time_horizon: duration over which you want to predict the trajectory
+        time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
+    """
+
     path = ego.route.get_path()
 
     # predict future trajectory using IDM
@@ -115,7 +133,7 @@ def get_vehicle_info():
     ego_major_axis_1 = 0.6
     ego_minor_axis_1 = 0.2
     ego_orientation_1 = 0.0
-    
+
     lead_position_1 = Point2D(-30, 0)
     lead_speed_1 = Point2D(4, 0)
     lead_size = 0.6
@@ -123,8 +141,10 @@ def get_vehicle_info():
     lead_minor_axis_1 = 0.2
     lead_orientation_1 = 0
 
-    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_position_1, ego_speed_1, ego_size, ego_major_axis_1, ego_minor_axis_1, ego_orientation_1)
-    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_position_1, lead_speed_1, lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
+    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_position_1, ego_speed_1,
+                            ego_size, ego_major_axis_1, ego_minor_axis_1, ego_orientation_1)
+    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_position_1, lead_speed_1,
+                             lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
 
     # initializations for ego vehicle 1
     ego_position_2 = Point2D(0, -50)
@@ -141,8 +161,10 @@ def get_vehicle_info():
     lead_minor_axis_2 = 0.2
     lead_orientation_2 = 90.0
 
-    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_position_2, ego_speed_2, ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
-    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_position_2, lead_speed_2, lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
+    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_position_2, ego_speed_2,
+                            ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
+    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_position_2, lead_speed_2,
+                             lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
 
     return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
 
@@ -160,7 +182,7 @@ if __name__ == "__main__":
     time_move = 1
     sim_time = 10
 
-    # get initial vehicle information 
+    # get initial vehicle information
     ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2 = get_vehicle_info()
 
     for step in range(sim_time):
@@ -186,7 +208,7 @@ if __name__ == "__main__":
             ego_vehicle_2, lead_vehicle_2, time_horizon, time_step)
 
         ego_predictions_with_elliptical_noise_1, lead_predictions_with_elliptical_noise_1 = elliptical_predictions(
-            ego_vehicle_1, lead_vehicle_1,time_horizon, time_step)
+            ego_vehicle_1, lead_vehicle_1, time_horizon, time_step)
         ego_predictions_with_elliptical_noise_2, lead_predictions_with_elliptical_noise_2 = elliptical_predictions(
             ego_vehicle_2, lead_vehicle_2, time_horizon, time_step)
 
