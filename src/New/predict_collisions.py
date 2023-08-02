@@ -15,6 +15,41 @@ from New.elliptical_overlap import overlap as elliptical_overlap
 from New.elliptical_overlap import plotter as ellipse_plotter
 
 
+class Vehicle:
+    def __init__(
+            self,
+            idm: IDM,
+            route: Path,
+            position: Point2D,
+            velocity: Point2D,
+            size: float,
+            major_axis: float,
+            minor_axis: float,
+            orientation: float,
+    ) -> None:
+        """
+        Vehicle class for capturing the vehicle dynamics
+
+        args:
+            idm: IDM class object declaration
+            route: route on which the vehicle wants to follow
+            position: current position of the vehicle on the route
+            velocity: current velocity of the vehicle
+            size: length of the vehicle, considered for determining the circular uncertatinity
+            major_axis: longitudnal length of the vehicle, considered for determining the elliptical uncertainity
+            minor_axis: lateral length of the vehicle, considered for determining the elliptical uncertainity
+            orientation: orientation / yaw of the vehicle w.r.t. real world
+        """
+        self.idm = idm
+        self.route = route
+        self.position = position
+        self.velocity = velocity
+        self.size = size
+        self.major_axis = major_axis
+        self.minor_axis = minor_axis
+        self.orientation = orientation
+
+
 def elliptical_predictions(idm, ego_position, ego_speed, ego_major_axis, ego_minor_axis, ego_orientation, lead_position, lead_speed, lead_major_axis, lead_minor_axis, lead_orientation, path, time_horizon, time_step):
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
