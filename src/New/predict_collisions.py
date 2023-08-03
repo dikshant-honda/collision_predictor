@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import argparse
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -166,10 +167,11 @@ def get_vehicle_info():
 
     return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
 
+
 def update(
         vehicle: Vehicle,
         time_move: float,
-        ):
+):
     """
     update the vehicle position in the real world
 
@@ -181,6 +183,7 @@ def update(
     vehicle.position.y += vehicle.velocity.y * time_move
 
     return vehicle
+
 
 def lanes_plotter(
         ax,
@@ -234,12 +237,15 @@ if __name__ == "__main__":
     ax.axis('equal')
 
     for step in range(sim_time):
+        # prediction start time
+        start_time = time.time()
+
         ax.clear()
 
         # plot the environment
         lanes_plotter(ax)
 
-        print("simulation time step:", step)
+        # print("simulation time step:", step)
 
         if uncertainity == "circular":
             ego_predictions_with_circular_noise_1, lead_predictions_with_circular_noise_1 = circular_predictions(
@@ -248,24 +254,24 @@ if __name__ == "__main__":
                 ego_vehicle_2, lead_vehicle_2, time_horizon, time_step)
 
             # circular overlap check
-            for time in range(time_horizon):
+            for time_ in range(time_horizon):
                 overlap_area_1 = circular_overlap(
-                    ego_predictions_with_circular_noise_1[time], lead_predictions_with_circular_noise_1[time])
+                    ego_predictions_with_circular_noise_1[time_], lead_predictions_with_circular_noise_1[time_])
                 overlap_area_2 = circular_overlap(
-                    ego_predictions_with_circular_noise_2[time], lead_predictions_with_circular_noise_2[time])
+                    ego_predictions_with_circular_noise_2[time_], lead_predictions_with_circular_noise_2[time_])
 
                 circle_plotter(
-                    ax, ego_predictions_with_circular_noise_1[time], lead_predictions_with_circular_noise_1[time])
+                    ax, ego_predictions_with_circular_noise_1[time_], lead_predictions_with_circular_noise_1[time_])
                 circle_plotter(
-                    ax, ego_predictions_with_circular_noise_2[time], lead_predictions_with_circular_noise_2[time])
+                    ax, ego_predictions_with_circular_noise_2[time_], lead_predictions_with_circular_noise_2[time_])
 
                 if overlap_area_1 > 0.1:
                     print("collision probability for ego 1:", overlap_area_1,
-                          "after:", time*time_step, "seconds!")
+                          "after:", time_*time_step, "seconds!")
 
                 if overlap_area_2 > 0.1:
                     print("collision probability for ego 2:", overlap_area_2,
-                          "after:", time*time_step, "seconds!")
+                          "after:", time_*time_step, "seconds!")
 
         if uncertainity == "elliptical":
             ego_predictions_with_elliptical_noise_1, lead_predictions_with_elliptical_noise_1 = elliptical_predictions(
@@ -274,24 +280,24 @@ if __name__ == "__main__":
                 ego_vehicle_2, lead_vehicle_2, time_horizon, time_step)
 
             # elliptical overlap check
-            for time in range(time_horizon):
+            for time_ in range(time_horizon):
                 overlap_area_1 = elliptical_overlap(
-                    ego_predictions_with_elliptical_noise_1[time], lead_predictions_with_elliptical_noise_1[time])
+                    ego_predictions_with_elliptical_noise_1[time_], lead_predictions_with_elliptical_noise_1[time_])
                 overlap_area_2 = elliptical_overlap(
-                    ego_predictions_with_elliptical_noise_2[time], lead_predictions_with_elliptical_noise_2[time])
+                    ego_predictions_with_elliptical_noise_2[time_], lead_predictions_with_elliptical_noise_2[time_])
 
                 ellipse_plotter(
-                    ax, ego_predictions_with_elliptical_noise_1[time], lead_predictions_with_elliptical_noise_1[time])
+                    ax, ego_predictions_with_elliptical_noise_1[time_], lead_predictions_with_elliptical_noise_1[time_])
                 ellipse_plotter(
-                    ax, ego_predictions_with_elliptical_noise_2[time], lead_predictions_with_elliptical_noise_2[time])
+                    ax, ego_predictions_with_elliptical_noise_2[time_], lead_predictions_with_elliptical_noise_2[time_])
 
                 if overlap_area_1 > 0.1:
                     print("collision probability for ego 1:", overlap_area_1,
-                          "after:", time*time_step, "seconds!")
+                          "after:", time_*time_step, "seconds!")
 
                 if overlap_area_2 > 0.1:
                     print("collision probability for ego 2:", overlap_area_2,
-                          "after:", time*time_step, "seconds!")
+                          "after:", time_*time_step, "seconds!")
 
         # time to collision evaluation
         TTC_1 = time_to_collision(
@@ -301,6 +307,13 @@ if __name__ == "__main__":
         TTC_2 = time_to_collision(
             ego_vehicle_2.position.y, ego_vehicle_2.velocity.y, lead_vehicle_2.position.y, lead_vehicle_2.velocity.y)
         print("time to collision for ego 2:", TTC_2, "seconds!")
+
+        # prediction end time
+        end_time = time.time()
+
+        prediction_time = end_time - start_time
+
+        print("prediction time:", prediction_time)
 
         # take a step in the real world
         ego_vehicle_1 = update(ego_vehicle_1, time_move)
