@@ -122,8 +122,8 @@ def get_vehicle_info():
     idm_2 = IDM()
 
     # obtaining the path from the route
-    route_1 = Path(x_horizontal_lane, y_horizontal_lane)
-    route_2 = Path(x_vertical_lane, y_vertical_lane)
+    route_1 = Path(x_horizontal_lane, y_horizontal_lane, number_of_points)
+    route_2 = Path(x_vertical_lane, y_vertical_lane, number_of_points)
 
     # initializations for ego vehicle 1
     ego_position_1 = Point2D(-100, 0)
@@ -305,11 +305,11 @@ if __name__ == "__main__":
 
         # time to collision evaluation
         TTC_1 = time_to_collision(
-            ego_vehicle_1.position.x, ego_vehicle_1.velocity.x, lead_vehicle_1.position.x, lead_vehicle_1.velocity.x)
+            ego_vehicle_1.position, ego_vehicle_1.velocity, lead_vehicle_1.position, lead_vehicle_1.velocity)
         print("time to collision for ego 1:", TTC_1, "seconds!")
 
         TTC_2 = time_to_collision(
-            ego_vehicle_2.position.y, ego_vehicle_2.velocity.y, lead_vehicle_2.position.y, lead_vehicle_2.velocity.y)
+            ego_vehicle_2.position, ego_vehicle_2.velocity, lead_vehicle_2.position, lead_vehicle_2.velocity)
         print("time to collision for ego 2:", TTC_2, "seconds!")
 
         # prediction end time
