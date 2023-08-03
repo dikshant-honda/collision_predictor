@@ -94,10 +94,9 @@ def predict_trajectory(
         idm: IDM,
         ego_position: Point2D,
         ego_velocity: Point2D,
-        ego_path: list,
         lead_position: Point2D,
         lead_velocity: Point2D,
-        lead_path: list,
+        path: list,
         time_horizon: int,
         time_step: int,
         interpolate_back_path: int = 100,
@@ -112,10 +111,9 @@ def predict_trajectory(
         idm: defining an IDM instance for calculating the accelaration value
         ego_position: current positon of the ego vehicle
         ego_velocity: current speed of the ego vehicle
-        ego_path: center lane coordinates of the lane on which ego vehicle is currently located, type list(Point2D)
         lead_position: current positon of the lead vehicle
         lead_velocity: current speed of the lead vehicle 
-        lead_path: center lane coordinates of the lane on which lead vehicle is currently located, type list(Point2D)
+        path: center lane coordinates of the lane on which vehicle is currently located, type list(Point2D)
         time_horizon: duration over which you want to predict the trajectory
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
         interpolate_back_path: interpolate back to path after this number of steps
@@ -125,11 +123,10 @@ def predict_trajectory(
     lead_trajectory = []
     time = []
 
-    ego_s_map = get_s_map(ego_path)
-    lead_s_map = get_s_map(lead_path)
+    s_map = get_s_map(path)
 
-    ego_position_in_frenet = get_frenet(ego_position, ego_path, ego_s_map)
-    lead_position_in_frenet = get_frenet(lead_position, lead_path, lead_s_map)
+    ego_position_in_frenet = get_frenet(ego_position, path, s_map)
+    lead_position_in_frenet = get_frenet(lead_position, path, s_map)
 
     for t in range(time_horizon):
         # compute the gap between the ego and lead vehicle
@@ -150,7 +147,7 @@ def predict_trajectory(
         # tracking back towards the center line linearly
         ego_position_in_frenet.d -= t * ego_position_in_frenet.d / interpolate_back_path
 
-        ego_position = get_xy(ego_position_in_frenet, ego_path, ego_s_map)
+        ego_position = get_xy(ego_position_in_frenet, path, s_map)
 
         ego_trajectory.append(ego_position)
         time.append(time_steps)
@@ -162,7 +159,7 @@ def predict_trajectory(
         if lead_position_in_frenet.s is np.inf:     # no vehicle ahead of the ego vehicle
             lead_position = Point2D(np.inf, 0)
         else:
-            lead_position = get_xy(lead_position_in_frenet, lead_path, lead_s_map)
+            lead_position = get_xy(lead_position_in_frenet, path, s_map)
 
         lead_trajectory.append(lead_position)
 
@@ -296,7 +293,7 @@ if __name__ == "__main__":
     # running the check 10 times
     for _ in range(10):
         result = predict_trajectory(
-            idm, ego_position, ego_speed, path, lead_position, lead_speed, path, time_horizon, time_step)
+            idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
 
         time, ego_trajectory, lead_trajectory = result
 

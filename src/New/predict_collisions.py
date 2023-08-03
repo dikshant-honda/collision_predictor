@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from env_info.cross_intersection import *
-from IDM.frenet import Point2D, closest_point_ind
+from IDM.frenet import Point2D
 from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
@@ -23,7 +23,6 @@ class Vehicle:
             self,
             idm: IDM,
             route: Path,
-            path: list,
             position: Point2D,
             velocity: Point2D,
             size: float,
@@ -37,7 +36,6 @@ class Vehicle:
         args:
             idm: IDM class object declaration
             route: route on which the vehicle wants to follow
-            path: observed subset of the route considered for evaluation
             position: current position of the vehicle on the route
             velocity: current velocity of the vehicle
             size: length of the vehicle, considered for determining the circular uncertatinity
@@ -47,7 +45,6 @@ class Vehicle:
         """
         self.idm = idm
         self.route = route
-        self.path = path
         self.position = position
         self.velocity = velocity
         self.size = size
@@ -72,9 +69,11 @@ def elliptical_predictions(
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
 
+    path = ego.route.get_path()
+
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        ego.idm, ego.position, ego.velocity, ego.path, lead.position, lead.velocity, lead.path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_elliptical_noise = add_elliptical_noise(
@@ -102,9 +101,11 @@ def circular_predictions(
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
 
+    path = ego.route.get_path()
+
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        ego.idm, ego.position, ego.velocity, ego.path, lead.position, lead.velocity, lead.path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_circular_noise = add_circular_noise(
@@ -115,18 +116,14 @@ def circular_predictions(
     return ego_predictions_with_circular_noise, lead_predictions_with_circular_noise
 
 
-def get_vehicle_info(
-        lookahead_points: int,
-):
-    """
-    function to define the initial dynamics of the vehicle
-
-    args:
-        lookahead_points: how many points to look ahead for the prediction analysis
-    """
+def get_vehicle_info():
     # calling the IDM class object
     idm_1 = IDM()
     idm_2 = IDM()
+
+    # obtaining the path from the route
+    route_1 = Path(x_horizontal_lane, y_horizontal_lane)
+    route_2 = Path(x_vertical_lane, y_vertical_lane)
 
     # initializations for ego vehicle 1
     ego_position_1 = Point2D(-50, 0)
@@ -135,9 +132,6 @@ def get_vehicle_info(
     ego_major_axis_1 = 0.6
     ego_minor_axis_1 = 0.2
     ego_orientation_1 = 0.0
-    ego_idx_1 = closest_point_ind(route_1.get_path(), ego_position_1)
-    ego_route_1 = route_1.get_path()
-    ego_path_1 = ego_route_1[ego_idx_1: ego_idx_1+lookahead_points]
 
     lead_position_1 = Point2D(-30, 0)
     lead_speed_1 = Point2D(4, 0)
@@ -145,13 +139,10 @@ def get_vehicle_info(
     lead_major_axis_1 = 0.6
     lead_minor_axis_1 = 0.2
     lead_orientation_1 = 0
-    lead_idx_1 = closest_point_ind(route_1.get_path(), lead_position_1)
-    lead_route_1 = route_1.get_path()
-    lead_path_1 = lead_route_1[lead_idx_1: lead_idx_1+lookahead_points]
 
-    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_path_1, ego_position_1, ego_speed_1,
+    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_position_1, ego_speed_1,
                             ego_size, ego_major_axis_1, ego_minor_axis_1, ego_orientation_1)
-    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_path_1, lead_position_1, lead_speed_1,
+    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_position_1, lead_speed_1,
                              lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
 
     # initializations for ego vehicle 1
@@ -161,9 +152,6 @@ def get_vehicle_info(
     ego_major_axis_2 = 0.6
     ego_minor_axis_2 = 0.2
     ego_orientation_2 = 90.0
-    ego_idx_2 = closest_point_ind(route_2.get_path(), ego_position_2)
-    ego_route_2 = route_2.get_path()
-    ego_path_2 = ego_route_2[ego_idx_2: ego_idx_2+lookahead_points]
 
     lead_position_2 = Point2D(0, -20)
     lead_speed_2 = Point2D(0, 4)
@@ -171,13 +159,10 @@ def get_vehicle_info(
     lead_major_axis_2 = 0.6
     lead_minor_axis_2 = 0.2
     lead_orientation_2 = 90.0
-    lead_idx_2 = closest_point_ind(route_2.get_path(), lead_position_2)
-    lead_route_2 = route_2.get_path()
-    lead_path_2 = lead_route_2[lead_idx_2: lead_idx_2+lookahead_points]
 
-    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_path_2, ego_position_2, ego_speed_2,
+    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_position_2, ego_speed_2,
                             ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
-    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_path_2, lead_position_2, lead_speed_2,
+    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_position_2, lead_speed_2,
                              lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
 
     return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
@@ -186,7 +171,6 @@ def get_vehicle_info(
 def update(
         vehicle: Vehicle,
         time_move: float,
-        lookahead_points: int,
 ):
     """
     update the vehicle position in the real world
@@ -194,16 +178,9 @@ def update(
     args:
         vehicle: vehicle whose position need to be updated
         time_move: update time step
-        lookahead_points: how many points to look ahead for the prediction analysis
     """
-    # updating the position of the vehicle
     vehicle.position.x += vehicle.velocity.x * time_move
     vehicle.position.y += vehicle.velocity.y * time_move
-
-    # updating the route of the vehicle
-    idx = closest_point_ind(vehicle.route.get_path(), vehicle.position)
-    route = vehicle.route.get_path()
-    vehicle.path = route[idx: idx+lookahead_points]
 
     return vehicle
 
@@ -239,8 +216,6 @@ if __name__ == "__main__":
                         help="type of uncertainity (circular or elliptical) in the future positions, usage: --circular or --elliptical")
     parser.add_argument("--plot", type=bool, default=False,
                         help="visualization tool")
-    parser.add_argument("--lookahead_points", type=int, default=50,
-                        help="how many points to look ahead for the prediction analysis")
     args = parser.parse_args()
 
     # time params for computing the future trajectory
@@ -251,14 +226,8 @@ if __name__ == "__main__":
     time_move = 1
     sim_time = 10
 
-    # routes on which vehicle can travel
-    route_1 = Path(x_horizontal_lane, y_horizontal_lane)
-    route_2 = Path(x_vertical_lane, y_vertical_lane)
-
     # get initial vehicle information
-    lookahead_points = args.lookahead_points
-    ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2 = get_vehicle_info(
-        lookahead_points)
+    ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2 = get_vehicle_info()
 
     # uncertainity type
     uncertainity = args.uncertainity_type
@@ -278,7 +247,7 @@ if __name__ == "__main__":
         if to_plot:
             lanes_plotter(ax)
 
-        print("simulation time step:", step)
+        # print("simulation time step:", step)
 
         if uncertainity == "circular":
             ego_predictions_with_circular_noise_1, lead_predictions_with_circular_noise_1 = circular_predictions(
@@ -351,10 +320,10 @@ if __name__ == "__main__":
         print("prediction time:", prediction_time)
 
         # take a step in the real world
-        ego_vehicle_1 = update(ego_vehicle_1, time_move, lookahead_points)
-        lead_vehicle_1 = update(lead_vehicle_1, time_move, lookahead_points)
-        ego_vehicle_2 = update(ego_vehicle_2, time_move, lookahead_points)
-        lead_vehicle_2 = update(lead_vehicle_2, time_move, lookahead_points)
+        ego_vehicle_1 = update(ego_vehicle_1, time_move)
+        lead_vehicle_1 = update(lead_vehicle_1, time_move)
+        ego_vehicle_2 = update(ego_vehicle_2, time_move)
+        lead_vehicle_2 = update(lead_vehicle_2, time_move)
 
         print("-------------------------------------")
 
