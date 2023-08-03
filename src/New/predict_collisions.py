@@ -166,6 +166,21 @@ def get_vehicle_info():
 
     return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
 
+def update(
+        vehicle: Vehicle,
+        time_move: float,
+        ):
+    """
+    update the vehicle position in the real world
+
+    args:
+        vehicle: vehicle whose position need to be updated
+        time_move: update time step
+    """
+    vehicle.position.x += vehicle.velocity.x * time_move
+    vehicle.position.y += vehicle.velocity.y * time_move
+
+    return vehicle
 
 def lanes_plotter(
         ax,
@@ -281,18 +296,17 @@ if __name__ == "__main__":
         # time to collision evaluation
         TTC_1 = time_to_collision(
             ego_vehicle_1.position.x, ego_vehicle_1.velocity.x, lead_vehicle_1.position.x, lead_vehicle_1.velocity.x)
-        print("time to collision:", TTC_1, "seconds!")
+        print("time to collision for ego 1:", TTC_1, "seconds!")
 
         TTC_2 = time_to_collision(
             ego_vehicle_2.position.y, ego_vehicle_2.velocity.y, lead_vehicle_2.position.y, lead_vehicle_2.velocity.y)
-        print("time to collision:", TTC_2, "seconds!")
+        print("time to collision for ego 2:", TTC_2, "seconds!")
 
         # take a step in the real world
-        ego_vehicle_1.position.x += ego_vehicle_1.velocity.x * time_move
-        lead_vehicle_1.position.x += lead_vehicle_1.velocity.x * time_move
-
-        ego_vehicle_2.position.y += ego_vehicle_2.velocity.y * time_move
-        lead_vehicle_2.position.y += lead_vehicle_2.velocity.y * time_move
+        ego_vehicle_1 = update(ego_vehicle_1, time_move)
+        lead_vehicle_1 = update(lead_vehicle_1, time_move)
+        ego_vehicle_2 = update(ego_vehicle_2, time_move)
+        lead_vehicle_2 = update(lead_vehicle_2, time_move)
 
         print("-------------------------------------")
 
