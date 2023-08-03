@@ -8,10 +8,11 @@ class Path:
             self,
             x: list,
             y: list,
+            number_of_points: int,
     ) -> None:
         self.x = x
         self.y = y
-        self.number_of_points = 100
+        self.number_of_points = number_of_points
 
     def points_to_coordinates(
             self,

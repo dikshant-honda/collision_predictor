@@ -101,9 +101,9 @@ def get_s_map(
     """
     s_map = np.array([], dtype=np.float64)
     accumulated_distance = 0.0
-    prev_point = Point2D()
+    prev_point = None
     for point in path:
-        if prev_point != Point2D(0, 0):
+        if prev_point != None:
             accumulated_distance += distance(
                 prev_point.x, prev_point.y, point.x, point.y)
         s_map = np.append(s_map, accumulated_distance)
