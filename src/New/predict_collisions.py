@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from env_info.cross_intersection import *
-from IDM.frenet import Point2D
+from IDM.frenet import Point2D, closest_point_ind
 from IDM.idm import IDM, predict_trajectory, time_to_collision
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
@@ -22,7 +22,7 @@ class Vehicle:
     def __init__(
             self,
             idm: IDM,
-            route: Path,
+            path: list,
             position: Point2D,
             velocity: Point2D,
             size: float,
@@ -44,7 +44,7 @@ class Vehicle:
             orientation: orientation / yaw of the vehicle w.r.t. real world
         """
         self.idm = idm
-        self.route = route
+        self.path = path
         self.position = position
         self.velocity = velocity
         self.size = size
@@ -69,11 +69,9 @@ def elliptical_predictions(
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
 
-    path = ego.route.get_path()
-
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, ego.path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_elliptical_noise = add_elliptical_noise(
@@ -101,11 +99,9 @@ def circular_predictions(
         time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
 
-    path = ego.route.get_path()
-
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, ego.path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_circular_noise = add_circular_noise(
@@ -116,7 +112,15 @@ def circular_predictions(
     return ego_predictions_with_circular_noise, lead_predictions_with_circular_noise
 
 
-def get_vehicle_info():
+def get_vehicle_info(
+        lookahead_points: int,
+):
+    """
+    function to define the initial dynamics of the vehicle
+
+    args:
+        lookahead_points: how many points to look ahead for the prediction analysis
+    """
     # calling the IDM class object
     idm_1 = IDM()
     idm_2 = IDM()
@@ -132,6 +136,9 @@ def get_vehicle_info():
     ego_major_axis_1 = 0.6
     ego_minor_axis_1 = 0.2
     ego_orientation_1 = 0.0
+    ego_idx_1 = closest_point_ind(route_1.get_path(), ego_position_1)
+    ego_route_1 = route_1.get_path()
+    ego_path_1 = ego_route_1[ego_idx_1: ego_idx_1+lookahead_points]
 
     lead_position_1 = Point2D(-30, 0)
     lead_speed_1 = Point2D(4, 0)
@@ -139,10 +146,13 @@ def get_vehicle_info():
     lead_major_axis_1 = 0.6
     lead_minor_axis_1 = 0.2
     lead_orientation_1 = 0
+    lead_idx_1 = closest_point_ind(route_1.get_path(), lead_position_1)
+    lead_route_1 = route_1.get_path()
+    lead_path_1 = lead_route_1[lead_idx_1: lead_idx_1+lookahead_points]
 
-    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_position_1, ego_speed_1,
+    ego_vehicle_1 = Vehicle(idm_1, ego_path_1, ego_position_1, ego_speed_1,
                             ego_size, ego_major_axis_1, ego_minor_axis_1, ego_orientation_1)
-    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_position_1, lead_speed_1,
+    lead_vehicle_1 = Vehicle(idm_1, lead_path_1, lead_position_1, lead_speed_1,
                              lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
 
     # initializations for ego vehicle 1
@@ -152,6 +162,9 @@ def get_vehicle_info():
     ego_major_axis_2 = 0.6
     ego_minor_axis_2 = 0.2
     ego_orientation_2 = 90.0
+    ego_idx_2 = closest_point_ind(route_2.get_path(), ego_position_2)
+    ego_route_2 = route_2.get_path()
+    ego_path_2 = ego_route_2[ego_idx_2: ego_idx_2+lookahead_points]
 
     lead_position_2 = Point2D(0, -20)
     lead_speed_2 = Point2D(0, 4)
@@ -159,10 +172,13 @@ def get_vehicle_info():
     lead_major_axis_2 = 0.6
     lead_minor_axis_2 = 0.2
     lead_orientation_2 = 90.0
+    lead_idx_2 = closest_point_ind(route_2.get_path(), lead_position_2)
+    lead_route_2 = route_2.get_path()
+    lead_path_2 = lead_route_2[lead_idx_2: lead_idx_2+lookahead_points]
 
-    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_position_2, ego_speed_2,
+    ego_vehicle_2 = Vehicle(idm_2, ego_path_2, ego_position_2, ego_speed_2,
                             ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
-    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_position_2, lead_speed_2,
+    lead_vehicle_2 = Vehicle(idm_2, lead_path_2, lead_position_2, lead_speed_2,
                              lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
 
     return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
@@ -214,8 +230,10 @@ if __name__ == "__main__":
                         help="discrete interval at which you update the state variables of the system during the trajectory prediction ")
     parser.add_argument("--uncertainity_type", type=str, default="elliptical",
                         help="type of uncertainity (circular or elliptical) in the future positions, usage: --circular or --elliptical")
-    parser.add_argument("--plot", type=bool, default=True,
+    parser.add_argument("--plot", type=bool, default=False,
                         help="visualization tool")
+    parser.add_argument("--lookahead_points", type=int, default=50,
+                        help="how many points to look ahead for the prediction analysis")
     args = parser.parse_args()
 
     # time params for computing the future trajectory
@@ -227,12 +245,15 @@ if __name__ == "__main__":
     sim_time = 10
 
     # get initial vehicle information
-    ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2 = get_vehicle_info()
+    lookahead_points = args.lookahead_points
+    ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2 = get_vehicle_info(
+        lookahead_points)
 
     # uncertainity type
     uncertainity = args.uncertainity_type
 
     # plotting tool
+    to_plot = args.plot
     fig, ax = plt.subplots()
     ax.axis('equal')
 
@@ -243,9 +264,10 @@ if __name__ == "__main__":
         ax.clear()
 
         # plot the environment
-        lanes_plotter(ax)
+        if to_plot:
+            lanes_plotter(ax)
 
-        # print("simulation time step:", step)
+        print("simulation time step:", step)
 
         if uncertainity == "circular":
             ego_predictions_with_circular_noise_1, lead_predictions_with_circular_noise_1 = circular_predictions(
@@ -260,10 +282,11 @@ if __name__ == "__main__":
                 overlap_area_2 = circular_overlap(
                     ego_predictions_with_circular_noise_2[time_], lead_predictions_with_circular_noise_2[time_])
 
-                circle_plotter(
-                    ax, ego_predictions_with_circular_noise_1[time_], lead_predictions_with_circular_noise_1[time_])
-                circle_plotter(
-                    ax, ego_predictions_with_circular_noise_2[time_], lead_predictions_with_circular_noise_2[time_])
+                if to_plot:
+                    circle_plotter(
+                        ax, ego_predictions_with_circular_noise_1[time_], lead_predictions_with_circular_noise_1[time_])
+                    circle_plotter(
+                        ax, ego_predictions_with_circular_noise_2[time_], lead_predictions_with_circular_noise_2[time_])
 
                 if overlap_area_1 > 0.1:
                     print("collision probability for ego 1:", overlap_area_1,
@@ -286,10 +309,11 @@ if __name__ == "__main__":
                 overlap_area_2 = elliptical_overlap(
                     ego_predictions_with_elliptical_noise_2[time_], lead_predictions_with_elliptical_noise_2[time_])
 
-                ellipse_plotter(
-                    ax, ego_predictions_with_elliptical_noise_1[time_], lead_predictions_with_elliptical_noise_1[time_])
-                ellipse_plotter(
-                    ax, ego_predictions_with_elliptical_noise_2[time_], lead_predictions_with_elliptical_noise_2[time_])
+                if to_plot:
+                    ellipse_plotter(
+                        ax, ego_predictions_with_elliptical_noise_1[time_], lead_predictions_with_elliptical_noise_1[time_])
+                    ellipse_plotter(
+                        ax, ego_predictions_with_elliptical_noise_2[time_], lead_predictions_with_elliptical_noise_2[time_])
 
                 if overlap_area_1 > 0.1:
                     print("collision probability for ego 1:", overlap_area_1,
@@ -323,4 +347,5 @@ if __name__ == "__main__":
 
         print("-------------------------------------")
 
-    plt.show()
+    if to_plot:
+        plt.show()
