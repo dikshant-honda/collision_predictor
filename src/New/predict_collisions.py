@@ -35,7 +35,7 @@ class Vehicle:
 
         args:
             idm: IDM class object declaration
-            route: route on which the vehicle wants to follow
+            route: route on which the vehicle wants to follow: list(POint2D)
             position: current position of the vehicle on the route
             velocity: current velocity of the vehicle
             size: length of the vehicle, considered for determining the circular uncertatinity
@@ -71,7 +71,7 @@ def elliptical_predictions(
 
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, ego.path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, ego.path, lead.position, lead.velocity, lead.path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_elliptical_noise = add_elliptical_noise(
@@ -101,7 +101,7 @@ def circular_predictions(
 
     # predict future trajectory using IDM
     time, ego_trajectory, lead_trajectory = predict_trajectory(
-        ego.idm, ego.position, ego.velocity, lead.position, lead.velocity, ego.path, time_horizon, time_step)
+        ego.idm, ego.position, ego.velocity, ego.path, lead.position, lead.velocity, lead.path, time_horizon, time_step)
 
     # add uncertainity in the predicted trajectory
     ego_predictions_with_circular_noise = add_circular_noise(
