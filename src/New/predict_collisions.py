@@ -114,17 +114,13 @@ def circular_predictions(
 
 
 def get_vehicle_info():
-
     # calling the IDM class object
     idm_1 = IDM()
     idm_2 = IDM()
 
     # obtaining the path from the route
     route_1 = Path(x_horizontal_lane, y_horizontal_lane)
-    path_1 = route_1.get_path()
-
     route_2 = Path(x_vertical_lane, y_vertical_lane)
-    path_2 = route_2.get_path()
 
     # initializations for ego vehicle 1
     ego_position_1 = Point2D(-50, 0)
@@ -169,6 +165,27 @@ def get_vehicle_info():
     return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
 
 
+def lanes_plotter(
+        ax,
+):
+    """
+    function to visualize the lanes of the environment
+    """
+    # visualizing the road boundaries
+    ax.plot(x_horizontal_lane, y_horizontal_lane, 'r--')
+    ax.plot(x_vertical_lane, y_vertical_lane, 'r--')
+
+    ax.plot(x_horizontal_lane, boundaries_left_lane, 'b-')
+    ax.plot(x_horizontal_lane, boundaries_right_lane, 'b-')
+
+    ax.plot(boundaries_left_lane, y_vertical_lane, 'g-')
+    ax.plot(boundaries_right_lane, y_vertical_lane, 'g-')
+
+    ax.axis('equal')
+
+    return
+
+
 if __name__ == "__main__":
 
     fig, ax = plt.subplots()
@@ -188,17 +205,8 @@ if __name__ == "__main__":
     for step in range(sim_time):
         ax.clear()
 
-        # visualizing the road boundaries
-        ax.plot(x_horizontal_lane, y_horizontal_lane, 'r--')
-        ax.plot(x_vertical_lane, y_vertical_lane, 'r--')
-
-        ax.plot(x_horizontal_lane, boundaries_left_lane, 'b-')
-        ax.plot(x_horizontal_lane, boundaries_right_lane, 'b-')
-
-        ax.plot(boundaries_left_lane, y_vertical_lane, 'g-')
-        ax.plot(boundaries_right_lane, y_vertical_lane, 'g-')
-
-        ax.axis('equal')
+        # plot the environment
+        lanes_plotter(ax)
 
         print("simulation time step:", step)
 
