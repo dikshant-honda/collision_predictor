@@ -296,7 +296,7 @@ if __name__ == "__main__":
     # running the check 10 times
     for _ in range(10):
         result = predict_trajectory(
-            idm, ego_position, ego_speed, lead_position, lead_speed, path, time_horizon, time_step)
+            idm, ego_position, ego_speed, path, lead_position, lead_speed, path, time_horizon, time_step)
 
         time, ego_trajectory, lead_trajectory = result
 
