@@ -145,7 +145,7 @@ def get_vehicle_info():
     lead_vehicle_1 = Vehicle(idm_1, route_1, lead_position_1, lead_speed_1,
                              lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
 
-    # initializations for ego vehicle 1
+    # initializations for ego vehicle 2
     ego_position_2 = Point2D(0, -100)
     ego_speed_2 = Point2D(0, 10)
     ego_size = 0.6
