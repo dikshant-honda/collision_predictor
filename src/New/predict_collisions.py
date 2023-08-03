@@ -22,6 +22,7 @@ class Vehicle:
     def __init__(
             self,
             idm: IDM,
+            route: Path,
             path: list,
             position: Point2D,
             velocity: Point2D,
@@ -35,7 +36,8 @@ class Vehicle:
 
         args:
             idm: IDM class object declaration
-            route: route on which the vehicle wants to follow: list(POint2D)
+            route: route on which the vehicle wants to follow
+            path: observed subset of the route considered for evaluation
             position: current position of the vehicle on the route
             velocity: current velocity of the vehicle
             size: length of the vehicle, considered for determining the circular uncertatinity
@@ -44,6 +46,7 @@ class Vehicle:
             orientation: orientation / yaw of the vehicle w.r.t. real world
         """
         self.idm = idm
+        self.route = route
         self.path = path
         self.position = position
         self.velocity = velocity
@@ -125,10 +128,6 @@ def get_vehicle_info(
     idm_1 = IDM()
     idm_2 = IDM()
 
-    # obtaining the path from the route
-    route_1 = Path(x_horizontal_lane, y_horizontal_lane)
-    route_2 = Path(x_vertical_lane, y_vertical_lane)
-
     # initializations for ego vehicle 1
     ego_position_1 = Point2D(-50, 0)
     ego_speed_1 = Point2D(10, 0)
@@ -150,9 +149,9 @@ def get_vehicle_info(
     lead_route_1 = route_1.get_path()
     lead_path_1 = lead_route_1[lead_idx_1: lead_idx_1+lookahead_points]
 
-    ego_vehicle_1 = Vehicle(idm_1, ego_path_1, ego_position_1, ego_speed_1,
+    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_path_1, ego_position_1, ego_speed_1,
                             ego_size, ego_major_axis_1, ego_minor_axis_1, ego_orientation_1)
-    lead_vehicle_1 = Vehicle(idm_1, lead_path_1, lead_position_1, lead_speed_1,
+    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_path_1, lead_position_1, lead_speed_1,
                              lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
 
     # initializations for ego vehicle 1
@@ -176,9 +175,9 @@ def get_vehicle_info(
     lead_route_2 = route_2.get_path()
     lead_path_2 = lead_route_2[lead_idx_2: lead_idx_2+lookahead_points]
 
-    ego_vehicle_2 = Vehicle(idm_2, ego_path_2, ego_position_2, ego_speed_2,
+    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_path_2, ego_position_2, ego_speed_2,
                             ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
-    lead_vehicle_2 = Vehicle(idm_2, lead_path_2, lead_position_2, lead_speed_2,
+    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_path_2, lead_position_2, lead_speed_2,
                              lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
 
     return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
@@ -187,6 +186,7 @@ def get_vehicle_info(
 def update(
         vehicle: Vehicle,
         time_move: float,
+        lookahead_points: int,
 ):
     """
     update the vehicle position in the real world
@@ -194,9 +194,16 @@ def update(
     args:
         vehicle: vehicle whose position need to be updated
         time_move: update time step
+        lookahead_points: how many points to look ahead for the prediction analysis
     """
+    # updating the position of the vehicle
     vehicle.position.x += vehicle.velocity.x * time_move
     vehicle.position.y += vehicle.velocity.y * time_move
+
+    # updating the route of the vehicle
+    idx = closest_point_ind(vehicle.route.get_path(), vehicle.position)
+    route = vehicle.route.get_path()
+    vehicle.path = route[idx: idx+lookahead_points]
 
     return vehicle
 
@@ -243,6 +250,10 @@ if __name__ == "__main__":
     # step in real world
     time_move = 1
     sim_time = 10
+
+    # routes on which vehicle can travel
+    route_1 = Path(x_horizontal_lane, y_horizontal_lane)
+    route_2 = Path(x_vertical_lane, y_vertical_lane)
 
     # get initial vehicle information
     lookahead_points = args.lookahead_points
@@ -340,10 +351,10 @@ if __name__ == "__main__":
         print("prediction time:", prediction_time)
 
         # take a step in the real world
-        ego_vehicle_1 = update(ego_vehicle_1, time_move)
-        lead_vehicle_1 = update(lead_vehicle_1, time_move)
-        ego_vehicle_2 = update(ego_vehicle_2, time_move)
-        lead_vehicle_2 = update(lead_vehicle_2, time_move)
+        ego_vehicle_1 = update(ego_vehicle_1, time_move, lookahead_points)
+        lead_vehicle_1 = update(lead_vehicle_1, time_move, lookahead_points)
+        ego_vehicle_2 = update(ego_vehicle_2, time_move, lookahead_points)
+        lead_vehicle_2 = update(lead_vehicle_2, time_move, lookahead_points)
 
         print("-------------------------------------")
 
