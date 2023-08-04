@@ -8,7 +8,7 @@ import numpy as np
 
 from env_info.cross_intersection import *
 from IDM.frenet import Point2D
-from IDM.idm import IDM, predict_trajectory, time_to_collision
+from IDM.idm import IDM, predict_trajectory
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
 from New.circular_overlap import overlap as circular_overlap
@@ -16,6 +16,7 @@ from New.circular_overlap import plotter as circle_plotter
 from New.elliptical_noise import add_noise as add_elliptical_noise
 from New.elliptical_overlap import overlap as elliptical_overlap
 from New.elliptical_overlap import plotter as ellipse_plotter
+from New.TTC import time_to_collision
 
 
 class Vehicle:

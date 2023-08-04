@@ -8,7 +8,7 @@ import numpy as np
 
 from env_info.cross_intersection import *
 from IDM.frenet import Point2D
-from IDM.idm import IDM, predict_trajectory, time_to_collision
+from IDM.idm import IDM, predict_trajectory
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
 from New.circular_overlap import overlap as circular_overlap
@@ -16,6 +16,7 @@ from New.circular_overlap import plotter as circle_plotter
 from New.elliptical_noise import add_noise as add_elliptical_noise
 from New.elliptical_overlap import overlap as elliptical_overlap
 from New.elliptical_overlap import plotter as ellipse_plotter
+from New.TTC import time_to_collision
 
 
 class Vehicle:
@@ -139,9 +140,9 @@ def get_vehicle_info():
     lead_orientation = 0
 
     ego_vehicle = Vehicle(idm, route, ego_position, ego_speed,
-                            ego_size, ego_major_axis, ego_minor_axis, ego_orientation)
+                          ego_size, ego_major_axis, ego_minor_axis, ego_orientation)
     lead_vehicle = Vehicle(idm, route, lead_position, lead_speed,
-                             lead_size, lead_major_axis, lead_minor_axis, lead_orientation)
+                           lead_size, lead_major_axis, lead_minor_axis, lead_orientation)
 
     return ego_vehicle, lead_vehicle
 
@@ -239,39 +240,36 @@ if __name__ == "__main__":
             for time_ in range(time_horizon):
                 overlap_area = circular_overlap(
                     ego_predictions_with_circular_noise[time_], lead_predictions_with_circular_noise[time_])
-                
+
                 if to_plot:
                     circle_plotter(
                         ax, ego_predictions_with_circular_noise[time_], lead_predictions_with_circular_noise[time_])
-                   
+
                 if overlap_area > 0.1:
                     print("collision probability for ego 1:", overlap_area,
                           "after:", time_*time_step, "seconds!")
 
-               
         if uncertainity == "elliptical":
             ego_predictions_with_elliptical_noise, lead_predictions_with_elliptical_noise = elliptical_predictions(
                 ego_vehicle, lead_vehicle, time_horizon, time_step)
-            
+
             # elliptical overlap check
             for time_ in range(time_horizon):
                 overlap_area = elliptical_overlap(
                     ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
-              
+
                 if to_plot:
                     ellipse_plotter(
                         ax, ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
-               
+
                 if overlap_area > 0.1:
                     print("collision probability for ego 1:", overlap_area,
                           "after:", time_*time_step, "seconds!")
 
-                
         # time to collision evaluation
         TTC = time_to_collision(
             ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
         print("time to collision for ego:", TTC, "seconds!")
-
 
         # prediction end time
         end_time = time.time()
