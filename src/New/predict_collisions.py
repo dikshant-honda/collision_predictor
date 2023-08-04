@@ -123,6 +123,7 @@ def get_vehicle_info():
 
     # obtaining the path from the route
     route = Path(x_turning, y_turning, number_of_points)
+    obs_route = Path(x_vertical_lane, y_vertical_lane)
 
     # initializations for ego vehicle 1
     ego_position = Point2D(-40, 0)
@@ -139,13 +140,40 @@ def get_vehicle_info():
     lead_minor_axis = 0.2
     lead_orientation = 0
 
+    obstacle_position = Point2D(0, -10)
+    obstacle_speed = Point2D(0, 5)
+    obstacle_size = 0.6
+    obstacle_major_axis = 0.2
+    obstacle_minor_axis = 0.6
+    obstacle_orientation = 90
+
     ego_vehicle = Vehicle(idm, route, ego_position, ego_speed,
                           ego_size, ego_major_axis, ego_minor_axis, ego_orientation)
     lead_vehicle = Vehicle(idm, route, lead_position, lead_speed,
                            lead_size, lead_major_axis, lead_minor_axis, lead_orientation)
+    obstacle = Vehicle(idm, obs_route, obstacle_position, obstacle_speed, obstacle_size,
+                       obstacle_major_axis, obstacle_minor_axis, obstacle_orientation)
 
-    return ego_vehicle, lead_vehicle
+    return ego_vehicle, lead_vehicle, obstacle
 
+def obstacle_predictions():
+    pass
+
+def obstacle_update(
+        vehicle: Vehicle,
+        time_move: float,
+):
+    """
+    update the vehicle position in the real world
+
+    args:
+        vehicle: obstacle whose position need to be updated
+        time_move: update time step
+    """
+    vehicle.position.x += vehicle.velocity.x * time_move
+    vehicle.position.y += vehicle.velocity.y * time_move
+
+    return vehicle
 
 def update(
         vehicle: Vehicle,
@@ -210,7 +238,7 @@ if __name__ == "__main__":
     sim_time = 10
 
     # get initial vehicle information
-    ego_vehicle, lead_vehicle = get_vehicle_info()
+    ego_vehicle, lead_vehicle, obstacle = get_vehicle_info()
 
     # uncertainity type
     uncertainity = args.uncertainity_type
@@ -281,6 +309,9 @@ if __name__ == "__main__":
         # take a step in the real world
         ego_vehicle = update(ego_vehicle, time_move)
         lead_vehicle = update(lead_vehicle, time_move)
+
+        if obstacle != lead_vehicle:
+            obstacle = obstacle_update()
 
         print("-------------------------------------")
 
