@@ -160,6 +160,10 @@ def update(
     vehicle.position.x += vehicle.velocity.x * time_move
     vehicle.position.y += vehicle.velocity.y * time_move
 
+    if vehicle.position.x == 0.0 and vehicle.position.y == 0.0:
+        vehicle.velocity.y = vehicle.velocity.x
+        vehicle.velocity.x = 0
+
     return vehicle
 
 
