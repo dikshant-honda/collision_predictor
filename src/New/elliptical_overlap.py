@@ -69,6 +69,7 @@ def plotter(
     """
 
     # ax.clear()
+    
     vehicle_1_centers = vehicle_1_data[0]
     vehicle_1_size = vehicle_1_data[1]
 
@@ -82,12 +83,6 @@ def plotter(
 
     vehicle_1_x, vehicle_1_y = coords_to_list(vehicle_1)
     vehicle_2_x, vehicle_2_y = coords_to_list(vehicle_2)
-
-    # visualization parameters
-    ax.set_xlabel("x(m)")
-    ax.set_ylabel("y(m)")
-    ax.set_xlim(-150, 150)
-    ax.set_ylim(-150, 150)
 
     ax.plot(vehicle_1_x, vehicle_1_y, 'r')
     ax.plot(vehicle_2_x, vehicle_2_y, 'b')

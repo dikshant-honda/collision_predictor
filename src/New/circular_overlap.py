@@ -96,12 +96,6 @@ def plotter(
 
     # ax.clear()
 
-    # visualization parameters
-    ax.set_xlabel("x(m)")
-    ax.set_ylabel("y(m)")
-    ax.set_xlim(-150, 150)
-    ax.set_ylim(-150, 150)
-
     theta = np.linspace(0, 2 * np.pi, 100)
 
     vehicle_1_centers = vehicle_1_data[0]
