@@ -23,6 +23,7 @@ from New.TTC import time_to_collision
 class Vehicle:
     def __init__(
             self,
+            id: str,
             idm: IDM,
             route: Path,
             position: Point2D,
@@ -36,6 +37,7 @@ class Vehicle:
         Vehicle class for capturing the vehicle dynamics
 
         args:
+            id: label of the vehicle
             idm: IDM class object declaration
             route: route on which the vehicle wants to follow
             position: current position of the vehicle on the route
@@ -45,6 +47,7 @@ class Vehicle:
             minor_axis: lateral length of the vehicle, considered for determining the elliptical uncertainity
             orientation: orientation / yaw of the vehicle w.r.t. real world
         """
+        self.id = id
         self.idm = idm
         self.route = route
         self.position = position
@@ -160,7 +163,8 @@ def get_vehicle_info():
     route = Path(x_turning, y_turning, number_of_points)
     obs_route = Path(x_vertical_lane, y_vertical_lane, number_of_points)
 
-    # initializations for ego vehicle 1
+    # initializations for ego vehicle
+    ego_id = "ego"
     ego_position = Point2D(-40, 0)
     ego_speed = Point2D(10, 0)
     ego_size = 0.6
@@ -168,6 +172,7 @@ def get_vehicle_info():
     ego_minor_axis = 0.2
     ego_orientation = 0.0
 
+    lead_id = "lead"
     lead_position = Point2D(0, 5)
     lead_speed = Point2D(0, 4)
     lead_size = 0.6
@@ -175,6 +180,7 @@ def get_vehicle_info():
     lead_minor_axis = 0.2
     lead_orientation = 0
 
+    obstable_id = "obstacle"
     obstacle_position = Point2D(0, -10)
     obstacle_speed = Point2D(0, 5)
     obstacle_size = 0.6
@@ -182,31 +188,14 @@ def get_vehicle_info():
     obstacle_minor_axis = 0.2
     obstacle_orientation = 0
 
-    ego_vehicle = Vehicle(idm, route, ego_position, ego_speed,
+    ego_vehicle = Vehicle(ego_id, idm, route, ego_position, ego_speed,
                           ego_size, ego_major_axis, ego_minor_axis, ego_orientation)
-    lead_vehicle = Vehicle(idm, route, lead_position, lead_speed,
+    lead_vehicle = Vehicle(lead_id, idm, route, lead_position, lead_speed,
                            lead_size, lead_major_axis, lead_minor_axis, lead_orientation)
-    obstacle = Vehicle(idm, obs_route, obstacle_position, obstacle_speed, obstacle_size,
+    obstacle = Vehicle(obstable_id, idm, obs_route, obstacle_position, obstacle_speed, obstacle_size,
                        obstacle_major_axis, obstacle_minor_axis, obstacle_orientation)
 
     return ego_vehicle, lead_vehicle, obstacle
-
-
-def obstacle_update(
-        vehicle: Vehicle,
-        time_move: float,
-) -> Vehicle:
-    """
-    update the vehicle position in the real world
-
-    args:
-        vehicle: obstacle whose position need to be updated
-        time_move: update time step
-    """
-    vehicle.position.x += vehicle.velocity.x * time_move
-    vehicle.position.y += vehicle.velocity.y * time_move
-
-    return vehicle
 
 
 def update(
@@ -223,7 +212,7 @@ def update(
     vehicle.position.x += vehicle.velocity.x * time_move
     vehicle.position.y += vehicle.velocity.y * time_move
 
-    if vehicle.position.x == 0.0 and vehicle.position.y == 0.0:
+    if vehicle.position.x == 0.0 and vehicle.position.y == 0.0 and vehicle.id == "ego":
         vehicle.velocity.y = vehicle.velocity.x
         vehicle.velocity.x = 0
 
@@ -329,9 +318,9 @@ if __name__ == "__main__":
                           "after:", time_*time_step, "seconds!")
 
         # time to collision evaluation
-        TTC = time_to_collision(
-            ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
-        print("time to collision for ego:", TTC, "seconds!")
+        # TTC = time_to_collision(
+        #     ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
+        # print("time to collision for ego:", TTC, "seconds!")
 
         if obstacle != lead_vehicle:
             print("no interference till now")
@@ -348,12 +337,11 @@ if __name__ == "__main__":
         ego_traffic_distance = point_distance(
             ego_vehicle.position, obstacle.position)
 
-
         if point_distance(ego_vehicle.position, lead_vehicle.position) > point_distance(ego_vehicle.position, obstacle.position):
             print("switching the lead vehicle")
             lead_vehicle = obstacle
         else:
-            obstacle = obstacle_update(obstacle, time_move)
+            obstacle = update(obstacle, time_move)
 
         # prediction end time
         end_time = time.time()
