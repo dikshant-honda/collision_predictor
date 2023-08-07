@@ -13,10 +13,11 @@ from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
 from New.circular_overlap import overlap as circular_overlap
 from New.circular_overlap import plotter as circle_plotter
+from New.circular_overlap import traffic_plotter as circular_traffic_plotter
 from New.elliptical_noise import add_noise as add_elliptical_noise
 from New.elliptical_overlap import overlap as elliptical_overlap
 from New.elliptical_overlap import plotter as ellipse_plotter
-from New.elliptical_overlap import traffic_plotter as traffic_plotter
+from New.elliptical_overlap import traffic_plotter as elliptical_traffic_plotter
 from New.TTC import time_to_collision
 
 
@@ -122,6 +123,7 @@ def circular_predictions(
 
 
 def obstacle_predictions(
+        type: str,
         obstacle: Vehicle,
         time_horizon: int,
         time_step: float,
@@ -130,10 +132,14 @@ def obstacle_predictions(
     function to get the future trajectory of the obstacle assuming constant velocity of the vehicle
 
     args:
+        type: type of uncertainity, elliptical or circular
         obstacle: vehicle information
+        time_horizon: duration over which you want to predict the trajectory
+        time_step: discrete interval at which you update the state variables of the system during the trajectory prediction 
     """
 
     # predict trajectory using constant velocity assumption
+    # *************** replace this by Frenet as well later ***************
     path = obstacle.route.get_path()
 
     current_position_x = obstacle.position.x
@@ -149,8 +155,13 @@ def obstacle_predictions(
         Traj.append(Point2D(current_position_x, current_position_y))
         Time.append(time_steps)
 
-    obstacle_predictions_with_noise = add_elliptical_noise(
-        Time, Traj, obstacle.velocity, obstacle.major_axis, obstacle.minor_axis, obstacle.orientation)
+    if type == "circular":
+        obstacle_predictions_with_noise = add_circular_noise(
+            Time, Traj, obstacle.velocity, obstacle.size)
+
+    if type == "elliptical":
+        obstacle_predictions_with_noise = add_elliptical_noise(
+            Time, Traj, obstacle.velocity, obstacle.major_axis, obstacle.minor_axis, obstacle.orientation)
 
     return obstacle_predictions_with_noise
 
@@ -287,6 +298,11 @@ if __name__ == "__main__":
             ego_predictions_with_circular_noise, lead_predictions_with_circular_noise = circular_predictions(
                 ego_vehicle, lead_vehicle, time_horizon, time_step)
 
+            if obstacle != lead_vehicle:
+                print("no interference till now")
+                obstacle_predictions_with_noise = obstacle_predictions(
+                    uncertainity, obstacle, time_horizon, time_step)
+
             # circular overlap check
             for time_ in range(time_horizon):
                 overlap_area = circular_overlap(
@@ -295,6 +311,13 @@ if __name__ == "__main__":
                 if to_plot:
                     circle_plotter(
                         ax, ego_predictions_with_circular_noise[time_], lead_predictions_with_circular_noise[time_])
+                    
+                    circular_traffic_plotter(
+                        ax, obstacle_predictions_with_noise[time_])
+                    
+                    # plot all the curves
+                    plt.draw()
+                    plt.pause(0.1)
 
                 if overlap_area > 0.1:
                     print("collision probability for ego:", overlap_area,
@@ -303,11 +326,11 @@ if __name__ == "__main__":
         if uncertainity == "elliptical":
             ego_predictions_with_elliptical_noise, lead_predictions_with_elliptical_noise = elliptical_predictions(
                 ego_vehicle, lead_vehicle, time_horizon, time_step)
-            
+
             if obstacle != lead_vehicle:
                 print("no interference till now")
                 obstacle_predictions_with_noise = obstacle_predictions(
-                    obstacle, time_horizon, time_step)
+                    uncertainity, obstacle, time_horizon, time_step)
 
             # elliptical overlap check
             for time_ in range(time_horizon):
@@ -317,8 +340,9 @@ if __name__ == "__main__":
                 if to_plot:
                     ellipse_plotter(
                         ax, ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
-                    
-                    traffic_plotter(ax, obstacle_predictions_with_noise[time_])
+
+                    elliptical_traffic_plotter(
+                        ax, obstacle_predictions_with_noise[time_])
 
                     # plot all the curves
                     plt.draw()

@@ -117,15 +117,36 @@ def plotter(
     ax.plot(vehicle_2_centers.x + vehicle_2_size * np.cos(theta),
             vehicle_2_centers.y + vehicle_2_size * np.sin(theta), 'b')
 
-    plt.draw()
-    plt.pause(0.1)
+    return
+
+
+def traffic_plotter(
+        ax,
+        traffic_data: NDArray[np.float64],
+) -> None:
+    """
+    Function to visualize the circular overlap dynamically at every time step
+
+    args:
+        ax: plotting tool
+        vehicle_1_data: future trajectory information with uncertainity size for vehicle 1, 
+        vehicle_2_data: future trajectory information with uncertainity size for vehicle 2
+    """
+
+    theta = np.linspace(0, 2 * np.pi, 100)
+
+    traffic_centers = traffic_data[0]
+    traffic_size = traffic_data[1]
+
+    # plot
+    ax.plot(traffic_centers.x + traffic_size * np.cos(theta),
+            traffic_centers.y + traffic_size * np.sin(theta), 'c')
 
     return
 
 
 # """
 # sample test code for two `non-interacting vehicles`
-
 if __name__ == "__main__":
     # plotting tools
     fig, ax = plt.subplots()
