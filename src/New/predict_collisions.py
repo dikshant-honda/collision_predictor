@@ -165,7 +165,7 @@ def get_vehicle_info():
 
     # initializations for ego vehicle
     ego_id = "ego"
-    ego_position = Point2D(-40, 0)
+    ego_position = Point2D(-50, 0)
     ego_speed = Point2D(10, 0)
     ego_size = 0.6
     ego_major_axis = 0.6
@@ -181,8 +181,8 @@ def get_vehicle_info():
     lead_orientation = 0
 
     obstable_id = "obstacle"
-    obstacle_position = Point2D(0, -10)
-    obstacle_speed = Point2D(0, 5)
+    obstacle_position = Point2D(0, -5)
+    obstacle_speed = Point2D(0, 4)
     obstacle_size = 0.6
     obstacle_major_axis = 0.5
     obstacle_minor_axis = 0.2
@@ -260,6 +260,9 @@ if __name__ == "__main__":
     time_move = 1
     sim_time = 10
 
+    # switching of lead and the traffic vehicle
+    switch = False
+
     # get initial vehicle information
     ego_vehicle, lead_vehicle, obstacle = get_vehicle_info()
 
@@ -303,6 +306,11 @@ if __name__ == "__main__":
         if uncertainity == "elliptical":
             ego_predictions_with_elliptical_noise, lead_predictions_with_elliptical_noise = elliptical_predictions(
                 ego_vehicle, lead_vehicle, time_horizon, time_step)
+            
+            if obstacle != lead_vehicle:
+                print("no interference till now")
+                obstacle_predictions_with_noise = obstacle_predictions(
+                    obstacle, time_horizon, time_step)
 
             # elliptical overlap check
             for time_ in range(time_horizon):
@@ -312,24 +320,17 @@ if __name__ == "__main__":
                 if to_plot:
                     ellipse_plotter(
                         ax, ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
+                    
+                    if not switch:
+                        traffic_plotter(ax, obstacle_predictions_with_noise[time_])
+
+                    # plot all the curves
+                    plt.draw()
+                    plt.pause(0.1)
 
                 if overlap_area > 0.1:
                     print("collision probability for ego:", overlap_area,
                           "after:", time_*time_step, "seconds!")
-
-        # time to collision evaluation
-        # TTC = time_to_collision(
-        #     ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
-        # print("time to collision for ego:", TTC, "seconds!")
-
-        if obstacle != lead_vehicle:
-            print("no interference till now")
-            obstacle_predictions_with_noise = obstacle_predictions(
-                obstacle, time_horizon, time_step)
-
-            for time_ in range(time_horizon):
-                if to_plot:
-                    traffic_plotter(ax, obstacle_predictions_with_noise[time_])
 
         # test for nearest obstacle
         ego_lead_distance = point_distance(
@@ -340,8 +341,14 @@ if __name__ == "__main__":
         if point_distance(ego_vehicle.position, lead_vehicle.position) > point_distance(ego_vehicle.position, obstacle.position):
             print("switching the lead vehicle")
             lead_vehicle = obstacle
+            switch = True
         else:
             obstacle = update(obstacle, time_move)
+
+        # time to collision evaluation
+        TTC = time_to_collision(
+            ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
+        print("time to collision for ego:", TTC, "seconds!")
 
         # prediction end time
         end_time = time.time()

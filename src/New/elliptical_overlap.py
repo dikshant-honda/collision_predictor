@@ -92,9 +92,6 @@ def plotter(
     ax.plot(vehicle_1_x, vehicle_1_y, 'r')
     ax.plot(vehicle_2_x, vehicle_2_y, 'b')
 
-    plt.draw()
-    plt.pause(0.1)
-
     return
 
 
@@ -114,8 +111,6 @@ def traffic_plotter(
     traffic_x, traffic_y = coords_to_list(traffic)
 
     ax.plot(traffic_x, traffic_y, 'c')
-
-    plt.draw()
 
     return
 
