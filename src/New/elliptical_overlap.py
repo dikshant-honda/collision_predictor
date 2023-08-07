@@ -98,6 +98,28 @@ def plotter(
     return
 
 
+def traffic_plotter(
+        ax,
+        traffic_data: list,
+) -> None:
+    """
+    Function to visualize a traffic vehicle
+    """
+    traffic_centers = traffic_data[0]
+    traffic_size = traffic_data[1]
+
+    traffic = ellipse(traffic_centers.x, traffic_centers.y,
+                      traffic_size[0], traffic_size[1], traffic_size[2])
+
+    traffic_x, traffic_y = coords_to_list(traffic)
+
+    ax.plot(traffic_x, traffic_y, 'c')
+
+    plt.draw()
+
+    return
+
+
 def collision_probability(
         overlap: float,
         total: float,
