@@ -312,10 +312,12 @@ if __name__ == "__main__":
             lead_vehicle, obstacle = obstacle, lead_vehicle
 
         # plot the positions
-        ax.plot(ego_vehicle.position.x, ego_vehicle.position.y, 'g*', label="ego")
-        ax.plot(lead_vehicle.position.x, lead_vehicle.position.y, 'm*', label="lead")
+        ax.plot(ego_vehicle.position.x,
+                ego_vehicle.position.y, 'g*', label="ego")
+        ax.plot(lead_vehicle.position.x,
+                lead_vehicle.position.y, 'm*', label="lead")
         ax.plot(obstacle.position.x, obstacle.position.y, 'b*')
-        ax.legend()            
+        ax.legend()
 
         if uncertainity == "circular":
             ego_predictions_with_circular_noise, lead_predictions_with_circular_noise = circular_predictions(
@@ -337,7 +339,7 @@ if __name__ == "__main__":
 
                     circular_traffic_plotter(
                         ax, obstacle_predictions_with_noise[time_])
-                    
+
                     # plot all the curves
                     plt.draw()
                     plt.pause(0.1)
