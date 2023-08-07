@@ -97,6 +97,8 @@ def predict_trajectory(
     lead_trajectory = []
     time = []
 
+    curr_lead_x, curr_lead_y = lead_position.x, lead_position.y
+
     s_map = get_s_map(path)
 
     ego_position_in_frenet = get_frenet(ego_position, path, s_map)
@@ -129,13 +131,12 @@ def predict_trajectory(
         # update the dynamics of the lead vehicle
         # assuming the lead vehicle is moving with a constant velocity and its offset is zero from the center lane
         lead_position_in_frenet.s += lead_speed * time_step
+        lead_position_in_frenet.d = 0
 
-        if lead_position_in_frenet.s is np.inf:     # no vehicle ahead of the ego vehicle
-            lead_position = Point2D(np.inf, 0)
-        else:
-            lead_position = get_xy(lead_position_in_frenet, path, s_map)
+        curr_lead_x += lead_velocity.x * time_step
+        curr_lead_y += lead_velocity.y * time_step
 
-        lead_trajectory.append(lead_position)
+        lead_trajectory.append(Point2D(curr_lead_x, curr_lead_y))
 
     return [time, ego_trajectory, lead_trajectory]
 
