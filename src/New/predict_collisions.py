@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from env_info.cross_intersection import *
-from IDM.frenet import Point2D
+from IDM.frenet import Point2D, point_distance
 from IDM.idm import IDM, predict_trajectory
 from IDM.path import Path
 from New.circular_noise import add_noise as add_circular_noise
@@ -16,6 +16,7 @@ from New.circular_overlap import plotter as circle_plotter
 from New.elliptical_noise import add_noise as add_elliptical_noise
 from New.elliptical_overlap import overlap as elliptical_overlap
 from New.elliptical_overlap import plotter as ellipse_plotter
+from New.elliptical_overlap import traffic_plotter as traffic_plotter
 from New.TTC import time_to_collision
 
 
@@ -117,13 +118,47 @@ def circular_predictions(
     return ego_predictions_with_circular_noise, lead_predictions_with_circular_noise
 
 
+def obstacle_predictions(
+        obstacle: Vehicle,
+        time_horizon: int,
+        time_step: float,
+):
+    """
+    function to get the future trajectory of the obstacle assuming constant velocity of the vehicle
+
+    args:
+        obstacle: vehicle information
+    """
+
+    # predict trajectory using constant velocity assumption
+    path = obstacle.route.get_path()
+
+    current_position_x = obstacle.position.x
+    current_position_y = obstacle.position.y
+
+    Time, Traj = [], []
+
+    for t in range(time_horizon):
+        current_position_x += obstacle.velocity.x * time_step
+        current_position_y += obstacle.velocity.y * time_step
+        time_steps = t * time_step
+
+        Traj.append(Point2D(current_position_x, current_position_y))
+        Time.append(time_steps)
+
+    obstacle_predictions_with_noise = add_elliptical_noise(
+        Time, Traj, obstacle.velocity, obstacle.major_axis, obstacle.minor_axis, obstacle.orientation)
+
+    return obstacle_predictions_with_noise
+
+
 def get_vehicle_info():
     # calling the IDM class object
     idm = IDM()
 
     # obtaining the path from the route
     route = Path(x_turning, y_turning, number_of_points)
-    obs_route = Path(x_vertical_lane, y_vertical_lane)
+    obs_route = Path(x_vertical_lane, y_vertical_lane, number_of_points)
 
     # initializations for ego vehicle 1
     ego_position = Point2D(-40, 0)
@@ -143,9 +178,9 @@ def get_vehicle_info():
     obstacle_position = Point2D(0, -10)
     obstacle_speed = Point2D(0, 5)
     obstacle_size = 0.6
-    obstacle_major_axis = 0.2
-    obstacle_minor_axis = 0.6
-    obstacle_orientation = 90
+    obstacle_major_axis = 0.5
+    obstacle_minor_axis = 0.2
+    obstacle_orientation = 0
 
     ego_vehicle = Vehicle(idm, route, ego_position, ego_speed,
                           ego_size, ego_major_axis, ego_minor_axis, ego_orientation)
@@ -156,13 +191,11 @@ def get_vehicle_info():
 
     return ego_vehicle, lead_vehicle, obstacle
 
-def obstacle_predictions():
-    pass
 
 def obstacle_update(
         vehicle: Vehicle,
         time_move: float,
-):
+) -> Vehicle:
     """
     update the vehicle position in the real world
 
@@ -175,10 +208,11 @@ def obstacle_update(
 
     return vehicle
 
+
 def update(
         vehicle: Vehicle,
         time_move: float,
-):
+) -> Vehicle:
     """
     update the vehicle position in the real world
 
@@ -274,7 +308,7 @@ if __name__ == "__main__":
                         ax, ego_predictions_with_circular_noise[time_], lead_predictions_with_circular_noise[time_])
 
                 if overlap_area > 0.1:
-                    print("collision probability for ego 1:", overlap_area,
+                    print("collision probability for ego:", overlap_area,
                           "after:", time_*time_step, "seconds!")
 
         if uncertainity == "elliptical":
@@ -291,13 +325,35 @@ if __name__ == "__main__":
                         ax, ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
 
                 if overlap_area > 0.1:
-                    print("collision probability for ego 1:", overlap_area,
+                    print("collision probability for ego:", overlap_area,
                           "after:", time_*time_step, "seconds!")
 
         # time to collision evaluation
         TTC = time_to_collision(
             ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
         print("time to collision for ego:", TTC, "seconds!")
+
+        if obstacle != lead_vehicle:
+            print("no interference till now")
+            obstacle_predictions_with_noise = obstacle_predictions(
+                obstacle, time_horizon, time_step)
+
+            for time_ in range(time_horizon):
+                if to_plot:
+                    traffic_plotter(ax, obstacle_predictions_with_noise[time_])
+
+        # test for nearest obstacle
+        ego_lead_distance = point_distance(
+            ego_vehicle.position, lead_vehicle.position)
+        ego_traffic_distance = point_distance(
+            ego_vehicle.position, obstacle.position)
+
+
+        if point_distance(ego_vehicle.position, lead_vehicle.position) > point_distance(ego_vehicle.position, obstacle.position):
+            print("switching the lead vehicle")
+            lead_vehicle = obstacle
+        else:
+            obstacle = obstacle_update(obstacle, time_move)
 
         # prediction end time
         end_time = time.time()
@@ -309,9 +365,6 @@ if __name__ == "__main__":
         # take a step in the real world
         ego_vehicle = update(ego_vehicle, time_move)
         lead_vehicle = update(lead_vehicle, time_move)
-
-        if obstacle != lead_vehicle:
-            obstacle = obstacle_update()
 
         print("-------------------------------------")
 
