@@ -78,6 +78,16 @@ def local_to_global(
     return out
 
 
+def point_distance(
+        a: Point2D,
+        b: Point2D,
+) -> float:
+    """
+    function to compute the distance between two points
+    """
+    return math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2)
+
+
 def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     """
     function to compute the euclidean distance between two points
