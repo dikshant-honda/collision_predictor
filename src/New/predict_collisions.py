@@ -176,7 +176,7 @@ def get_vehicle_info():
 
     # initializations for ego vehicle
     ego_id = "ego"
-    ego_position = Point2D(-50, 0)
+    ego_position = Point2D(-60, 0)
     ego_speed = Point2D(10, 0)
     ego_size = 0.6
     ego_major_axis = 0.6
@@ -184,19 +184,19 @@ def get_vehicle_info():
     ego_orientation = 0.0
 
     lead_id = "lead"
-    lead_position = Point2D(0, 5)
-    lead_speed = Point2D(0, 4)
+    lead_position = Point2D(0, 0)
+    lead_speed = Point2D(0, 7)
     lead_size = 0.6
-    lead_major_axis = 0.6
-    lead_minor_axis = 0.2
+    lead_major_axis = 0.2
+    lead_minor_axis = 0.6
     lead_orientation = 0
 
     obstable_id = "obstacle"
-    obstacle_position = Point2D(0, -5)
-    obstacle_speed = Point2D(0, 4)
+    obstacle_position = Point2D(0, -35)
+    obstacle_speed = Point2D(0, 7)
     obstacle_size = 0.6
-    obstacle_major_axis = 0.5
-    obstacle_minor_axis = 0.2
+    obstacle_major_axis = 0.2
+    obstacle_minor_axis = 0.5
     obstacle_orientation = 0
 
     ego_vehicle = Vehicle(ego_id, idm, route, ego_position, ego_speed,
@@ -223,9 +223,10 @@ def update(
     vehicle.position.x += vehicle.velocity.x * time_move
     vehicle.position.y += vehicle.velocity.y * time_move
 
+    # left turn at the intersection for the ego vehicle
     if vehicle.position.x == 0.0 and vehicle.position.y == 0.0 and vehicle.id == "ego":
         vehicle.velocity.y = vehicle.velocity.x
-        vehicle.velocity.x = 0
+        vehicle.velocity.x = 0.0
 
     return vehicle
 
@@ -253,7 +254,7 @@ if __name__ == "__main__":
     # arguments parsing
     parser = argparse.ArgumentParser(
         description="future trajectory prediction tweaks")
-    parser.add_argument("--time_horizon", type=int, default=50,
+    parser.add_argument("--time_horizon", type=int, default=25,
                         help="duration over which you want to predict the trajectory")
     parser.add_argument("--time_step", type=float, default=0.1,
                         help="discrete interval at which you update the state variables of the system during the trajectory prediction ")
@@ -288,11 +289,33 @@ if __name__ == "__main__":
 
         ax.clear()
 
+        # visualization parameters
+        ax.set_xlabel("x(m)")
+        ax.set_ylabel("y(m)")
+        ax.set_xlim(-50, 50)
+        ax.set_ylim(-40, 90)
+
         # plot the environment
         if to_plot:
             lanes_plotter(ax)
 
         print("simulation time step:", step)
+
+        # test for nearest obstacle
+        ego_lead_distance = point_distance(
+            ego_vehicle.position, lead_vehicle.position)
+        ego_traffic_distance = point_distance(
+            ego_vehicle.position, obstacle.position)
+
+        if point_distance(ego_vehicle.position, lead_vehicle.position) > point_distance(ego_vehicle.position, obstacle.position):
+            print("switching the lead vehicle")
+            lead_vehicle, obstacle = obstacle, lead_vehicle
+
+        # plot the positions
+        ax.plot(ego_vehicle.position.x, ego_vehicle.position.y, 'g*', label="ego")
+        ax.plot(lead_vehicle.position.x, lead_vehicle.position.y, 'm*', label="lead")
+        ax.plot(obstacle.position.x, obstacle.position.y, 'b*')
+        ax.legend()            
 
         if uncertainity == "circular":
             ego_predictions_with_circular_noise, lead_predictions_with_circular_noise = circular_predictions(
@@ -311,7 +334,7 @@ if __name__ == "__main__":
                 if to_plot:
                     circle_plotter(
                         ax, ego_predictions_with_circular_noise[time_], lead_predictions_with_circular_noise[time_])
-                    
+
                     circular_traffic_plotter(
                         ax, obstacle_predictions_with_noise[time_])
                     
@@ -352,20 +375,10 @@ if __name__ == "__main__":
                     print("collision probability for ego:", overlap_area,
                           "after:", time_*time_step, "seconds!")
 
-        # test for nearest obstacle
-        ego_lead_distance = point_distance(
-            ego_vehicle.position, lead_vehicle.position)
-        ego_traffic_distance = point_distance(
-            ego_vehicle.position, obstacle.position)
-
-        if point_distance(ego_vehicle.position, lead_vehicle.position) > point_distance(ego_vehicle.position, obstacle.position):
-            print("switching the lead vehicle")
-            lead_vehicle, obstacle = obstacle, lead_vehicle
-
         # time to collision evaluation
-        TTC = time_to_collision(
-            ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
-        print("time to collision for ego:", TTC, "seconds!")
+        # TTC = time_to_collision(
+        #     ego_vehicle.position, ego_vehicle.velocity, lead_vehicle.position, lead_vehicle.velocity)
+        # print("time to collision for ego:", TTC, "seconds!")
 
         # prediction end time
         end_time = time.time()
