@@ -272,7 +272,7 @@ if __name__ == "__main__":
     time_move = 1
     sim_time = 10
 
-    # switch 
+    # switch
     switch = False
 
     # get initial vehicle information
