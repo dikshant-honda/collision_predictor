@@ -117,56 +117,58 @@ def circular_predictions(
     return ego_predictions_with_circular_noise, lead_predictions_with_circular_noise
 
 
+def create_vehicle(
+        x_position: float,
+        y_position: float,
+        x_speed: float,
+        y_speed: float,
+        route: Path,
+        size: float,
+        major_axis: float,
+        minor_axis: float,
+        orientation: float,
+) -> Vehicle:
+    """
+    Function to create the vehicle object data type
+
+    args:
+        x_position: x position of the vehicle
+        y_position: y position of the vehicle
+        x_speed: speed of the vehicle in x direction
+        y_speed: speed of the vehicle in y direction
+        route: path which the vehicle will take
+        size: size of the vehicle
+        major_axis: uncertainity along car movement axis
+        minor_axis: uncertainity along the car movement perpendicular axis
+        orientation: orientation of the vehicle
+    """
+
+    idm = IDM()
+    position = Point2D(x_position, y_position)
+    velocity = Point2D(x_speed, y_speed)
+
+    return Vehicle(idm, route, position, velocity, size, major_axis, minor_axis, orientation)
+
+
 def get_vehicle_info():
-    # calling the IDM class object
-    idm_1 = IDM()
-    idm_2 = IDM()
 
     # obtaining the path from the route
     route_1 = Path(x_horizontal_lane, y_horizontal_lane, number_of_points)
     route_2 = Path(x_vertical_lane, y_vertical_lane, number_of_points)
 
-    # initializations for ego vehicle 1
-    ego_position_1 = Point2D(-100, 0)
-    ego_speed_1 = Point2D(10, 0)
-    ego_size = 0.6
-    ego_major_axis_1 = 0.6
-    ego_minor_axis_1 = 0.2
-    ego_orientation_1 = 0.0
+    ego_vehicle_1 = create_vehicle(-100, 0, 10, 0, route_1, 0.6, 0.6, 0.2, 0)
+    lead_vehicle_1 = create_vehicle(-30, 0, 4, 0, route_1, 0.6, 0.6, 0.2, 0)
 
-    lead_position_1 = Point2D(-30, 0)
-    lead_speed_1 = Point2D(4, 0)
-    lead_size = 0.6
-    lead_major_axis_1 = 0.6
-    lead_minor_axis_1 = 0.2
-    lead_orientation_1 = 0
+    ego_vehicle_2 = create_vehicle(0, -100, 0, 10, route_2, 0.6, 0.6, 0.2, 90)
+    lead_vehicle_2 = create_vehicle(0, -20, 0, 4, route_2, 0.6, 0.6, 0.2, 90)
 
-    ego_vehicle_1 = Vehicle(idm_1, route_1, ego_position_1, ego_speed_1,
-                            ego_size, ego_major_axis_1, ego_minor_axis_1, ego_orientation_1)
-    lead_vehicle_1 = Vehicle(idm_1, route_1, lead_position_1, lead_speed_1,
-                             lead_size, lead_major_axis_1, lead_minor_axis_1, lead_orientation_1)
+    ego_vehicle_3 = create_vehicle(-50, 0, 5, 0, route_1, 0.6, 0.6, 0.2, 0)
+    lead_vehicle_3 = create_vehicle(-10, 0, 4, 0, route_1, 0.6, 0.6, 0.2, 0)
 
-    # initializations for ego vehicle 2
-    ego_position_2 = Point2D(0, -100)
-    ego_speed_2 = Point2D(0, 10)
-    ego_size = 0.6
-    ego_major_axis_2 = 0.6
-    ego_minor_axis_2 = 0.2
-    ego_orientation_2 = 90.0
+    ego_vehicle_4 = create_vehicle(0, -70, 0, 7, route_2, 0.6, 0.6, 0.2, 90)
+    lead_vehicle_4 = create_vehicle(0, -30, 0, 3, route_2, 0.6, 0.6, 0.2, 90)
 
-    lead_position_2 = Point2D(0, -20)
-    lead_speed_2 = Point2D(0, 4)
-    lead_size = 0.6
-    lead_major_axis_2 = 0.6
-    lead_minor_axis_2 = 0.2
-    lead_orientation_2 = 90.0
-
-    ego_vehicle_2 = Vehicle(idm_2, route_2, ego_position_2, ego_speed_2,
-                            ego_size, ego_major_axis_2, ego_minor_axis_2, ego_orientation_2)
-    lead_vehicle_2 = Vehicle(idm_2, route_2, lead_position_2, lead_speed_2,
-                             lead_size, lead_major_axis_2, lead_minor_axis_2, lead_orientation_2)
-
-    return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2
+    return ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2, ego_vehicle_3, lead_vehicle_3, ego_vehicle_4, lead_vehicle_4
 
 
 def update(
@@ -228,7 +230,7 @@ if __name__ == "__main__":
     sim_time = 10
 
     # get initial vehicle information
-    ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2 = get_vehicle_info()
+    ego_vehicle_1, lead_vehicle_1, ego_vehicle_2, lead_vehicle_2, ego_vehicle_3, lead_vehicle_3, ego_vehicle_4, lead_vehicle_4 = get_vehicle_info()
 
     # uncertainity type
     uncertainity = args.uncertainity_type
@@ -285,6 +287,10 @@ if __name__ == "__main__":
                 ego_vehicle_1, lead_vehicle_1, time_horizon, time_step)
             ego_predictions_with_elliptical_noise_2, lead_predictions_with_elliptical_noise_2 = elliptical_predictions(
                 ego_vehicle_2, lead_vehicle_2, time_horizon, time_step)
+            ego_predictions_with_elliptical_noise_3, lead_predictions_with_elliptical_noise_3 = elliptical_predictions(
+                ego_vehicle_3, lead_vehicle_3, time_horizon, time_step)
+            ego_predictions_with_elliptical_noise_4, lead_predictions_with_elliptical_noise_4 = elliptical_predictions(
+                ego_vehicle_4, lead_vehicle_4, time_horizon, time_step)
 
             # elliptical overlap check
             for time_ in range(time_horizon):
@@ -292,6 +298,11 @@ if __name__ == "__main__":
                     ego_predictions_with_elliptical_noise_1[time_], lead_predictions_with_elliptical_noise_1[time_])
                 overlap_area_2 = elliptical_overlap(
                     ego_predictions_with_elliptical_noise_2[time_], lead_predictions_with_elliptical_noise_2[time_])
+                overlap_area_3 = elliptical_overlap(
+                    ego_predictions_with_elliptical_noise_3[time_], lead_predictions_with_elliptical_noise_3[time_])
+                overlap_area_4 = elliptical_overlap(
+                    ego_predictions_with_elliptical_noise_4[time_], lead_predictions_with_elliptical_noise_4[time_])
+
 
                 if to_plot:
                     ellipse_plotter(
@@ -306,15 +317,23 @@ if __name__ == "__main__":
                 if overlap_area_2 > 0.1:
                     print("collision probability for ego 2:", overlap_area_2,
                           "after:", time_*time_step, "seconds!")
+                    
+                if overlap_area_3 > 0.1:
+                    print("collision probability for ego 3:", overlap_area_3,
+                          "after:", time_*time_step, "seconds!")
+                    
+                if overlap_area_4 > 0.1:
+                    print("collision probability for ego 4:", overlap_area_4,
+                          "after:", time_*time_step, "seconds!")
 
         # time to collision evaluation
-        TTC_1 = time_to_collision(
-            ego_vehicle_1.position, ego_vehicle_1.velocity, lead_vehicle_1.position, lead_vehicle_1.velocity)
-        print("time to collision for ego 1:", TTC_1, "seconds!")
+        # TTC_1 = time_to_collision(
+        #     ego_vehicle_1.position, ego_vehicle_1.velocity, lead_vehicle_1.position, lead_vehicle_1.velocity)
+        # print("time to collision for ego 1:", TTC_1, "seconds!")
 
-        TTC_2 = time_to_collision(
-            ego_vehicle_2.position, ego_vehicle_2.velocity, lead_vehicle_2.position, lead_vehicle_2.velocity)
-        print("time to collision for ego 2:", TTC_2, "seconds!")
+        # TTC_2 = time_to_collision(
+        #     ego_vehicle_2.position, ego_vehicle_2.velocity, lead_vehicle_2.position, lead_vehicle_2.velocity)
+        # print("time to collision for ego 2:", TTC_2, "seconds!")
 
         # prediction end time
         end_time = time.time()
@@ -330,6 +349,10 @@ if __name__ == "__main__":
         lead_vehicle_1 = update(lead_vehicle_1, time_move)
         ego_vehicle_2 = update(ego_vehicle_2, time_move)
         lead_vehicle_2 = update(lead_vehicle_2, time_move)
+        ego_vehicle_3 = update(ego_vehicle_3, time_move)
+        lead_vehicle_3 = update(lead_vehicle_3, time_move)
+        ego_vehicle_4 = update(ego_vehicle_4, time_move)
+        lead_vehicle_4 = update(lead_vehicle_4, time_move)
 
         print("-------------------------------------")
 
