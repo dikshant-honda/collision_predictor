@@ -286,6 +286,9 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     # ax.axis('equal')
 
+    # evaluation time
+    total_time = 0
+
     for step in range(sim_time):
         # prediction start time
         start_time = time.time()
@@ -333,16 +336,16 @@ if __name__ == "__main__":
                     uncertainity, obstacle, time_horizon, time_step)
 
             # circular overlap check
-            for time_ in range(time_horizon):
+            for t in range(time_horizon):
                 overlap_area = circular_overlap(
-                    ego_predictions_with_circular_noise[time_], lead_predictions_with_circular_noise[time_])
+                    ego_predictions_with_circular_noise[t], lead_predictions_with_circular_noise[t])
 
                 if to_plot:
                     circle_plotter(
-                        ax, ego_predictions_with_circular_noise[time_], lead_predictions_with_circular_noise[time_])
+                        ax, ego_predictions_with_circular_noise[t], lead_predictions_with_circular_noise[t])
 
                     circular_traffic_plotter(
-                        ax, obstacle_predictions_with_noise[time_])
+                        ax, obstacle_predictions_with_noise[t])
 
                     # plot all the curves
                     plt.draw()
@@ -350,32 +353,31 @@ if __name__ == "__main__":
 
                 if overlap_area > 0.1:
                     print("collision probability for ego:", overlap_area,
-                          "after:", time_*time_step, "seconds!")
+                          "after:", t*time_step, "seconds!")
 
         if uncertainity == "elliptical":
             ego_predictions_with_elliptical_noise, lead_predictions_with_elliptical_noise = elliptical_predictions(
                 ego_vehicle, lead_vehicle, time_horizon, time_step)
 
             if obstacle != lead_vehicle:
-                print("no interference till now")
                 obstacle_predictions_with_noise = obstacle_predictions(
                     uncertainity, obstacle, time_horizon, time_step)
 
             # elliptical overlap check
-            for time_ in range(time_horizon):
+            for t in range(time_horizon):
                 overlap_area = elliptical_overlap(
-                    ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
+                    ego_predictions_with_elliptical_noise[t], lead_predictions_with_elliptical_noise[t])
 
                 if to_plot:
                     ellipse_plotter(
-                        ax, ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
+                        ax, ego_predictions_with_elliptical_noise[t], lead_predictions_with_elliptical_noise[t])
 
                     if switch:
                         elliptical_traffic_plotter(
-                            ax, obstacle_predictions_with_noise[time_], color='g')
+                            ax, obstacle_predictions_with_noise[t], color='g')
                     else:
                         elliptical_traffic_plotter(
-                            ax, obstacle_predictions_with_noise[time_], color='c')
+                            ax, obstacle_predictions_with_noise[t], color='c')
 
                     # plot all the curves
                     plt.draw()
@@ -383,7 +385,7 @@ if __name__ == "__main__":
 
                 if overlap_area > 0.1:
                     print("collision probability for ego:", overlap_area,
-                          "after:", time_*time_step, "seconds!")
+                          "after:", t*time_step, "seconds!")
 
         # time to collision evaluation
         # TTC = time_to_collision(
@@ -397,12 +399,16 @@ if __name__ == "__main__":
 
         print("prediction time:", prediction_time)
 
+        total_time += prediction_time
+
         # take a step in the real world
         ego_vehicle = update(ego_vehicle, time_move)
         lead_vehicle = update(lead_vehicle, time_move)
         obstacle = update(obstacle, time_move)
 
         print("-------------------------------------")
+
+    print("average computation time:", total_time / sim_time)
 
     if to_plot:
         plt.show()
