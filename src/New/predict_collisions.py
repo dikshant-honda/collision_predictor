@@ -272,6 +272,9 @@ if __name__ == "__main__":
     time_move = 1
     sim_time = 10
 
+    # switch 
+    switch = False
+
     # get initial vehicle information
     ego_vehicle, lead_vehicle, obstacle = get_vehicle_info()
 
@@ -309,6 +312,7 @@ if __name__ == "__main__":
 
         if point_distance(ego_vehicle.position, lead_vehicle.position) > point_distance(ego_vehicle.position, obstacle.position):
             print("switching the lead vehicle")
+            switch = True
             lead_vehicle, obstacle = obstacle, lead_vehicle
 
         # plot the positions
@@ -366,8 +370,12 @@ if __name__ == "__main__":
                     ellipse_plotter(
                         ax, ego_predictions_with_elliptical_noise[time_], lead_predictions_with_elliptical_noise[time_])
 
-                    elliptical_traffic_plotter(
-                        ax, obstacle_predictions_with_noise[time_])
+                    if switch:
+                        elliptical_traffic_plotter(
+                            ax, obstacle_predictions_with_noise[time_], color='g')
+                    else:
+                        elliptical_traffic_plotter(
+                            ax, obstacle_predictions_with_noise[time_], color='c')
 
                     # plot all the curves
                     plt.draw()

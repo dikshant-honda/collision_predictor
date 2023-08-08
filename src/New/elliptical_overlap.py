@@ -93,6 +93,7 @@ def plotter(
 def traffic_plotter(
         ax,
         traffic_data: list,
+        color: str,
 ) -> None:
     """
     Function to visualize a traffic vehicle
@@ -105,7 +106,7 @@ def traffic_plotter(
 
     traffic_x, traffic_y = coords_to_list(traffic)
 
-    ax.plot(traffic_x, traffic_y, 'c')
+    ax.plot(traffic_x, traffic_y, color)
 
     return
 
