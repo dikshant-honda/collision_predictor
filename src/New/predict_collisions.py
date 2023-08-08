@@ -281,7 +281,7 @@ if __name__ == "__main__":
     # plotting tool
     to_plot = args.plot
     fig, ax = plt.subplots()
-    ax.axis('equal')
+    # ax.axis('equal')
 
     for step in range(sim_time):
         # prediction start time
@@ -292,8 +292,8 @@ if __name__ == "__main__":
         # visualization parameters
         ax.set_xlabel("x(m)")
         ax.set_ylabel("y(m)")
-        ax.set_xlim(-50, 50)
-        ax.set_ylim(-40, 90)
+        ax.set_xlim(-70, 30)
+        ax.set_ylim(-40, 70)
 
         # plot the environment
         if to_plot:
