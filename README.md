@@ -18,7 +18,7 @@
 
 #### Setup:
 
-'''bash
+```bash
 cd collision_predictor/src/
 python3 setup.py install --user
-'''
+```
