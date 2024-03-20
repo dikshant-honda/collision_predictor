@@ -59,6 +59,7 @@ add_message_files(
   VehicleState.msg
   Environment.msg
   vehicle.msg
+  environment.msg
 )
 
 
