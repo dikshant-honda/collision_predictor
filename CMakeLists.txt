@@ -58,6 +58,7 @@ add_message_files(
   collision.msg
   VehicleState.msg
   Environment.msg
+  vehicle.msg
 )
 
 
