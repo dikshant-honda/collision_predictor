@@ -36,9 +36,9 @@ class Predictions:
 
     def update(self, x, y, direction, speed):
         f_x, f_y = [], []
-        for t in range(10):
-            x = x + direction * np.random.randn() * t * 0.005
-            y = y + direction * speed * t * 0.005
+        for t in range(25):
+            x = x + direction * speed * t * 0.0001
+            y = y + direction * np.random.randn() * t * 0.5
             f_x.append(x)
             f_y.append(y)
         points = self.ls_to_point(f_x, f_y)
@@ -51,34 +51,31 @@ class Predictions:
         return points
 
     def mark(self, id, direction, trajectory):
-        for point in trajectory:
-            marker = Marker()
-            marker.header.frame_id = "map"
-            marker.header.stamp = rospy.get_rostime()
-            marker.ns = "vehicle"
-            marker.id = id.data
-            marker.pose.position.x = point.x
-            marker.pose.position.y = point.y
-            marker.pose.position.z = 0
-            marker.pose.orientation.x = 0
-            marker.pose.orientation.y = 0
-            marker.pose.orientation.z = 0
-            marker.pose.orientation.w = direction.data
-            marker.scale.x = 50.0
-            marker.scale.y = 50.0
-            marker.scale.z = 50.0
+        marker = Marker()
+        marker.header.frame_id = "map"
+        marker.header.stamp = rospy.get_rostime()
+        marker.ns = "vehicle"
+        marker.type = marker.POINTS
+        marker.action = 0
+        marker.id = id.data
+        marker.points = trajectory
+        marker.pose.orientation.w = direction.data
+        marker.scale.x = 20.0
+        marker.scale.y = 20.0
+        marker.scale.z = 20.0
 
-            if direction.data == 1:
-                marker.color.r = 0.0
-                marker.color.g = 0.0
-                marker.color.b = 1.0
-            else:
-                marker.color.r = 0.0
-                marker.color.g = 1.0
-                marker.color.b = 0.0
-            marker.color.a = 1.0
-            marker.lifetime.nsecs = 75000000
-            markerPub.publish(marker)
+        if direction.data == 1:
+            marker.color.r = 0.0
+            marker.color.g = 0.0
+            marker.color.b = 1.0
+        else:
+            marker.color.r = 0.0
+            marker.color.g = 1.0
+            marker.color.b = 0.0
+        marker.color.a = 1.0
+        marker.lifetime.nsecs = 75000000
+        markerPub.publish(marker)
+        rate.sleep()
 
 
 if __name__ == '__main__':
@@ -86,6 +83,7 @@ if __name__ == '__main__':
     rospy.init_node('predictions', anonymous=True)
     env_pub = rospy.Publisher('predict', environment, queue_size=10)
     markerPub = rospy.Publisher('vehicle', Marker, queue_size=10)
+    rate = rospy.Rate(10000)
     Predictions()
 
     try:
