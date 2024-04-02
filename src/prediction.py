@@ -25,7 +25,7 @@ class Predictions:
         '''
         update this function using various approaches:
         1. predicting the trajectory from the past data
-        2. constant velocity assumption
+        2. constant velocity assumption # done
         3. using frenet function to make use of the lane information
         4. using intelligent driver model (IDM)
         '''
@@ -36,16 +36,16 @@ class Predictions:
 
     def update(self, x, y, direction, speed):
         f_x, f_y = [], []
-        for t in range(25):
-            x = x + direction * speed * t * 0.0001
-            y = y + direction * np.random.randn() * t * 0.5
+        for t in range(30):
+            x = x  + direction * np.random.randn() * t * 0.005
+            y = y - direction * speed * t * 0.005   # why inverted ??
             f_x.append(x)
             f_y.append(y)
         points = self.ls_to_point(f_x, f_y)
         return points
 
     def ls_to_point(self, ls_x, ls_y):
-        points = []
+        points = [] 
         for i in range(len(ls_x)):
             points.append(Point(ls_x[i], ls_y[i], 0))
         return points
@@ -60,9 +60,9 @@ class Predictions:
         marker.id = id.data
         marker.points = trajectory
         marker.pose.orientation.w = direction.data
-        marker.scale.x = 20.0
-        marker.scale.y = 20.0
-        marker.scale.z = 20.0
+        marker.scale.x = 10.0
+        marker.scale.y = 10.0
+        marker.scale.z = 10.0
 
         if direction.data == 1:
             marker.color.r = 0.0
@@ -71,7 +71,7 @@ class Predictions:
         else:
             marker.color.r = 0.0
             marker.color.g = 1.0
-            marker.color.b = 0.0
+            marker.color.b = 1.0
         marker.color.a = 1.0
         marker.lifetime.nsecs = 75000000
         markerPub.publish(marker)
