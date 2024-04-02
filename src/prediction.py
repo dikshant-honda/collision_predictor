@@ -31,21 +31,22 @@ class Predictions:
         '''
         vehicle_info.future_trajectory = self.update(
             vehicle_info.x_position.data, vehicle_info.y_position.data, vehicle_info.direction.data, vehicle_info.speed.data)
-        self.mark(vehicle_info.id, vehicle_info.direction, vehicle_info.future_trajectory)
+        self.mark(vehicle_info.id, vehicle_info.direction,
+                  vehicle_info.future_trajectory)
         return vehicle_info
 
     def update(self, x, y, direction, speed):
         f_x, f_y = [], []
         for t in range(30):
-            x = x  + direction * np.random.randn() * t * 0.005
-            y = y - direction * speed * t * 0.005   # why inverted ??
+            x = x + direction * np.random.randn() * t * 0.005
+            y = y + direction * speed * t * 0.005   
             f_x.append(x)
             f_y.append(y)
         points = self.ls_to_point(f_x, f_y)
         return points
 
     def ls_to_point(self, ls_x, ls_y):
-        points = [] 
+        points = []
         for i in range(len(ls_x)):
             points.append(Point(ls_x[i], ls_y[i], 0))
         return points
