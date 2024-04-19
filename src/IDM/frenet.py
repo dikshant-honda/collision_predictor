@@ -4,7 +4,7 @@ import bisect
 import math
 
 import numpy as np
-from numpy.typing import NDArray
+from numpy import ndarray
 
 
 class Point2D:
@@ -101,7 +101,7 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
 
 def get_s_map(
     path: list,
-) -> NDArray[np.float64]:
+) -> ndarray[np.float64]:
     """
     function to get the s-map in Frenet coordinate system.
     it will accumulate the distance along the curve taking origin as the vehicle current position.
@@ -148,7 +148,7 @@ def closest_point_ind(
 def get_frenet(
         point: Point2D,
         path: list,
-        s_map: NDArray[np.float64],
+        s_map: ndarray[np.float64],
 ) -> Frenet:
     """
     function to convert cartesian coordinates system to frenet coordinate system
@@ -211,7 +211,7 @@ def get_frenet(
 def get_xy(
         point: Frenet,
         path: list,
-        s_map: NDArray[np.float64],
+        s_map: ndarray[np.float64],
 ) -> Point2D:
     """
     function to convert frenet coordinates system to cartesian coordinates system

@@ -4,7 +4,7 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
+from numpy import ndarray
 
 from IDM.frenet import *
 from IDM.path import Path
@@ -41,8 +41,8 @@ class IDM:
 
     def calculate_acceleration(
             self,
-            ego_vehicle_speed: NDArray[np.float64],
-            lead_vehicle_speed: NDArray[np.float64],
+            ego_vehicle_speed: ndarray[np.float64],
+            lead_vehicle_speed: ndarray[np.float64],
             ego_vehicle_distance: float,
     ) -> float:
         """
