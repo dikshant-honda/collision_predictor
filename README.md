@@ -10,7 +10,37 @@
 Other two systems are also efficient but computationally a bit expensive. 
 
 #### Setup:
+Working environment: Ubuntu 20.04
 
+ROS Noetic installation
+```bash
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo apt install curl # if you haven't already installed curl
+curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+sudo apt update
+sudo apt install ros-noetic-desktop-full
+apt search ros-noetic
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+sudo rosdep init
+rosdep update
+```
+setup catkin workspace
+```bash
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/
+echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+catkin_make
+```
+clone this repository
+```bash
+cd ~/catkin_ws/src/
+git clone https://github.com/dikshant-honda/collision_predictor.git
+cd..
+catkin_make
+```
+additional setup/installation
 ```bash
 pip install shapely
 cd collision_predictor/src/
