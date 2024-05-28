@@ -33,6 +33,7 @@ class Predictions:
             vehicle_info.x_position.data, vehicle_info.y_position.data, vehicle_info.direction.data, vehicle_info.speed.data)
         self.mark(vehicle_info.id, vehicle_info.direction,
                   vehicle_info.future_trajectory)
+        self.markLanes(vehicle_info)
         return vehicle_info
 
     def point_on_lane(self, start, end, point):
@@ -87,15 +88,38 @@ class Predictions:
         markerPub.publish(marker)
         rate.sleep()
 
+    def markLanes(self, vehicle_info: vehicle):
+        marker = Marker()
+        marker.header.frame_id = "map"
+        marker.header.stamp = rospy.get_rostime()
+        marker.ns = "lanes"
+        marker.type = marker.POINTS
+        marker.action = 0
+        lane_info = Lanes()
+        lanes_x, lanes_y = lane_info.build_lane(vehicle_info.start_point, vehicle_info.end_point)
+        lanes = self.ls_to_point(lanes_x, lanes_y)
+        marker.points = lanes
+        marker.scale.x = 10.0
+        marker.scale.y = 10.0
+        marker.scale.z = 10.0
+        marker.color.r = 1.0
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+        marker.color.a = 1.0
+        marker.lifetime.nsecs = 75000000
+        markerPub.publish(marker)
+        rate.sleep()
+
 
 class Lanes:
     def __init__(self) -> None:
         pass
 
-    def build_lane(self, start, end, num_points):
-        x = np.linspace(start.x, end.x, num_points)
-        y = np.linspace(start.y, end.y, num_points)
-        return list(zip(x, y))
+    def build_lane(self, start: Point, end: Point, num_points=100):
+        x_ = np.linspace(start.x, end.x, num_points)
+        y_ = np.linspace(start.y, end.y, num_points)
+        # return list(zip(x_, y_))    # update later
+        return x_, y_
 
     def distance(self, x1, y1, x2, y2):
         return np.sqrt((x1-x2)**2 + (y1-y2)**2)
@@ -125,6 +149,7 @@ if __name__ == '__main__':
     rospy.init_node('predictions', anonymous=True)
     env_pub = rospy.Publisher('predict', environment, queue_size=10)
     markerPub = rospy.Publisher('vehicle', Marker, queue_size=10)
+    centerLaneMarker = rospy.Publisher('lanes', Marker, queue_size=10)
     rate = rospy.Rate(10000)
     Predictions()
 
