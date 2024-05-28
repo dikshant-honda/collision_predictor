@@ -2,6 +2,7 @@
 
 import rospy
 import numpy as np
+import bisect
 
 from geometry_msgs.msg import Point
 from collision_predictor.msg import vehicle, environment
@@ -27,7 +28,6 @@ class Predictions:
         1. predicting the trajectory from the past data
         2. constant velocity assumption # done
         3. using frenet function to make use of the lane information
-        4. using intelligent driver model (IDM)
         '''
         vehicle_info.future_trajectory = self.update(
             vehicle_info.x_position.data, vehicle_info.y_position.data, vehicle_info.direction.data, vehicle_info.speed.data)
@@ -35,11 +35,20 @@ class Predictions:
                   vehicle_info.future_trajectory)
         return vehicle_info
 
+    def point_on_lane(self, start, end, point):
+        dx, dy = end[0] - start[0], end[1] - start[1]
+        det = dx*dx + dy*dy
+        a = (dy*(point[1]-start[1]) + dx*(point[0]-start[0])) / det
+        return start[0] + a*dx, start[1] + a*dy
+
+    def closest_index(self, lane, x, y):
+        return bisect.bisect_left(lane, (x, y))
+
     def update(self, x, y, direction, speed):
         f_x, f_y = [], []
         for t in range(30):
             x = x + direction * np.random.randn() * t * 0.005
-            y = y + direction * speed * t * 0.005   
+            y = y + direction * speed * t * 0.005
             f_x.append(x)
             f_y.append(y)
         points = self.ls_to_point(f_x, f_y)
@@ -77,6 +86,38 @@ class Predictions:
         marker.lifetime.nsecs = 75000000
         markerPub.publish(marker)
         rate.sleep()
+
+
+class Lanes:
+    def __init__(self) -> None:
+        pass
+
+    def build_lane(self, start, end, num_points):
+        x = np.linspace(start.x, end.x, num_points)
+        y = np.linspace(start.y, end.y, num_points)
+        return list(zip(x, y))
+
+    def distance(self, x1, y1, x2, y2):
+        return np.sqrt((x1-x2)**2 + (y1-y2)**2)
+
+    def get_s_map(self, lane):
+        s_map = np.array([], dtype=np.float64)
+        accumulated_distance = 0.0
+        prev_point = None
+        for point in lane:
+            if prev_point != None:
+                accumulated_distance += self.distance(
+                    prev_point[0], prev_point[1], point[0], point[1])
+            s_map = np.append(s_map, accumulated_distance)
+            prev_point = point
+
+        return s_map
+
+
+class Frenet:
+    def __init__(self, s=0, d=0):
+        self.s = s
+        self.d = d
 
 
 if __name__ == '__main__':
