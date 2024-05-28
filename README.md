@@ -17,16 +17,20 @@ cd collision_predictor/src/
 python3 setup.py install --user
 ```
 
+❗`src/prediction.py` contains the relevant code for future trajectory predictions
+
 #### Usage:
 > **Inputs: vehicle dynamics (position, velocity, orientation data) and lane information - received from the perception system**
 
-Position: 3D object position (x, y, z) - currently we are getting -> (x,y,0) from the perception system, please check this [perception module code](https://github.com/dikshant-honda/Multi-vehicle-tracking/blob/main/detection.py) to check how to send this information.
+Position: 3D object position (x, y, z) - currently we are getting -> (x,y,0)
 
 Velocity: 2D velocity data (v_x, v_y)
 
-Orientation data: direction of the vehicle (left, right, up, down) with respect to frame -> (moving left, moving right, away from the camera, towards the camera)
+Orientation: direction of the vehicle (left, right, up, down) with respect to frame -> (moving left, moving right, away from the camera, towards the camera)
 
 Lane information: lane center information ([x, y] - 2D list)
+
+> check this [perception module code](https://github.com/dikshant-honda/Multi-vehicle-tracking/blob/main/detection.py) to check how to send this information, using ROS Noetic to send the messages
 
 
 > **Outputs: Predicted future trajectory per time step of all the vehicles**
@@ -49,5 +53,5 @@ Procedure:
 * *py_msgs* folder contains custom ros messages for testing, they are not used in the main script
 * *python_scripts* folder contains information about testing the frenet conversion system using python only
 * *robot* folder contains the xacro file for the custom robot
-* *src* folder contains all the relevant codes for both approaches as discussed above
+* *src* folder contains all the relevant codes for all approaches as discussed above
 * *worlds* folder contains the sdf files for different gazebo worlds
