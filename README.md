@@ -49,6 +49,15 @@ python3 setup.py install --user
 
 ❗`src/prediction.py` contains the relevant code for future trajectory predictions
 
+run each command in different terminals
+```bash
+roscore
+python detection.py --weights best.pt --source video.mp4  --view-img --save-txt --no-trace
+rosrun integration_module integration.py
+rosrun collision_predictor prediction.py
+rviz
+```
+
 #### Usage:
 > **Inputs: vehicle dynamics (position, velocity, orientation data) and lane information - received from the perception system**
 
