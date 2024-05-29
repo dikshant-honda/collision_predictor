@@ -23,6 +23,7 @@ conda activate multi
 setup catkin workspace for ROS
 ```bash
 mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src/
 ```
 
 clone this repo
