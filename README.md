@@ -32,6 +32,9 @@ git clone https://github.com/dikshant-honda/collision_predictor.git
 cd ~/catkin_ws/src/collision_predictor
 chmod +x install.sh
 sudo ./install.sh
+sudo apt install python-is-python3
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 4. Install conda using the following link: [conda installation guide](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
@@ -44,7 +47,7 @@ conda activate multi
 
 5. install python packages
 ```bash
-pip install shapely
+pip install shapely rospkg 
 pip install -r requirements.txt
 ```
 
@@ -71,15 +74,17 @@ python3 setup.py install --user
 ```bash
 roscore
 ---------------------------------------------------
-conda activate multi
-cd ~/catkin_ws/src/multi_vehicle_tracking/src/Multi-vehicle-tracking
-python detection.py --weights best.pt --source video.mp4  --view-img --save-txt --no-trace
----------------------------------------------------
+source ~/catkin_ws/devel/setup.bash
+cd ~/catkin_ws/src/collision_predictor/src
+chmod +x prediction.py
 rosrun collision_predictor prediction.py
+---------------------------------------------------
+conda activate multi
+cd ~/catkin_ws/src/Multi-vehicle-tracking
+python detection.py --weights best.pt --source video.mp4  --view-img --save-txt --no-trace
 ---------------------------------------------------
 rviz -d ~/catkin_ws/src/collision_predictor/visualize.rviz
 ```
-
 -----------------------------------------------------------------------------
 
 ❗`src/prediction.py` contains the relevant code for future trajectory predictions
