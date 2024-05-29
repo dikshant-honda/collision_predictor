@@ -66,7 +66,7 @@ catkin_make
 
 8. additional setup
 ```bash
-cd collision_predictor/src/
+cd ~/catkin_ws/src/collision_predictor/src/
 python3 setup.py install --user
 ```
 
