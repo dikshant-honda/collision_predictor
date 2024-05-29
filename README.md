@@ -65,7 +65,7 @@ python detection.py --weights best.pt --source video.mp4  --view-img --save-txt 
 ---------------------------------------------------
 rosrun collision_predictor prediction.py
 ---------------------------------------------------
-rviz
+rviz -d ~/catkin_ws/src/collision_predictor/visualize.rviz
 ```
 -----------------------------------------------------------------------------
 
