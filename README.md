@@ -51,16 +51,27 @@ pip install shapely rospkg
 pip install -r requirements.txt
 ```
 
-6. clone the perception repository
+6. create catkin pacakge for perception module
 ```bash
 cd ~/catkin_ws/src/
+catkin_create_pkg multi_vehicle_tracking rospy roscpp
+```
+
+6. clone the perception repository
+```bash
+cd ~/catkin_ws/src/multi_vehicle_tracking/src
 git clone https://github.com/dikshant-honda/Multi-vehicle-tracking
+cd  Multi-vehicle-tracking/
+wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-e6e.pt
+sudo cp -r msg/ ../../
+sudo cp CMakeLists.txt ../../
+sudo cp package.xml ../../
 ```
 
 7. catkin setup
 ```bash
-cd..
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+cd ~/catkin_ws/
 catkin_make
 ```
 
@@ -69,8 +80,8 @@ catkin_make
 cd ~/catkin_ws/src/collision_predictor/src/
 python3 setup.py install --user
 ```
-
-9. run each command in four different terminals (commands are separated by ----- )
+    
+11. run each command in four different terminals (commands are separated by ----- )
 ```bash
 roscore
 ---------------------------------------------------
@@ -80,8 +91,8 @@ chmod +x prediction.py
 rosrun collision_predictor prediction.py
 ---------------------------------------------------
 conda activate multi
-cd ~/catkin_ws/src/Multi-vehicle-tracking
-python detection.py --weights best.pt --source video.mp4  --view-img --save-txt --no-trace
+cd ~/catkin_ws/src/multi_vehicle_tracking/src/Multi-vehicle-tracking
+python detection.py --weights yolov7-e6e.pt --source video.mp4  --view-img --save-txt --no-trace
 ---------------------------------------------------
 rviz -d ~/catkin_ws/src/collision_predictor/visualize.rviz
 ```
