@@ -30,11 +30,18 @@ clone this repo
 ```bash
 git clone https://github.com/dikshant-honda/collision_predictor.git
 ```
-environment setup
+
+ros environment setup
 ```bash
 cd ~/catkin_ws/src/collision_predictor
 chmod +x install.sh
 sudo ./install.sh
+```
+
+install python packages
+```bash
+pip install shapely
+pip install -r requirements.txt
 ```
 
 clone these repositories
