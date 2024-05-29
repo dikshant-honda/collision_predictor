@@ -13,59 +13,61 @@ Other two systems are also efficient but computationally a bit expensive.
 
 #### Setup:
 Working environment: Ubuntu 20.04
-Install conda using the following link: [conda installation guide](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
 
-```bash
-conda create --name multi python=3.8
-conda activate multi
-```
+Follow this step-by-step procedure:
 
-setup catkin workspace for ROS
+1. setup catkin workspace for ROS
 ```bash
 mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws/src/
 ```
 
-clone this repo
+2. clone this repo
 ```bash
 git clone https://github.com/dikshant-honda/collision_predictor.git
 ```
 
-ros environment setup
+3. ros environment setup
 ```bash
 cd ~/catkin_ws/src/collision_predictor
 chmod +x install.sh
 sudo ./install.sh
 ```
 
-install python packages
+4. Install conda using the following link: [conda installation guide](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+
+setup conda environment
+```bash
+conda create --name multi python=3.8
+conda activate multi
+```
+
+5. install python packages
 ```bash
 pip install shapely
 pip install -r requirements.txt
 ```
 
-clone these repositories
+6. clone the perception repository
 ```bash
 cd ~/catkin_ws/src/
 git clone https://github.com/dikshant-honda/Multi-vehicle-tracking
 ```
 
-catkin setup
+7. catkin setup
 ```bash
 cd..
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 catkin_make
 ```
 
-additional setup
+8. additional setup
 ```bash
 cd collision_predictor/src/
 python3 setup.py install --user
 ```
 
-❗`src/prediction.py` contains the relevant code for future trajectory predictions
-
-run each command in four different terminals (commands are separated by ----- )
+9. run each command in four different terminals (commands are separated by ----- )
 ```bash
 roscore
 ---------------------------------------------------
@@ -77,6 +79,11 @@ rosrun collision_predictor prediction.py
 ---------------------------------------------------
 rviz -d ~/catkin_ws/src/collision_predictor/visualize.rviz
 ```
+
+-----------------------------------------------------------------------------
+
+❗`src/prediction.py` contains the relevant code for future trajectory predictions
+
 -----------------------------------------------------------------------------
 
 #### Usage:
