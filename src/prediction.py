@@ -3,6 +3,7 @@
 import rospy
 import numpy as np
 import bisect
+from typing import List
 
 from geometry_msgs.msg import Point
 from multi_vehicle_tracking.msg import queue
@@ -14,55 +15,57 @@ class Predictions:
     def __init__(self) -> None:
         self.sub = rospy.Subscriber('env_info', queue, self.callback)
         self.lanes = Lanes()
+        self.time_steps = 50
 
     def callback(self, data):
         self.env = data
         self.get_vehicle_data(self.env)
 
-    def get_vehicle_data(self, env: queue):
+    def get_vehicle_data(self, env: queue) -> queue:
         for vehicle_info in env.info:
             vehicle_info = self.get_future_trajectory(vehicle_info)
         env_pub.publish(env)
 
-    def get_future_trajectory(self, vehicle_info: vehicle):
-        vehicle_info.future_trajectory = self.update(
-            vehicle_info.x_position.data, vehicle_info.y_position.data, vehicle_info.direction.data, vehicle_info.speed.data)
+    def get_future_trajectory(self, vehicle_info: vehicle) -> vehicle:
+        vehicle_info.future_trajectory = self.update(self.time_steps,
+                                                     vehicle_info.x_position.data, vehicle_info.y_position.data, vehicle_info.direction.data, vehicle_info.speed.data)
         self.mark(vehicle_info.id, vehicle_info.direction,
                   vehicle_info.future_trajectory)
+        self.true_predictions = self.add_noise(
+            self.time_steps, vehicle_info.future_trajectory, vehicle_info.speed.data, 5)
         return vehicle_info
 
-    def point_on_lane(self, start, end, point):
+    def point_on_lane(self, start: List[float], end: List[float], point: List[float]) -> List[float]:
         dx, dy = end[0] - start[0], end[1] - start[1]
         det = dx*dx + dy*dy
         a = (dy*(point[1]-start[1]) + dx*(point[0]-start[0])) / det
         return start[0] + a*dx, start[1] + a*dy
 
-    def closest_index(self, lane, x, y):
+    def closest_index(self, lane: List[List[float]], x: int, y: int) -> int:
         return bisect.bisect_left(lane, (x, y))
 
-    def update(self, x, y, direction, speed):
+    def update(self, time: int, x: float, y: float, direction: int, speed: float) -> List[Point]:
         f_x, f_y = [], []
-        t = 50
         if direction == 0:  # up
-            for t in range(t):
+            for t in range(time):
                 x = x + np.random.randn() * t * 0.005
                 y = y + speed * t * 0.005
                 f_x.append(x)
                 f_y.append(y)
         elif direction == 1:  # down
-            for t in range(t):
+            for t in range(time):
                 x = x + np.random.randn() * t * 0.005
                 y = y - speed * t * 0.005
                 f_x.append(x)
                 f_y.append(y)
         elif direction == 2:  # right
-            for t in range(t):
+            for t in range(time):
                 x = x + speed * t * 0.005
                 y = y + np.random.randn() * t * 0.005
                 f_x.append(x)
                 f_y.append(y)
         else:  # left
-            for t in range(t):
+            for t in range(time):
                 x = x - speed * t * 0.005
                 y = y + np.random.randn() * t * 0.005
                 f_x.append(x)
@@ -71,11 +74,37 @@ class Predictions:
         points = self.ls_to_point(f_x, f_y)
         return points
 
-    def ls_to_point(self, ls_x, ls_y):
+    def ls_to_point(self, ls_x: List[float], ls_y: List[float]) -> List[Point]:
         points = []
         for i in range(len(ls_x)):
             points.append(Point(ls_x[i], ls_y[i], 0))
         return points
+
+    def add_noise(self, time_steps: int, trajectory: List[List[float]], velocity: float, radius: float, growth_rate: float = 1.0) -> List:
+        """
+        function to aodd circular noise to the future predicted position 
+
+        returns a list of circular noise and time step: [noise(trajectory), time]
+
+        args:
+            time_steps: horizon length
+            trajectory: future trajectory estimated 
+            velocity: current velocity of the vehicle
+            radius: noise size, initialized roughly by the size of the vehicle
+            growth_rate: growth rate of the noise due to increase in uncertainity in the future
+        """
+
+        noise = []
+
+        for time in range(time_steps):
+            if growth_rate < 1.4:
+                growth_rate += velocity * (time/50)
+
+            size = growth_rate * radius
+
+            noise.append([trajectory[time], size])
+
+        return noise
 
     def mark(self, id, direction, trajectory):
         marker = Marker()
@@ -121,7 +150,7 @@ class Lanes:
                                            [730.85281032, 254.21177936, 84.52455505, 257.48031548]]))
         # self.markLanes()
 
-    def get_lane(self, vehicle):
+    def get_lane(self, vehicle: vehicle) -> List[float]:
         for line in self.mid_lanes:
             p1 = np.array([line[0], line[1]])
             p2 = np.array([line[2], line[3]])
@@ -135,13 +164,13 @@ class Lanes:
                 d = dist
         return start_point, end_point
 
-    def build_lane(self, start: Point, end: Point, num_points=100):
+    def build_lane(self, start: Point, end: Point, num_points=100) -> List[List[float]]:
         x_ = np.linspace(start.x, end.x, num_points)
         y_ = np.linspace(start.y, end.y, num_points)
         # return list(zip(x_, y_))    # update later
         return x_, y_
 
-    def distance(self, x1, y1, x2, y2):
+    def distance(self, x1: float, y1: float, x2: float, y2: float) -> float:
         return np.sqrt((x1-x2)**2 + (y1-y2)**2)
 
     def markLanes(self, vehicle_info: vehicle):
