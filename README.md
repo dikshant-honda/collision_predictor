@@ -57,31 +57,37 @@ cd ~/catkin_ws/src/
 catkin_create_pkg multi_vehicle_tracking rospy roscpp
 ```
 
-6. clone the perception repository
+6. clone the perception repository, download the weights 
 ```bash
 cd ~/catkin_ws/src/multi_vehicle_tracking/src
 git clone https://github.com/dikshant-honda/Multi-vehicle-tracking
 cd  Multi-vehicle-tracking/
 wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-e6e.pt
+```
+
+7. configuration files for ros
+```bash
+sudo apt-get update
+cd ~/catkin_ws/src/multi_vehicle_tracking/src/Multi-vehicle-tracking
 sudo cp -r msg/ ../../
 sudo cp CMakeLists.txt ../../
 sudo cp package.xml ../../
 ```
 
-7. catkin setup
+8. catkin setup
 ```bash
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 cd ~/catkin_ws/
 catkin_make
 ```
 
-8. additional setup
+9. additional setup
 ```bash
 cd ~/catkin_ws/src/collision_predictor/src/
 python3 setup.py install --user
 ```
     
-11. run each command in four different terminals (commands are separated by ----- )
+10. run each command in four different terminals (commands are separated by ----- )
 ```bash
 roscore
 ---------------------------------------------------
