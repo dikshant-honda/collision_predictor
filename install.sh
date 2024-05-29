@@ -32,9 +32,3 @@ rosdep init
 
 # Update rosdep
 rosdep update
-
-# Install shapely with pip
-pip install shapely
-
-# Install requirements for the perception package
-pip install -r requirements.txt
