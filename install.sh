@@ -18,14 +18,8 @@ apt install -y ros-noetic-desktop-full
 # Search for ROS Noetic packages (optional)
 apt search ros-noetic
 
-# Add ROS setup script to bashrc
-echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
-
-# Source the bashrc to update current shell session
-source ~/.bashrc
-
 # Install additional ROS dependencies
-apt install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+apt install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential python3-rospkg
 
 # Initialize rosdep
 rosdep init
