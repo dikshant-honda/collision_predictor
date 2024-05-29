@@ -9,6 +9,8 @@
 
 Other two systems are also efficient but computationally a bit expensive. 
 
+-----------------------------------------------------------------------------
+
 #### Setup:
 Working environment: Ubuntu 20.04
 
@@ -33,10 +35,14 @@ cd ~/catkin_ws/
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 catkin_make
 ```
-clone this repository
+clone these repositories
 ```bash
 cd ~/catkin_ws/src/
+git clone https://github.com/dikshant-honda/Multi-vehicle-tracking
 git clone https://github.com/dikshant-honda/collision_predictor.git
+```
+catkin setup
+```bash
 cd..
 catkin_make
 ```
@@ -49,17 +55,22 @@ python3 setup.py install --user
 
 ❗`src/prediction.py` contains the relevant code for future trajectory predictions
 
-run each command in different terminals
+run each command in four different terminals (commands are separated by ----- )
 ```bash
 roscore
+---------------------------------------------------
+conda activate multi
+cd ~/catkin_ws/src/multi_vehicle_tracking/src/Multi-vehicle-tracking
 python detection.py --weights best.pt --source video.mp4  --view-img --save-txt --no-trace
-rosrun integration_module integration.py
+---------------------------------------------------
 rosrun collision_predictor prediction.py
+---------------------------------------------------
 rviz
 ```
+-----------------------------------------------------------------------------
 
 #### Usage:
-> **Inputs: vehicle dynamics (position, velocity, orientation data) and lane information - received from the perception system**
+`Inputs: vehicle dynamics (position, velocity, orientation data) and lane information`
 
 Position: 3D object position (x, y, z) - currently we are getting -> (x,y,0)
 
@@ -69,10 +80,8 @@ Orientation: direction of the vehicle (left, right, up, down) with respect to fr
 
 Lane information: lane center information ([x, y] - 2D list)
 
-> check this [perception module code](https://github.com/dikshant-honda/Multi-vehicle-tracking/blob/main/detection.py) to check how to send this information, using ROS Noetic to send the messages
 
-
-> **Outputs: Predicted future trajectory per time step of all the vehicles**
+`Outputs: Predicted future trajectory per time step of all the vehicles`
 
 Procedure:
 1. Receive the current position and check which lane it's closest to
@@ -83,6 +92,7 @@ Procedure:
 7. Check for overlap areas and set the threshold for the collision detection
 8. Alert and give the id of this vehicle to the HMI module
 
+-----------------------------------------------------------------------------
 
 #### Notes:
 ##### Folders information
