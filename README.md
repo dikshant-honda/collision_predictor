@@ -81,6 +81,19 @@ Orientation: direction of the vehicle (left, right, up, down) with respect to fr
 Lane information: lane center information ([x, y] - 2D list)
 
 
+current convention in the code for directions:
+0 - ⬆️, 1 - ⬇️, 2 - ➡️. 3 - ⬅️
+```
+                                                        0
+                                                        ^
+                                                        |
+                                                        |
+                                              3 < -- -- o -- -- > 2
+                                                        |
+                                                        |
+                                                        v
+                                                        1
+```
 `Outputs: Predicted future trajectory per time step of all the vehicles`
 
 Procedure:
