@@ -19,6 +19,10 @@ Install conda using the following link: [conda installation guide](https://docs.
 conda create --name multi python=3.8
 conda activate multi
 ```
+clone this repo
+```bash
+git clone https://github.com/dikshant-honda/collision_predictor.git
+```
 environment setup
 ```bash
 sudo ./install.sh
@@ -36,7 +40,6 @@ clone these repositories
 ```bash
 cd ~/catkin_ws/src/
 git clone https://github.com/dikshant-honda/Multi-vehicle-tracking
-git clone https://github.com/dikshant-honda/collision_predictor.git
 ```
 
 catkin setup
