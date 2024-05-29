@@ -19,21 +19,21 @@ Install conda using the following link: [conda installation guide](https://docs.
 conda create --name multi python=3.8
 conda activate multi
 ```
+
+setup catkin workspace for ROS
+```bash
+mkdir -p ~/catkin_ws/src
+```
+
 clone this repo
 ```bash
 git clone https://github.com/dikshant-honda/collision_predictor.git
 ```
 environment setup
 ```bash
+cd ~/catkin_ws/src/collision_predictor
+chmod +x install.sh
 sudo ./install.sh
-```
-
-setup catkin workspace for ROS
-```bash
-mkdir -p ~/catkin_ws/src
-cd ~/catkin_ws/
-echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
-catkin_make
 ```
 
 clone these repositories
@@ -45,6 +45,7 @@ git clone https://github.com/dikshant-honda/Multi-vehicle-tracking
 catkin setup
 ```bash
 cd..
+echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 catkin_make
 ```
 
