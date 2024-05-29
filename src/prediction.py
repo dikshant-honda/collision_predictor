@@ -5,9 +5,9 @@ import numpy as np
 import bisect
 
 from geometry_msgs.msg import Point
+from multi_vehicle_tracking.msg import queue
 from collision_predictor.msg import vehicle
 from visualization_msgs.msg import Marker
-from multi_vehicle_tracking.msg import queue
 
 
 class Predictions:
@@ -25,12 +25,6 @@ class Predictions:
         env_pub.publish(env)
 
     def get_future_trajectory(self, vehicle_info: vehicle):
-        '''
-        update this function using various approaches:
-        1. predicting the trajectory from the past data
-        2. constant velocity assumption # done
-        3. using frenet function to make use of the lane information
-        '''
         vehicle_info.future_trajectory = self.update(
             vehicle_info.x_position.data, vehicle_info.y_position.data, vehicle_info.direction.data, vehicle_info.speed.data)
         self.mark(vehicle_info.id, vehicle_info.direction,
@@ -48,11 +42,32 @@ class Predictions:
 
     def update(self, x, y, direction, speed):
         f_x, f_y = [], []
-        for t in range(30):
-            x = x + direction * np.random.randn() * t * 0.005
-            y = y + direction * speed * t * 0.005
-            f_x.append(x)
-            f_y.append(y)
+        t = 50
+        if direction == 0:  # up
+            for t in range(t):
+                x = x + np.random.randn() * t * 0.005
+                y = y + speed * t * 0.005
+                f_x.append(x)
+                f_y.append(y)
+        elif direction == 1:  # down
+            for t in range(t):
+                x = x + np.random.randn() * t * 0.005
+                y = y - speed * t * 0.005
+                f_x.append(x)
+                f_y.append(y)
+        elif direction == 2:  # right
+            for t in range(t):
+                x = x + speed * t * 0.005
+                y = y + np.random.randn() * t * 0.005
+                f_x.append(x)
+                f_y.append(y)
+        else:  # left
+            for t in range(t):
+                x = x - speed * t * 0.005
+                y = y + np.random.randn() * t * 0.005
+                f_x.append(x)
+                f_y.append(y)
+
         points = self.ls_to_point(f_x, f_y)
         return points
 
