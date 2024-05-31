@@ -2,7 +2,9 @@
 
 import rospy
 import numpy as np
+import math
 import bisect
+import itertools
 from typing import List
 
 from geometry_msgs.msg import Point
@@ -16,6 +18,7 @@ class Predictions:
         self.sub = rospy.Subscriber('env_info', queue, self.callback)
         self.lanes = Lanes()
         self.time_steps = 50
+        self.max_collision_allowance = 0.1
 
     def callback(self, data):
         self.env = data
@@ -34,6 +37,76 @@ class Predictions:
         self.true_predictions = self.add_noise(
             self.time_steps, vehicle_info.future_trajectory, vehicle_info.speed.data, 5)
         return vehicle_info
+
+    def collision(self, first_vehicle, second_vehicle):
+        for t in range(self.time_steps):
+            overlap_area = self.overlap(first_vehicle[t], second_vehicle[t])
+            if overlap_area > self.max_collision_allowance:
+                return True
+
+    def intersectionArea(self, X1: float, Y1: float, R1: float, X2: float, Y2: float, R2: float) -> float:
+        """
+        calculate the overlap area of two circles
+
+        args: 
+            X1, Y1, R1: (X1, Y1) represents the center of circle1 with radius R1
+            X2, Y2, R2: (X2, Y2) represents the center of circle2 with radius R2
+        """
+
+        np.pi = 3.14
+
+        d = np.sqrt(((X2 - X1) * (X2 - X1)) + ((Y2 - Y1) * (Y2 - Y1)))
+
+        if (d > R1 + R2):
+            ans = 0
+
+        elif (d <= (R1 - R2) and R1 >= R2):
+            ans = math.floor(np.pi * R2 * R2)
+
+        elif (d <= (R2 - R1) and R2 >= R1):
+            ans = math.floor(np.pi * R1 * R1)
+
+        else:
+            alpha = math.acos(
+                ((R1 * R1) + (d * d) - (R2 * R2)) / (2 * R1 * d)) * 2
+            beta = math.acos(
+                ((R2 * R2) + (d * d) - (R1 * R1)) / (2 * R2 * d)) * 2
+
+            a1 = (0.5 * beta * R2 * R2) - (0.5 * R2 * R2 * math.sin(beta))
+            a2 = (0.5 * alpha * R1 * R1) - (0.5 * R1 * R1 * math.sin(alpha))
+            ans = math.floor(a1 + a2)
+
+        return ans
+
+    def overlap(self, vehicle_1_data: list, vehicle_2_data: list) -> float:
+        """
+        Function to compute the normalized overlap area of two interescting circles
+        at every prediction time step
+
+        args:
+            vehicle_1_data: future trajectory information with uncertainity size for vehicle 1, 
+            vehicle_2_data: future trajectory information with uncertainity size for vehicle 2
+        """
+
+        vehicle_1_centers = vehicle_1_data[0]
+        vehicle_1_size = vehicle_1_data[1]
+
+        vehicle_2_centers = vehicle_2_data[0]
+        vehicle_2_size = vehicle_2_data[1]
+
+        overlap = self.intersectionArea(vehicle_1_centers.x, vehicle_1_centers.y, vehicle_1_size,
+                                        vehicle_2_centers.x, vehicle_2_centers.y, vehicle_2_size)
+
+        normalized_overlap = overlap / \
+            (np.pi * (vehicle_1_size**2 + vehicle_2_size**2))
+
+        return normalized_overlap
+
+    def collision_alert(self, env: queue):
+        for first_vehicle, second_vehicle in itertools.combinations(env.info, 2):
+            if self.collision(first_vehicle, second_vehicle):
+                print("collision between", first_vehicle.id,
+                      "and", second_vehicle.id)
 
     def point_on_lane(self, start: List[float], end: List[float], point: List[float]) -> List[float]:
         dx, dy = end[0] - start[0], end[1] - start[1]
